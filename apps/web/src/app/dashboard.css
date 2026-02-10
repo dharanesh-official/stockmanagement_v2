@@ -27,7 +27,7 @@
 @media (max-width: 1024px) {
     .sidebar {
         position: fixed;
-        left: calc(-1 * var(--sidebar-width));
+        left: -260px;
         width: 260px;
         /* Force fixed width when opening on mobile */
         top: 0;
