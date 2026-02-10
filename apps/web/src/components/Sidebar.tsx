@@ -21,10 +21,61 @@ import {
     X
 } from 'lucide-react';
 
-// ... (props interface)
+interface SidebarProps {
+    mobileOpen: boolean;
+    onClose: () => void;
+}
 
 export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
-    // ... (hooks and logic)
+    const pathname = usePathname();
+    const router = useRouter();
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [userName, setUserName] = useState('User');
+
+    useEffect(() => {
+        // Simple JWT decode to get role without external libs
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                setUserRole(payload.role);
+                // Also try to get name if available, otherwise default
+                if (payload.name) setUserName(payload.name);
+                else {
+                    // Fallback visual names based on role
+                    if (payload.role === 'SUPER_ADMIN') setUserName('Vikram Malhotra');
+                    if (payload.role === 'BRAND_ADMIN') setUserName('Rahul Verma');
+                    if (payload.role === 'WAREHOUSE_MANAGER' || payload.role === 'WAREHOUSE') setUserName('Suresh Kumar');
+                    if (payload.role === 'FINANCE_MANAGER') setUserName('Priya Das');
+                }
+            } catch (e) {
+                console.error('Failed to parse token', e);
+            }
+        }
+    }, []);
+
+    // Helper to check active state
+    const isActive = (path: string) => {
+        if (path === '/dashboard' && pathname === '/dashboard') return true;
+        if (path !== '/dashboard' && pathname.startsWith(path)) return true;
+        return false;
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('access_token');
+        router.push('/');
+    };
+
+    // RBAC Configuration
+    const hasAccess = (itemRole: string[]) => {
+        if (!userRole) return false; // meaningful default
+
+        let normalizedRole = userRole;
+        if (userRole === 'WAREHOUSE') normalizedRole = 'WAREHOUSE_MANAGER';
+
+        if (normalizedRole === 'SUPER_ADMIN') return true; // Super admin sees all
+        return itemRole.includes(normalizedRole);
+    };
 
     return (
         <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
