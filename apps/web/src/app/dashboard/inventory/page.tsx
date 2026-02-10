@@ -1,237 +1,482 @@
 'use client';
 
-import { useState } from 'react';
-import {
-    Search,
-    Plus,
-    Filter,
-    Download,
-    MoreHorizontal,
-    Edit2,
-    Trash2,
-    ChevronLeft,
-    ChevronRight,
-    Archive,
-    AlertTriangle
-} from 'lucide-react';
-
-// Data cleared
-const PRODUCTS: any[] = [];
+import { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Package, Search } from 'lucide-react';
+import { api, Product, Brand } from '@/services/api';
 
 export default function InventoryPage() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedBrand, setSelectedBrand] = useState('');
+    const [formData, setFormData] = useState({
+        sku: '',
+        name: '',
+        description: '',
+        brandId: '',
+        basePrice: '',
+        costPrice: '',
+        taxRate: '0',
+        unit: 'pcs',
+        barcode: '',
+        minStockLevel: '10',
+    });
 
-    // Helper to determine stock status color and text
-    const getStockStatus = (stock: number, threshold: number) => {
-        if (stock <= 5) return { color: '#ef4444', label: 'Critical', bg: '#fee2e2' };
-        if (stock <= threshold) return { color: '#f59e0b', label: 'Low Stock', bg: '#fef3c7' };
-        return { color: '#10b981', label: 'In Stock', bg: '#d1fae5' };
-    };
+    useEffect(() => {
+        fetchProducts();
+        fetchBrands();
+    }, [selectedBrand]);
 
-    const getStockPercentage = (stock: number) => {
-        // Just for visual bar length, cap at 100
-        return Math.min(stock, 100);
-    };
+    async function fetchProducts() {
+        try {
+            setLoading(true);
+            const endpoint = selectedBrand ? `/products?brandId=${selectedBrand}` : '/products';
+            const data = await api.get<Product[]>(endpoint);
+            setProducts(data);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch products');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function fetchBrands() {
+        try {
+            const data = await api.get<Brand[]>('/brands');
+            setBrands(data);
+        } catch (err) {
+            console.error('Failed to fetch brands:', err);
+        }
+    }
+
+    async function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        try {
+            const payload = {
+                ...formData,
+                basePrice: parseFloat(formData.basePrice),
+                costPrice: formData.costPrice ? parseFloat(formData.costPrice) : undefined,
+                taxRate: parseFloat(formData.taxRate),
+                minStockLevel: parseInt(formData.minStockLevel),
+            };
+
+            if (editingProduct) {
+                await api.patch(`/products/${editingProduct.id}`, payload);
+            } else {
+                await api.post('/products', payload);
+            }
+            closeModal();
+            fetchProducts();
+        } catch (err: any) {
+            alert(err.message || `Failed to ${editingProduct ? 'update' : 'create'} product`);
+        }
+    }
+
+    function openCreateModal() {
+        setEditingProduct(null);
+        resetForm();
+        setShowModal(true);
+    }
+
+    function openEditModal(product: Product) {
+        setEditingProduct(product);
+        setFormData({
+            sku: product.sku,
+            name: product.name,
+            description: product.description || '',
+            brandId: product.brandId,
+            basePrice: product.basePrice.toString(),
+            costPrice: product.costPrice?.toString() || '',
+            taxRate: product.taxRate.toString(),
+            unit: product.unit,
+            barcode: product.barcode || '',
+            minStockLevel: product.minStockLevel.toString(),
+        });
+        setShowModal(true);
+    }
+
+    function closeModal() {
+        setShowModal(false);
+        setEditingProduct(null);
+        resetForm();
+    }
+
+    async function handleDelete(id: string) {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+
+        try {
+            await api.delete(`/products/${id}`);
+            fetchProducts();
+        } catch (err: any) {
+            alert(err.message || 'Failed to delete product');
+        }
+    }
+
+    function resetForm() {
+        setFormData({
+            sku: '',
+            name: '',
+            description: '',
+            brandId: '',
+            basePrice: '',
+            costPrice: '',
+            taxRate: '0',
+            unit: 'pcs',
+            barcode: '',
+            minStockLevel: '10',
+        });
+    }
+
+    const filteredProducts = products.filter(product =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.sku.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (loading && products.length === 0) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <p style={{ color: '#6b7280' }}>Loading products...</p>
+            </div>
+        );
+    }
 
     return (
         <div>
-            {/* Header Section */}
-            <div className="flex flex-col gap-4 mb-6">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <h1 className="text-h2">Product Management</h1>
-                        <p className="text-gray-500">Centralized control for enterprise inventory across all regions.</p>
-                    </div>
-                    <div className="flex gap-3">
-                        <button className="btn btn-outline">
-                            <Download size={18} style={{ marginRight: '8px' }} />
-                            Export CSV
-                        </button>
-                        <button className="btn btn-primary">
-                            <Plus size={18} style={{ marginRight: '8px' }} />
-                            Add Product
-                        </button>
-                    </div>
+            <div className="section-header">
+                <div>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Inventory Management</h2>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manage products, stock levels, and pricing.</p>
                 </div>
-
-                {/* Filters Toolbar */}
-                <div className="card" style={{ padding: '1rem', display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <div className="flex-1" style={{ position: 'relative', minWidth: '240px' }}>
-                        <Search className="search-icon" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search by SKU, Product Name or Tags..."
-                            className="search-input"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="flex gap-3">
-                        <div className="select-wrapper">
-                            <select className="custom-select" style={{ paddingRight: '2rem' }}>
-                                <option>All Categories</option>
-                                <option>Electronics</option>
-                                <option>Furniture</option>
-                                <option>Apparel</option>
-                            </select>
-                        </div>
-
-                        <div className="select-wrapper">
-                            <select className="custom-select" style={{ paddingRight: '2rem' }}>
-                                <option>All Warehouses</option>
-                                <option>Main Hub</option>
-                                <option>East Wing</option>
-                            </select>
-                        </div>
-
-                        <div className="select-wrapper">
-                            <select className="custom-select" style={{ paddingRight: '2rem' }}>
-                                <option>Stock Status</option>
-                                <option>In Stock</option>
-                                <option>Low Stock</option>
-                                <option>Out of Stock</option>
-                            </select>
-                        </div>
-
-                        <button className="btn btn-outline text-gray-500">
-                            Clear All
-                        </button>
-                    </div>
-                </div>
+                <button className="btn-primary" onClick={openCreateModal}>
+                    <Plus size={16} />
+                    Add Product
+                </button>
             </div>
 
-            {/* Product Table */}
-            <div className="card" style={{ overflow: 'hidden', padding: 0 }}>
-                <div className="table-container" style={{ border: 'none', borderRadius: 0 }}>
-                    <table className="table">
-                        <thead>
+            {error && (
+                <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
+                    {error}
+                </div>
+            )}
+
+            {/* Filters */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1', minWidth: '250px', position: 'relative' }}>
+                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+                    <input
+                        type="text"
+                        placeholder="Search products..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                            border: '1px solid #d1d5db',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem',
+                        }}
+                    />
+                </div>
+                <select
+                    value={selectedBrand}
+                    onChange={(e) => setSelectedBrand(e.target.value)}
+                    className="form-select"
+                    style={{ minWidth: '200px' }}
+                >
+                    <option value="">All Brands</option>
+                    {brands.map(brand => (
+                        <option key={brand.id} value={brand.id}>{brand.name}</option>
+                    ))}
+                </select>
+            </div>
+
+            <div className="table-container">
+                <table className="data-table">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product Name</th>
+                            <th>Brand</th>
+                            <th>Price</th>
+                            <th>Tax Rate</th>
+                            <th>Unit</th>
+                            <th>Min Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredProducts.length === 0 ? (
                             <tr>
-                                <th>SKU</th>
-                                <th>Product Name</th>
-                                <th>Category</th>
-                                <th>Batch / Expiry</th>
-                                <th>Price</th>
-                                <th style={{ width: '200px' }}>Stock Level</th>
-                                <th>Tax</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                                        <Package size={48} color="#e5e7eb" />
+                                        <p>No products found.</p>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {PRODUCTS.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                                            <Archive size={48} color="#e5e7eb" />
-                                            <div>
-                                                <p style={{ fontWeight: 500, color: '#374151' }}>No products found</p>
-                                                <p style={{ fontSize: '0.875rem' }}>Add items to your inventory to get started.</p>
+                        ) : (
+                            filteredProducts.map((product) => (
+                                <tr key={product.id}>
+                                    <td><code>{product.sku}</code></td>
+                                    <td>
+                                        <div>
+                                            <strong>{product.name}</strong>
+                                            {product.description && (
+                                                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '2px' }}>
+                                                    {product.description}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>{product.brand?.name || '-'}</td>
+                                    <td>
+                                        <strong>₹{Number(product.basePrice).toFixed(2)}</strong>
+                                        {product.costPrice && (
+                                            <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                                Cost: ₹{Number(product.costPrice).toFixed(2)}
                                             </div>
+                                        )}
+                                    </td>
+                                    <td>{Number(product.taxRate)}%</td>
+                                    <td>{product.unit}</td>
+                                    <td>{product.minStockLevel}</td>
+                                    <td>
+                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                            <button className="btn-icon" title="Edit" onClick={() => openEditModal(product)}>
+                                                <Edit2 size={16} />
+                                            </button>
+                                            <button className="btn-icon" title="Delete" onClick={() => handleDelete(product.id)}>
+                                                <Trash2 size={16} color="#ef4444" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
-                            ) : (
-                                PRODUCTS.map((product) => {
-                                    const status = getStockStatus(product.stock, product.threshold);
-                                    return (
-                                        <tr key={product.id}>
-                                            <td className="font-semibold text-gray-500 text-xs">{product.sku}</td>
-                                            <td>
-                                                <div className="flex items-center gap-3">
-                                                    <div style={{
-                                                        width: 40, height: 40,
-                                                        borderRadius: 8,
-                                                        background: '#f3f4f6',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        color: '#9ca3af'
-                                                    }}>
-                                                        {/* Placeholder icon based on category logic could go here */}
-                                                        <Archive size={20} />
-                                                    </div>
-                                                    <span className="font-semibold">{product.name}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span style={{
-                                                    display: 'inline-block',
-                                                    padding: '2px 8px',
-                                                    borderRadius: 4,
-                                                    background: '#f3f4f6',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 600,
-                                                    textTransform: 'uppercase',
-                                                    color: '#4b5563'
-                                                }}>
-                                                    {product.category}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                                                    <div><span style={{ fontWeight: 600 }}>B:</span> {product.batchNumber || 'N/A'}</div>
-                                                    <div><span style={{ fontWeight: 600 }}>E:</span> {product.expiryDate || 'N/A'}</div>
-                                                </div>
-                                            </td>
-                                            <td className="font-semibold">₹{product.price?.toFixed(2)}</td>
-                                            <td>
-                                                <div className="flex flex-col gap-1">
-                                                    <div className="flex justify-between text-xs font-semibold">
-                                                        <span style={{ color: status.color === '#ef4444' ? status.color : 'inherit' }}>
-                                                            {status.label === 'Critical' && 'Critical Low'}
-                                                            {status.label === 'Low Stock' && 'Reorder Soon'}
-                                                            {status.label === 'In Stock' && ''}
-                                                        </span>
-                                                        <span className="text-gray-900">{product.stock}</span>
-                                                    </div>
-                                                    <div style={{ height: 6, width: '100%', background: '#f3f4f6', borderRadius: 10, overflow: 'hidden' }}>
-                                                        <div style={{
-                                                            width: `${getStockPercentage(product.stock)}%`,
-                                                            height: '100%',
-                                                            background: status.color,
-                                                            borderRadius: 10
-                                                        }}></div>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="text-gray-500">{product.tax}</td>
-                                            <td>
-                                                <div className="flex justify-end gap-2">
-                                                    <button className="action-btn" title="Edit">
-                                                        <Edit2 size={16} />
-                                                    </button>
-                                                    <button className="action-btn" title="Delete" style={{ color: '#ef4444' }}>
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination (Only show if products exist) */}
-                {PRODUCTS.length > 0 && (
-                    <div className="p-4 border-t border-gray-100 flex justify-between items-center" style={{ backgroundColor: '#fafafa' }}>
-                        <div className="text-sm text-gray-500">
-                            Showing 1-10 of {PRODUCTS.length} products
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <button className="btn btn-outline" style={{ padding: '0.4rem' }} disabled>
-                                <ChevronLeft size={16} />
-                            </button>
-                            <button className="btn btn-primary" style={{ width: 32, height: 32, padding: 0 }}>1</button>
-                            <button className="btn btn-outline" style={{ padding: '0.4rem' }} disabled>
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
-                    </div>
-                )}
+                            ))
+                        )}
+                    </tbody>
+                </table>
             </div>
+
+            {/* Create/Edit Product Modal */}
+            {showModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    overflowY: 'auto',
+                    padding: '2rem',
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderRadius: '12px',
+                        padding: '2rem',
+                        width: '90%',
+                        maxWidth: '600px',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+                        maxHeight: '90vh',
+                        overflowY: 'auto',
+                    }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+                            {editingProduct ? 'Edit Product' : 'Add New Product'}
+                        </h3>
+                        <form onSubmit={handleSubmit}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>SKU *</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.sku}
+                                        onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Brand *</label>
+                                    <select
+                                        required
+                                        value={formData.brandId}
+                                        onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
+                                        className="form-select"
+                                        style={{ width: '100%' }}
+                                    >
+                                        <option value="">Select Brand</option>
+                                        {brands.map(brand => (
+                                            <option key={brand.id} value={brand.id}>{brand.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Product Name *</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '0.875rem',
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ marginTop: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Description</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    rows={2}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '0.875rem',
+                                        resize: 'vertical',
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Base Price *</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        required
+                                        value={formData.basePrice}
+                                        onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Cost Price</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.costPrice}
+                                        onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Tax Rate (%)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={formData.taxRate}
+                                        onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                        }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Unit</label>
+                                    <select
+                                        value={formData.unit}
+                                        onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                                        className="form-select"
+                                        style={{ width: '100%' }}
+                                    >
+                                        <option value="pcs">Pieces</option>
+                                        <option value="kg">Kilograms</option>
+                                        <option value="ltr">Liters</option>
+                                        <option value="box">Box</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Min Stock</label>
+                                    <input
+                                        type="number"
+                                        value={formData.minStockLevel}
+                                        onChange={(e) => setFormData({ ...formData, minStockLevel: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '0.75rem',
+                                            border: '1px solid #d1d5db',
+                                            borderRadius: '8px',
+                                            fontSize: '0.875rem',
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '1rem' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Barcode</label>
+                                <input
+                                    type="text"
+                                    value={formData.barcode}
+                                    onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.75rem',
+                                        border: '1px solid #d1d5db',
+                                        borderRadius: '8px',
+                                        fontSize: '0.875rem',
+                                    }}
+                                />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                                <button type="submit" className="btn-primary" style={{ flex: 1 }}>
+                                    {editingProduct ? 'Update Product' : 'Create Product'}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    style={{ flex: 1 }}
+                                    onClick={closeModal}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

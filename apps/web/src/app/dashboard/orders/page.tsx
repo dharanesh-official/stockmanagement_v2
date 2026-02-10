@@ -1,68 +1,239 @@
-import { ShoppingCart, Filter, Download, MoreHorizontal } from 'lucide-react';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { ShoppingCart, Eye, Filter } from 'lucide-react';
+import { api, Order, Brand } from '@/services/api';
 
 export default function OrdersPage() {
-    const orders: any[] = []; // Data cleared
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedBrand, setSelectedBrand] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
+
+    useEffect(() => {
+        fetchOrders();
+        fetchBrands();
+    }, [selectedBrand, selectedStatus]);
+
+    async function fetchOrders() {
+        try {
+            setLoading(true);
+            let endpoint = '/orders?';
+            if (selectedBrand) endpoint += `brandId=${selectedBrand}&`;
+            if (selectedStatus) endpoint += `status=${selectedStatus}&`;
+
+            const data = await api.get<Order[]>(endpoint);
+            setOrders(data);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch orders');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function fetchBrands() {
+        try {
+            const data = await api.get<Brand[]>('/brands');
+            setBrands(data);
+        } catch (err) {
+            console.error('Failed to fetch brands:', err);
+        }
+    }
+
+    async function updateOrderStatus(orderId: string, newStatus: string) {
+        try {
+            await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+            fetchOrders();
+        } catch (err: any) {
+            alert(err.message || 'Failed to update order status');
+        }
+    }
+
+    function getStatusColor(status: string) {
+        const colors: Record<string, string> = {
+            DRAFT: 'gray',
+            PENDING: 'warning',
+            CONFIRMED: 'info',
+            PACKED: 'info',
+            SHIPPED: 'info',
+            DELIVERED: 'active',
+            CANCELLED: 'cancelled',
+            RETURNED: 'cancelled',
+        };
+        return colors[status] || 'gray';
+    }
+
+    if (loading && orders.length === 0) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                <p style={{ color: '#6b7280' }}>Loading orders...</p>
+            </div>
+        );
+    }
 
     return (
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Order Management</h2>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Orders Management</h2>
                     <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>View and manage customer orders.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="action-btn" style={{ border: '1px solid #e5e7eb', borderRadius: '6px' }}>
-                        <Filter size={16} />
-                    </button>
-                    <button className="btn-primary">
-                        <Download size={16} />
-                        Export
-                    </button>
+            </div>
+
+            {error && (
+                <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
+                    {error}
                 </div>
+            )}
+
+            {/* Filters */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+                <select
+                    value={selectedBrand}
+                    onChange={(e) => setSelectedBrand(e.target.value)}
+                    className="form-select"
+                    style={{ minWidth: '200px' }}
+                >
+                    <option value="">All Brands</option>
+                    {brands.map(brand => (
+                        <option key={brand.id} value={brand.id}>{brand.name}</option>
+                    ))}
+                </select>
+                <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="form-select"
+                    style={{ minWidth: '200px' }}
+                >
+                    <option value="">All Statuses</option>
+                    <option value="DRAFT">Draft</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="CONFIRMED">Confirmed</option>
+                    <option value="PACKED">Packed</option>
+                    <option value="SHIPPED">Shipped</option>
+                    <option value="DELIVERED">Delivered</option>
+                    <option value="CANCELLED">Cancelled</option>
+                    <option value="RETURNED">Returned</option>
+                </select>
             </div>
 
             <div className="table-container">
                 <table className="data-table">
                     <thead>
                         <tr>
-                            <th>Order ID</th>
+                            <th>Order #</th>
                             <th>Customer</th>
-                            <th>Date</th>
+                            <th>Salesperson</th>
                             <th>Status</th>
-                            <th>Items</th>
-                            <th>Total</th>
+                            <th>Total Amount</th>
+                            <th>Tax</th>
+                            <th>Discount</th>
+                            <th>Date</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {orders.length === 0 ? (
                             <tr>
-                                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-                                    No orders found.
+                                <td colSpan={9} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+                                        <ShoppingCart size={48} color="#e5e7eb" />
+                                        <p>No orders found.</p>
+                                    </div>
                                 </td>
                             </tr>
                         ) : (
-                            orders.map(order => (
+                            orders.map((order) => (
                                 <tr key={order.id}>
-                                    <td style={{ fontWeight: 500, fontFamily: 'monospace' }}>{order.id}</td>
-                                    <td>{order.customer}</td>
-                                    <td style={{ color: '#6b7280' }}>{order.date}</td>
                                     <td>
-                                        <span className={`status-badge ${order.status === 'Delivered' ? 'status-active' :
-                                                order.status === 'Shipped' ? 'status-active' :
-                                                    order.status === 'Processing' ? 'status-warning' : 'status-pending'
-                                            }`}>
-                                            {order.status}
-                                        </span>
+                                        <code style={{ fontWeight: 'bold' }}>{order.orderNumber}</code>
                                     </td>
-                                    <td>{order.items}</td>
-                                    <td style={{ fontWeight: 500 }}>{order.amount}</td>
-                                    <td><button className="action-btn"><MoreHorizontal size={16} /></button></td>
+                                    <td>
+                                        <div>
+                                            <strong>{order.customer?.fullName}</strong>
+                                            {order.customer?.phoneNumber && (
+                                                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                                                    {order.customer.phoneNumber}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>{order.salesPerson?.fullName || '-'}</td>
+                                    <td>
+                                        <select
+                                            value={order.status}
+                                            onChange={(e) => updateOrderStatus(order.id, e.target.value)}
+                                            className={`status-badge status-${getStatusColor(order.status)}`}
+                                            style={{
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                fontSize: '0.75rem',
+                                                fontWeight: '600',
+                                            }}
+                                        >
+                                            <option value="DRAFT">DRAFT</option>
+                                            <option value="PENDING">PENDING</option>
+                                            <option value="CONFIRMED">CONFIRMED</option>
+                                            <option value="PACKED">PACKED</option>
+                                            <option value="SHIPPED">SHIPPED</option>
+                                            <option value="DELIVERED">DELIVERED</option>
+                                            <option value="CANCELLED">CANCELLED</option>
+                                            <option value="RETURNED">RETURNED</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <strong>₹{Number(order.totalAmount).toFixed(2)}</strong>
+                                    </td>
+                                    <td>₹{Number(order.taxAmount).toFixed(2)}</td>
+                                    <td>₹{Number(order.discountAmount).toFixed(2)}</td>
+                                    <td>{new Date(order.createdAt).toLocaleDateString()}</td>
+                                    <td>
+                                        <button className="btn-icon" title="View Details">
+                                            <Eye size={16} />
+                                        </button>
+                                    </td>
                                 </tr>
-                            )))}
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
+
+            {/* Order Statistics */}
+            {orders.length > 0 && (
+                <div style={{
+                    marginTop: '2rem',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '1rem'
+                }}>
+                    <div className="card" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Total Orders</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#059669' }}>{orders.length}</div>
+                    </div>
+                    <div className="card" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Total Revenue</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#059669' }}>
+                            ₹{orders.reduce((sum, order) => sum + Number(order.totalAmount), 0).toFixed(2)}
+                        </div>
+                    </div>
+                    <div className="card" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Pending Orders</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>
+                            {orders.filter(o => o.status === 'PENDING').length}
+                        </div>
+                    </div>
+                    <div className="card" style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Delivered</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>
+                            {orders.filter(o => o.status === 'DELIVERED').length}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

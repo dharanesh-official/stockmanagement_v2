@@ -23,13 +23,6 @@ export default function DashboardLayout({
                 <div
                     className="sidebar-backdrop"
                     onClick={closeSidebar}
-                    style={{
-                        position: 'fixed',
-                        inset: 0,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        zIndex: 90,
-                        backdropFilter: 'blur(4px)'
-                    }}
                 />
             )}
 

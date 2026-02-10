@@ -38,6 +38,14 @@
         left: 0;
         box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
     }
+
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 90;
+        backdrop-filter: blur(4px);
+    }
 }
 
 .sidebar-header {

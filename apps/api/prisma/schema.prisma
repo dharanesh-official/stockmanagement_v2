@@ -54,10 +54,28 @@ model Brand {
   updatedAt   DateTime    @updatedAt
 
   users       User[]
+  assignedToUsers User[] @relation("AssignedBrands")
   products    Product[]
   warehouses  Warehouse[]
   customers   Customer[]
   orders      Order[]
+  shops       Shop[]
+}
+
+model Shop {
+  id          String   @id @default(uuid())
+  name        String
+  address     String?
+  phoneNumber String?
+  email       String?
+  managerName String?
+  
+  brands      Brand[]
+  assignedUsers User[]
+  orders      Order[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model User {
@@ -73,7 +91,11 @@ model User {
   brand         Brand?    @relation(fields: [brandId], references: [id])
 
   assignedWarehouseId String?
-  assignedWarehouse   Warehouse? @relation(fields: [assignedWarehouseId], references: [id])
+  assignedWarehouse   Warehouse? @relation("DefaultWarehouse", fields: [assignedWarehouseId], references: [id])
+  
+  assignedShops       Shop[]
+  assignedBrands      Brand[]    @relation("AssignedBrands")
+  assignedWarehouses  Warehouse[] @relation("AssignedWarehouses")
 
   auditLogs     AuditLog[]
   salesOrders   Order[]   @relation("SalesPerson")
@@ -125,8 +147,10 @@ model Warehouse {
   brandId     String
   brand       Brand    @relation(fields: [brandId], references: [id])
   
-  managers    User[]
+  managers    User[]   @relation("DefaultWarehouse")
+  assignedUsers User[] @relation("AssignedWarehouses")
   stocks      Stock[]
+  orders      Order[]
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -181,6 +205,12 @@ model Order {
   salesPersonId   String
   salesPerson     User        @relation("SalesPerson", fields: [salesPersonId], references: [id])
 
+  shopId          String?
+  shop            Shop?       @relation(fields: [shopId], references: [id])
+  
+  warehouseId     String?
+  warehouse       Warehouse?  @relation(fields: [warehouseId], references: [id])
+
   status          OrderStatus @default(PENDING)
   totalAmount     Decimal     @db.Decimal(10, 2)
   taxAmount       Decimal     @db.Decimal(10, 2)
@@ -190,6 +220,35 @@ model Order {
   
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  
+  invoice         Invoice?
+}
+
+model Invoice {
+  id              String      @id @default(uuid())
+  invoiceNumber   String      @unique
+  
+  orderId         String      @unique
+  order           Order       @relation(fields: [orderId], references: [id])
+  
+  amount          Decimal     @db.Decimal(10, 2)
+  status          InvoiceStatus @default(UNPAID)
+  
+  issuedAt        DateTime    @default(now())
+  dueDate         DateTime?
+  
+  pdfUrl          String?
+  
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  OVERDUE
+  CANCELLED
 }
 
 model OrderItem {

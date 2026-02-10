@@ -15,7 +15,9 @@ import {
     Box,
     LogOut,
     Globe,
-    DollarSign
+    DollarSign,
+    Store,
+    FileText
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -97,10 +99,24 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                     </Link>
                 )}
 
-                {hasAccess(['SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER', 'SALES_PERSON']) && (
+                {hasAccess(['SALES_PERSON']) && (
+                    <Link href="/dashboard/my-shops" onClick={onClose} className={`nav-item ${isActive('/dashboard/my-shops') ? 'active' : ''}`}>
+                        <Store className="nav-icon" />
+                        <span>My Shops</span>
+                    </Link>
+                )}
+
+                {hasAccess(['SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER']) && (
                     <Link href="/dashboard/inventory" onClick={onClose} className={`nav-item ${isActive('/dashboard/inventory') ? 'active' : ''}`}>
                         <Package className="nav-icon" />
                         <span>Inventory</span>
+                    </Link>
+                )}
+
+                {hasAccess(['SUPER_ADMIN', 'WAREHOUSE_MANAGER']) && (
+                    <Link href="/dashboard/stock" onClick={onClose} className={`nav-item ${isActive('/dashboard/stock') ? 'active' : ''}`}>
+                        <Box className="nav-icon" />
+                        <span>Stock Management</span>
                     </Link>
                 )}
 
@@ -108,6 +124,20 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                     <Link href="/dashboard/orders" onClick={onClose} className={`nav-item ${isActive('/dashboard/orders') ? 'active' : ''}`}>
                         <ShoppingCart className="nav-icon" />
                         <span>Orders</span>
+                    </Link>
+                )}
+
+                {hasAccess(['SUPER_ADMIN', 'BRAND_ADMIN', 'SALES_PERSON', 'FINANCE_MANAGER']) && (
+                    <Link href="/dashboard/invoices" onClick={onClose} className={`nav-item ${isActive('/dashboard/invoices') ? 'active' : ''}`}>
+                        <FileText className="nav-icon" />
+                        <span>Invoices</span>
+                    </Link>
+                )}
+
+                {hasAccess(['SUPER_ADMIN', 'BRAND_ADMIN', 'SALES_PERSON']) && (
+                    <Link href="/dashboard/customers" onClick={onClose} className={`nav-item ${isActive('/dashboard/customers') ? 'active' : ''}`}>
+                        <Users className="nav-icon" />
+                        <span>Customers</span>
                     </Link>
                 )}
 
@@ -131,6 +161,13 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                     <Link href="/dashboard/warehouses" onClick={onClose} className={`nav-item ${isActive('/dashboard/warehouses') ? 'active' : ''}`}>
                         <Truck className="nav-icon" />
                         <span>Warehouses</span>
+                    </Link>
+                )}
+
+                {hasAccess(['SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER']) && (
+                    <Link href="/dashboard/shops" onClick={onClose} className={`nav-item ${isActive('/dashboard/shops') ? 'active' : ''}`}>
+                        <Store className="nav-icon" />
+                        <span>Shops</span>
                     </Link>
                 )}
 
