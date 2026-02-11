@@ -12,12 +12,19 @@ export default async function handler(req, res) {
     app.use(helmet());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     app.enableCors({
-      origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+      origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'https://stockmanager-client.vercel.app'],
       credentials: true,
     });
     await app.init();
     cachedApp = app.getHttpAdapter().getInstance();
   }
+
+  // Basic root path check to confirm API is alive
+  if (req.url === '/' || req.url === '/api') {
+    res.status(200).json({ status: 'API is running', version: '1.0.0' });
+    return;
+  }
+
   return cachedApp(req, res);
 }
 
@@ -29,7 +36,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'https://stockmanager-client.vercel.app'],
     credentials: true,
   });
 
