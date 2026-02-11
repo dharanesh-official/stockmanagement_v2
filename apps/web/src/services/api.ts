@@ -1,6 +1,6 @@
 // API Service for making authenticated requests to the backend
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/$/, '');
 
 class ApiService {
     private getToken(): string | null {
@@ -26,8 +26,9 @@ class ApiService {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
+        const url = `${API_BASE_URL}/${endpoint.replace(/^\//, '')}`;
         try {
-            const response = await fetch(`${API_URL}${endpoint}`, {
+            const response = await fetch(url, {
                 ...options,
                 headers,
             });
