@@ -16,14 +16,20 @@ export class AuthService {
         console.log(`🔐 Login attempt for: ${email}`);
         const user = await this.prisma.user.findUnique({ where: { email } });
 
-        if (!user) return null;
+        if (!user) {
+            console.log(`❌ User not found: ${email}`);
+            return null;
+        }
 
         // SECURITY: Argon2 Verify
         const isMatch = await argon2.verify(user.passwordHash, pass);
         if (isMatch) {
+            console.log(`✅ Login successful for: ${email}`);
             const { passwordHash, ...result } = user;
             return result;
         }
+
+        console.log(`❌ Password mismatch for: ${email}`);
         return null;
     }
 
