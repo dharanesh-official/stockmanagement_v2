@@ -102,98 +102,61 @@ export default function DashboardPage() {
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Dashboard Overview</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Welcome back! Here's what's happening with your inventory.</p>
+                    <h2 className="text-h2">Dashboard Overview</h2>
+                    <p className="text-sm text-gray-500">Welcome back! Here's what's happening with your inventory.</p>
                 </div>
             </div>
 
             {/* Stats Grid */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                gap: '1.5rem',
-                marginBottom: '2rem',
-            }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Total Products */}
-                <div className="card" style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    color: 'white',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="card" style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: 'white' }}>
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p style={{ opacity: 0.9, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Total Products</p>
-                            <h3 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{stats.totalProducts}</h3>
+                            <p className="text-xs font-semibold mb-2" style={{ opacity: 0.9 }}>Total Products</p>
+                            <h3 className="text-h1 m-0" style={{ color: 'white' }}>{stats.totalProducts}</h3>
                         </div>
-                        <div style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                        }}>
+                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: '0.75rem', borderRadius: '12px' }}>
                             <Package size={24} />
                         </div>
                     </div>
                 </div>
 
                 {/* Total Orders */}
-                <div className="card" style={{
-                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                    color: 'white',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="card" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)', color: 'white' }}>
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p style={{ opacity: 0.9, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Total Orders</p>
-                            <h3 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{stats.totalOrders}</h3>
-                            <p style={{ opacity: 0.8, fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                                {stats.pendingOrders} pending
-                            </p>
+                            <p className="text-xs font-semibold mb-2" style={{ opacity: 0.9 }}>Total Orders</p>
+                            <h3 className="text-h1 m-0" style={{ color: 'white' }}>{stats.totalOrders}</h3>
+                            <p className="text-xs mt-1" style={{ opacity: 0.8 }}>{stats.pendingOrders} pending</p>
                         </div>
-                        <div style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                        }}>
+                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: '0.75rem', borderRadius: '12px' }}>
                             <ShoppingCart size={24} />
                         </div>
                     </div>
                 </div>
 
                 {/* Total Revenue */}
-                <div className="card" style={{
-                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                    color: 'white',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="card" style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: 'white' }}>
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p style={{ opacity: 0.9, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Total Revenue</p>
-                            <h3 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>
-                                ₹{stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                            </h3>
+                            <p className="text-xs font-semibold mb-2" style={{ opacity: 0.9 }}>Total Revenue</p>
+                            <h3 className="text-h1 m-0" style={{ color: 'white' }}>₹{stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
                         </div>
-                        <div style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                        }}>
+                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: '0.75rem', borderRadius: '12px' }}>
                             <DollarSign size={24} />
                         </div>
                     </div>
                 </div>
 
                 {/* Total Customers */}
-                <div className="card" style={{
-                    background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                    color: 'white',
-                }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div className="card" style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', color: 'white' }}>
+                    <div className="flex justify-between items-start">
                         <div>
-                            <p style={{ opacity: 0.9, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Total Customers</p>
-                            <h3 style={{ fontSize: '2rem', fontWeight: 'bold', margin: 0 }}>{stats.totalCustomers}</h3>
+                            <p className="text-xs font-semibold mb-2" style={{ opacity: 0.9 }}>Total Customers</p>
+                            <h3 className="text-h1 m-0" style={{ color: 'white' }}>{stats.totalCustomers}</h3>
                         </div>
-                        <div style={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                            padding: '0.75rem',
-                            borderRadius: '12px',
-                        }}>
+                        <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: '0.75rem', borderRadius: '12px' }}>
                             <Users size={24} />
                         </div>
                     </div>
@@ -201,28 +164,23 @@ export default function DashboardPage() {
             </div>
 
             {/* Secondary Stats */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-                marginBottom: '2rem',
-            }}>
-                <div className="card" style={{ textAlign: 'center' }}>
-                    <Warehouse size={32} color="#6b7280" style={{ margin: '0 auto 0.5rem' }} />
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#059669' }}>{stats.totalWarehouses}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Warehouses</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="card flex flex-col items-center justify-center text-center p-6">
+                    <Warehouse size={32} className="text-gray-500 mb-2" />
+                    <div className="text-h2 text-success">{stats.totalWarehouses}</div>
+                    <div className="text-sm text-gray-500">Warehouses</div>
                 </div>
 
-                <div className="card" style={{ textAlign: 'center' }}>
-                    <TrendingUp size={32} color="#6b7280" style={{ margin: '0 auto 0.5rem' }} />
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f59e0b' }}>{stats.pendingOrders}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Pending Orders</div>
+                <div className="card flex flex-col items-center justify-center text-center p-6">
+                    <TrendingUp size={32} className="text-gray-500 mb-2" />
+                    <div className="text-h2 text-warning">{stats.pendingOrders}</div>
+                    <div className="text-sm text-gray-500">Pending Orders</div>
                 </div>
 
-                <div className="card" style={{ textAlign: 'center' }}>
-                    <AlertTriangle size={32} color="#6b7280" style={{ margin: '0 auto 0.5rem' }} />
-                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#ef4444' }}>{stats.lowStockItems}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Low Stock Alerts</div>
+                <div className="card flex flex-col items-center justify-center text-center p-6">
+                    <AlertTriangle size={32} className="text-gray-500 mb-2" />
+                    <div className="text-h2 text-danger">{stats.lowStockItems}</div>
+                    <div className="text-sm text-gray-500">Low Stock Alerts</div>
                 </div>
             </div>
 
@@ -270,58 +228,33 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick Actions */}
-            <div style={{
-                marginTop: '2rem',
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                gap: '1rem',
-            }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
                 {userRole === 'SALES_PERSON' && (
-                    <button
-                        className="btn-primary"
-                        onClick={() => window.location.href = '/dashboard/my-shops'}
-                        style={{ padding: '1rem', justifyContent: 'center' }}
-                    >
+                    <button className="btn-primary w-full" onClick={() => window.location.href = '/dashboard/my-shops'}>
                         <Store size={18} />
                         My Shops (Take Order)
                     </button>
                 )}
 
                 {userRole !== 'SALES_PERSON' && (
-                    <button
-                        className="btn-primary"
-                        onClick={() => window.location.href = '/dashboard/inventory'}
-                        style={{ padding: '1rem', justifyContent: 'center' }}
-                    >
+                    <button className="btn-primary w-full" onClick={() => window.location.href = '/dashboard/inventory'}>
                         <Package size={18} />
                         Manage Inventory
                     </button>
                 )}
 
-                <button
-                    className="btn-secondary"
-                    onClick={() => window.location.href = '/dashboard/orders'}
-                    style={{ padding: '1rem', justifyContent: 'center' }}
-                >
+                <button className="btn-secondary w-full" onClick={() => window.location.href = '/dashboard/orders'}>
                     <ShoppingCart size={18} />
                     View Orders
                 </button>
 
                 {userRole !== 'SALES_PERSON' && (
                     <>
-                        <button
-                            className="btn-secondary"
-                            onClick={() => window.location.href = '/dashboard/stock'}
-                            style={{ padding: '1rem', justifyContent: 'center' }}
-                        >
+                        <button className="btn-secondary w-full" onClick={() => window.location.href = '/dashboard/stock'}>
                             <Warehouse size={18} />
                             Stock Management
                         </button>
-                        <button
-                            className="btn-secondary"
-                            onClick={() => window.location.href = '/dashboard/customers'}
-                            style={{ padding: '1rem', justifyContent: 'center' }}
-                        >
+                        <button className="btn-secondary w-full" onClick={() => window.location.href = '/dashboard/customers'}>
                             <Users size={18} />
                             Manage Customers
                         </button>

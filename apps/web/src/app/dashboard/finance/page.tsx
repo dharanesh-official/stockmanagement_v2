@@ -51,41 +51,42 @@ export default function FinancePage() {
 
             </div>
 
-            <div className="flex gap-6 mt-8">
+            <div className="flex flex-col lg:flex-row gap-6 mt-8">
                 {/* Recent Invoices */}
-                <div className="table-container" style={{ flex: 2 }}>
-                    <div style={{ padding: '1rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontWeight: 600 }}>Recent Invoices</h3>
+                <div className="table-container flex-1" style={{ minWidth: '0' }}>
+                    <div className="p-4 flex justify-between items-center" style={{ borderBottom: '1px solid #e5e7eb' }}>
+                        <h3 className="font-semibold">Recent Invoices</h3>
                         <button className="text-sm text-blue-600">View All</button>
                     </div>
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Invoice #</th>
-                                <th>Date</th>
-                                <th>Client</th>
-                                <th>Amount</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
-                                    No recent invoices.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div className="overflow-x-auto">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Date</th>
+                                    <th>Client</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colSpan={5} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                                        No recent invoices.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {/* Quick Actions / Settlements */}
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div className="flex-none lg:w-80 flex flex-col gap-6">
                     <div className="card">
                         <h3 className="text-h3 mb-4">Credit Notes</h3>
                         <p className="text-gray-500 text-sm mb-4">Issue refunds or adjustments for returned stock.</p>
-                        <button className="btn btn-outline" style={{ width: '100%' }}>Issue Credit Note</button>
+                        <button className="btn btn-outline w-full">Issue Credit Note</button>
                     </div>
-
                 </div>
             </div>
         </div>

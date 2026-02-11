@@ -145,8 +145,8 @@ export default function InventoryPage() {
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Inventory Management</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manage products, stock levels, and pricing.</p>
+                    <h2 className="text-h2">Inventory Management</h2>
+                    <p className="text-sm text-gray-500">Manage products, stock levels, and pricing.</p>
                 </div>
                 <button className="btn-primary" onClick={openCreateModal}>
                     <Plus size={16} />
@@ -155,34 +155,28 @@ export default function InventoryPage() {
             </div>
 
             {error && (
-                <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
+                <div className="p-4 mb-4" style={{ backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px' }}>
                     {error}
                 </div>
             )}
 
             {/* Filters */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1', minWidth: '250px', position: 'relative' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="relative">
                     <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
                     <input
                         type="text"
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            fontSize: '0.875rem',
-                        }}
+                        className="form-input"
+                        style={{ paddingLeft: '2.5rem' }}
                     />
                 </div>
                 <select
                     value={selectedBrand}
                     onChange={(e) => setSelectedBrand(e.target.value)}
                     className="form-select"
-                    style={{ minWidth: '200px' }}
                 >
                     <option value="">All Brands</option>
                     {brands.map(brand => (

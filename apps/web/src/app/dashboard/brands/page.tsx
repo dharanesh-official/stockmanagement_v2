@@ -98,8 +98,8 @@ export default function BrandsPage() {
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Brand Management</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manage tenant brands and their configurations.</p>
+                    <h2 className="text-h2">Brand Management</h2>
+                    <p className="text-sm text-gray-500">Manage tenant brands and their configurations.</p>
                 </div>
                 <button className="btn-primary" onClick={openCreateModal}>
                     <Plus size={16} />
@@ -108,7 +108,7 @@ export default function BrandsPage() {
             </div>
 
             {error && (
-                <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
+                <div className="p-4 mb-4" style={{ backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px' }}>
                     {error}
                 </div>
             )}

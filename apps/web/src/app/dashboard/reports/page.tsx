@@ -5,11 +5,11 @@ export default function ReportsPage() {
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Financial Reports</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>View earnings, expenses, and inventory value.</p>
+                    <h2 className="text-h2">Financial Reports</h2>
+                    <p className="text-sm text-gray-500">View earnings, expenses, and inventory value.</p>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="action-btn" style={{ border: '1px solid #e5e7eb', borderRadius: '6px' }}>
+                <div className="flex gap-2">
+                    <button className="btn-secondary btn-icon">
                         <Filter size={16} />
                     </button>
                     <button className="btn-primary">
@@ -19,7 +19,7 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            <div className="stats-grid">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div className="stat-card">
                     <div className="stat-header">
                         <div className="stat-icon" style={{ backgroundColor: '#ecfdf5', color: '#059669' }}>
@@ -28,9 +28,7 @@ export default function ReportsPage() {
                     </div>
                     <div className="stat-value">₹0</div>
                     <div className="stat-label">Total Inventory Value</div>
-                    <div className="stat-trend trend-up">
-                        --
-                    </div>
+                    <div className="stat-trend trend-up">--</div>
                 </div>
 
                 <div className="stat-card">
@@ -41,9 +39,7 @@ export default function ReportsPage() {
                     </div>
                     <div className="stat-value">₹0</div>
                     <div className="stat-label">Monthly Revenue</div>
-                    <div className="stat-trend trend-up">
-                        --
-                    </div>
+                    <div className="stat-trend trend-up">--</div>
                 </div>
 
                 <div className="stat-card">
@@ -54,9 +50,7 @@ export default function ReportsPage() {
                     </div>
                     <div className="stat-value">0</div>
                     <div className="stat-label">Units Sold</div>
-                    <div className="stat-trend trend-down">
-                        --
-                    </div>
+                    <div className="stat-trend trend-down">--</div>
                 </div>
             </div>
 

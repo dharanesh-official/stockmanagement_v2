@@ -47,7 +47,7 @@ export default function MyShopsPage() {
             <div className="section-header">
                 <div>
                     <h2 className="text-h2">My Assigned Shops</h2>
-                    <p style={{ color: '#6b7280' }}>Select a shop to view supplied brands and place orders.</p>
+                    <p className="text-sm text-gray-500">Select a shop to view supplied brands and place orders.</p>
                 </div>
             </div>
 
@@ -57,7 +57,7 @@ export default function MyShopsPage() {
                     <p>No shops assigned to you yet.</p>
                 </div>
             ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {shops.map(shop => (
                         <Link
                             key={shop.id}
