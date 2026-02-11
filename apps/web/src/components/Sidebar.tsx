@@ -189,7 +189,7 @@ export default function Sidebar({ mobileOpen, onClose }: SidebarProps) {
                 {hasAccess(['FINANCE_MANAGER']) && (
                     <Link href="/dashboard/finance" onClick={onClose} className={`nav-item ${isActive('/dashboard/finance') ? 'active' : ''}`}>
                         <DollarSign className="nav-icon" />
-                        <span>Finance & Tax</span>
+                        <span>Finance</span>
                     </Link>
                 )}
 
