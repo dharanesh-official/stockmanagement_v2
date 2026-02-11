@@ -11,8 +11,12 @@ export default async function handler(req, res) {
     const app = await NestFactory.create(AppModule);
     app.use(helmet());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    const origins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+    const defaultOrigins = ['http://localhost:3000', 'https://stockmanager-client.vercel.app'];
+    const finalOrigins = [...new Set([...origins, ...defaultOrigins])];
+
     app.enableCors({
-      origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'https://stockmanager-client.vercel.app'],
+      origin: finalOrigins,
       credentials: true,
     });
     await app.init();
@@ -35,8 +39,12 @@ async function bootstrap() {
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
+  const origins = process.env.ALLOWED_ORIGINS?.split(',') || [];
+  const defaultOrigins = ['http://localhost:3000', 'https://stockmanager-client.vercel.app'];
+  const finalOrigins = [...new Set([...origins, ...defaultOrigins])];
+
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'https://stockmanager-client.vercel.app'],
+    origin: finalOrigins,
     credentials: true,
   });
 
