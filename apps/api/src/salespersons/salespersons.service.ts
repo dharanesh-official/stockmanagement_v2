@@ -191,4 +191,20 @@ export class SalespersonsService {
 
     return order;
   }
+
+  async getShopBrandsDirectly(shopId: string) {
+    const shop = await this.prisma.shop.findUnique({
+      where: { id: shopId },
+      include: { brands: true }
+    });
+    return shop?.brands || [];
+  }
+
+  async getAllShops() {
+    return this.prisma.shop.findMany({
+      include: {
+        _count: { select: { brands: true } }
+      }
+    });
+  }
 }

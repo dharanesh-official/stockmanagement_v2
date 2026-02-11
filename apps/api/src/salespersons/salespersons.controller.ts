@@ -7,17 +7,23 @@ import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('salespersons')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('SALES_PERSON')
+@Roles('SALES_PERSON', 'SUPER_ADMIN', 'BRAND_ADMIN')
 export class SalespersonsController {
   constructor(private readonly salespersonsService: SalespersonsService) { }
 
   @Get('assigned-shops')
   getAssignedShops(@Req() req) {
+    if (req.user.role === 'SUPER_ADMIN') {
+      return this.salespersonsService.getAllShops();
+    }
     return this.salespersonsService.getAssignedShops(req.user.sub);
   }
 
   @Get('shops/:shopId/brands')
   getShopBrands(@Req() req, @Param('shopId') shopId: string) {
+    if (req.user.role === 'SUPER_ADMIN') {
+      return this.salespersonsService.getShopBrandsDirectly(shopId);
+    }
     return this.salespersonsService.getShopBrands(req.user.sub, shopId);
   }
 

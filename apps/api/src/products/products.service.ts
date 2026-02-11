@@ -39,7 +39,7 @@ export class ProductsService {
   }
 
   async findAll(brandId?: string) {
-    const where = brandId ? { brandId } : {};
+    const where = (brandId && brandId !== 'null' && brandId !== 'undefined' && brandId !== '') ? { brandId } : {};
 
     return await this.prisma.product.findMany({
       where,
