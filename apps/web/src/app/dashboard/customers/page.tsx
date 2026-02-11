@@ -110,8 +110,8 @@ export default function CustomersPage() {
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Customer Management</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manage customer information and purchase history.</p>
+                    <h2 className="text-h2">Customer Management</h2>
+                    <p className="text-sm text-gray-500">Manage customer information and purchase history.</p>
                 </div>
                 <button className="btn-primary" onClick={openCreateModal}>
                     <Plus size={16} />
@@ -125,12 +125,11 @@ export default function CustomersPage() {
                 </div>
             )}
 
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                 <select
                     value={selectedBrand}
                     onChange={(e) => setSelectedBrand(e.target.value)}
                     className="form-select"
-                    style={{ minWidth: '200px' }}
                 >
                     <option value="">All Brands</option>
                     {brands.map(brand => (
@@ -188,9 +187,9 @@ export default function CustomersPage() {
                                             {!customer.phoneNumber && !customer.email && '-'}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td className="wrap">
                                         {customer.address ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                                            <div className="flex items-center gap-1 text-sm text-gray-500">
                                                 <MapPin size={12} />
                                                 <span>{customer.address}</span>
                                             </div>
@@ -231,102 +230,61 @@ export default function CustomersPage() {
 
             {/* Create/Edit Customer Modal */}
             {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        width: '90%',
-                        maxWidth: '500px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                    }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+                <div className="modal-overlay">
+                    <div className="modal-content">
+                        <h3 className="text-h3 mb-6">
                             {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
                         </h3>
                         <form onSubmit={handleSubmit}>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Full Name *</label>
+                            <div className="form-group">
+                                <label className="form-label">Full Name *</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.fullName}
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '1rem',
-                                    }}
+                                    className="form-input"
                                 />
                             </div>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Phone Number</label>
-                                <input
-                                    type="tel"
-                                    value={formData.phoneNumber}
-                                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                                    placeholder="+91 98765 43210"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '1rem',
-                                    }}
-                                />
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Phone Number</label>
+                                    <input
+                                        type="tel"
+                                        value={formData.phoneNumber}
+                                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                                        placeholder="+91 98765 43210"
+                                        className="form-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Email</label>
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        placeholder="customer@example.com"
+                                        className="form-input"
+                                    />
+                                </div>
                             </div>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Email</label>
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    placeholder="customer@example.com"
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '1rem',
-                                    }}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Address</label>
+                            <div className="form-group">
+                                <label className="form-label">Address</label>
                                 <textarea
                                     value={formData.address}
                                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                     rows={2}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '1rem',
-                                        resize: 'vertical',
-                                    }}
+                                    className="form-textarea"
+                                    style={{ resize: 'vertical' }}
                                 />
                             </div>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Brand *</label>
+                            <div className="form-group">
+                                <label className="form-label">Brand *</label>
                                 <select
                                     required
                                     value={formData.brandId}
                                     onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
                                     className="form-select"
-                                    style={{ width: '100%' }}
                                 >
                                     <option value="">Select Brand</option>
                                     {brands.map(brand => (
@@ -334,17 +292,12 @@ export default function CustomersPage() {
                                     ))}
                                 </select>
                             </div>
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                            <div className="modal-actions">
+                                <button type="button" className="btn-secondary" onClick={closeModal}>
+                                    Cancel
+                                </button>
                                 <button type="submit" className="btn-primary" style={{ flex: 1 }}>
                                     {editingCustomer ? 'Update Customer' : 'Create Customer'}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    style={{ flex: 1 }}
-                                    onClick={closeModal}
-                                >
-                                    Cancel
                                 </button>
                             </div>
                         </form>

@@ -68,7 +68,7 @@ export default function InvoicesPage() {
             <div className="section-header">
                 <div>
                     <h2 className="text-h2">Invoices</h2>
-                    <p style={{ color: '#6b7280' }}>Manage and view all generated invoices.</p>
+                    <p className="text-sm text-gray-500">Manage and view all generated invoices.</p>
                 </div>
             </div>
 
@@ -95,9 +95,9 @@ export default function InvoicesPage() {
                         ) : (
                             invoices.map(invoice => (
                                 <tr key={invoice.id}>
-                                    <td style={{ fontWeight: 600 }}>{invoice.invoiceNumber}</td>
+                                    <td style={{ fontWeight: 600 }}><code>{invoice.invoiceNumber}</code></td>
                                     <td>{new Date(invoice.issuedAt).toLocaleDateString()}</td>
-                                    <td>
+                                    <td className="wrap">
                                         <div>
                                             <div style={{ fontWeight: 500 }}>{invoice.order.customer?.fullName || 'Unknown Customer'}</div>
                                             {invoice.order.shop && <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{invoice.order.shop.name}</div>}
@@ -107,7 +107,7 @@ export default function InvoicesPage() {
                                     <td style={{ fontWeight: 600 }}>₹{Number(invoice.amount).toFixed(2)}</td>
                                     <td>{getStatusBadge(invoice.status)}</td>
                                     <td>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <div className="flex gap-2">
                                             <button
                                                 className="btn-icon"
                                                 title="View details"

@@ -78,24 +78,23 @@ export default function OrdersPage() {
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Orders Management</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>View and manage customer orders.</p>
+                    <h2 className="text-h2">Orders Management</h2>
+                    <p className="text-sm text-gray-500">View and manage customer orders.</p>
                 </div>
             </div>
 
             {error && (
-                <div style={{ padding: '1rem', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', marginBottom: '1rem' }}>
+                <div className="p-4 bg-danger-bg text-danger rounded-lg mb-4">
                     {error}
                 </div>
             )}
 
             {/* Filters */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <select
                     value={selectedBrand}
                     onChange={(e) => setSelectedBrand(e.target.value)}
                     className="form-select"
-                    style={{ minWidth: '200px' }}
                 >
                     <option value="">All Brands</option>
                     {brands.map(brand => (
@@ -106,7 +105,6 @@ export default function OrdersPage() {
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
                     className="form-select"
-                    style={{ minWidth: '200px' }}
                 >
                     <option value="">All Statuses</option>
                     <option value="DRAFT">Draft</option>
@@ -202,31 +200,26 @@ export default function OrdersPage() {
 
             {/* Order Statistics */}
             {orders.length > 0 && (
-                <div style={{
-                    marginTop: '2rem',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '1rem'
-                }}>
-                    <div className="card" style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Total Orders</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#059669' }}>{orders.length}</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+                    <div className="card flex flex-col items-center justify-center p-6 text-center">
+                        <div className="text-sm text-gray-500 mb-2">Total Orders</div>
+                        <div className="text-h2 text-success">{orders.length}</div>
                     </div>
-                    <div className="card" style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Total Revenue</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#059669' }}>
+                    <div className="card flex flex-col items-center justify-center p-6 text-center">
+                        <div className="text-sm text-gray-500 mb-2">Total Revenue</div>
+                        <div className="text-h2 text-success">
                             ₹{orders.reduce((sum, order) => sum + Number(order.totalAmount), 0).toFixed(2)}
                         </div>
                     </div>
-                    <div className="card" style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Pending Orders</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#f59e0b' }}>
+                    <div className="card flex flex-col items-center justify-center p-6 text-center">
+                        <div className="text-sm text-gray-500 mb-2">Pending Orders</div>
+                        <div className="text-h2 text-warning">
                             {orders.filter(o => o.status === 'PENDING').length}
                         </div>
                     </div>
-                    <div className="card" style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>Delivered</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 'bold', color: '#10b981' }}>
+                    <div className="card flex flex-col items-center justify-center p-6 text-center">
+                        <div className="text-sm text-gray-500 mb-2">Delivered</div>
+                        <div className="text-h2 text-primary-600">
                             {orders.filter(o => o.status === 'DELIVERED').length}
                         </div>
                     </div>

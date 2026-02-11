@@ -155,22 +155,21 @@ export default function InventoryPage() {
             </div>
 
             {error && (
-                <div className="p-4 mb-4" style={{ backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px' }}>
+                <div className="p-4 bg-danger-bg text-danger rounded-lg mb-4">
                     {error}
                 </div>
             )}
 
             {/* Filters */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="relative">
-                    <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+                <div className="search-input">
+                    <Search className="search-icon" size={18} />
                     <input
                         type="text"
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="form-input"
-                        style={{ paddingLeft: '2.5rem' }}
                     />
                 </div>
                 <select
@@ -234,12 +233,12 @@ export default function InventoryPage() {
                                     <td>{product.unit}</td>
                                     <td>{product.minStockLevel}</td>
                                     <td>
-                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <div className="flex gap-2">
                                             <button className="btn-icon" title="Edit" onClick={() => openEditModal(product)}>
                                                 <Edit2 size={16} />
                                             </button>
-                                            <button className="btn-icon" title="Delete" onClick={() => handleDelete(product.id)}>
-                                                <Trash2 size={16} color="#ef4444" />
+                                            <button className="btn-icon text-danger" title="Delete" onClick={() => handleDelete(product.id)}>
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>
@@ -252,59 +251,30 @@ export default function InventoryPage() {
 
             {/* Create/Edit Product Modal */}
             {showModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000,
-                    overflowY: 'auto',
-                    padding: '2rem',
-                }}>
-                    <div style={{
-                        backgroundColor: 'white',
-                        borderRadius: '12px',
-                        padding: '2rem',
-                        width: '90%',
-                        maxWidth: '600px',
-                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
-                    }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '600px' }}>
+                        <h3 className="text-h3 mb-6">
                             {editingProduct ? 'Edit Product' : 'Add New Product'}
                         </h3>
                         <form onSubmit={handleSubmit}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>SKU *</label>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">SKU *</label>
                                     <input
                                         type="text"
                                         required
                                         value={formData.sku}
                                         onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '8px',
-                                            fontSize: '0.875rem',
-                                        }}
+                                        className="form-input"
                                     />
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Brand *</label>
+                                <div className="form-group">
+                                    <label className="form-label">Brand *</label>
                                     <select
                                         required
                                         value={formData.brandId}
                                         onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
                                         className="form-select"
-                                        style={{ width: '100%' }}
                                     >
                                         <option value="">Select Brand</option>
                                         {brands.map(brand => (
@@ -314,84 +284,59 @@ export default function InventoryPage() {
                                 </div>
                             </div>
 
-                            <div style={{ marginTop: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Product Name *</label>
+                            <div className="form-group">
+                                <label className="form-label">Product Name *</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '0.875rem',
-                                    }}
+                                    className="form-input"
                                 />
                             </div>
 
-                            <div style={{ marginTop: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Description</label>
+                            <div className="form-group">
+                                <label className="form-label">Description</label>
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     rows={2}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '0.875rem',
-                                        resize: 'vertical',
-                                    }}
+                                    className="form-textarea"
+                                    style={{ resize: 'vertical' }}
                                 />
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Base Price *</label>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Base Price *</label>
                                     <input
                                         type="number"
                                         step="0.01"
                                         required
                                         value={formData.basePrice}
                                         onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '8px',
-                                            fontSize: '0.875rem',
-                                        }}
+                                        className="form-input"
                                     />
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Cost Price</label>
+                                <div className="form-group">
+                                    <label className="form-label">Cost Price</label>
                                     <input
                                         type="number"
                                         step="0.01"
                                         value={formData.costPrice}
                                         onChange={(e) => setFormData({ ...formData, costPrice: e.target.value })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '8px',
-                                            fontSize: '0.875rem',
-                                        }}
+                                        className="form-input"
                                     />
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Unit</label>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Unit</label>
                                     <select
                                         value={formData.unit}
                                         onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                                         className="form-select"
-                                        style={{ width: '100%' }}
                                     >
                                         <option value="pcs">Pieces</option>
                                         <option value="kg">Kilograms</option>
@@ -399,50 +344,33 @@ export default function InventoryPage() {
                                         <option value="box">Box</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Min Stock</label>
+                                <div className="form-group">
+                                    <label className="form-label">Min Stock</label>
                                     <input
                                         type="number"
                                         value={formData.minStockLevel}
                                         onChange={(e) => setFormData({ ...formData, minStockLevel: e.target.value })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '8px',
-                                            fontSize: '0.875rem',
-                                        }}
+                                        className="form-input"
                                     />
                                 </div>
                             </div>
 
-                            <div style={{ marginTop: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Barcode</label>
+                            <div className="form-group">
+                                <label className="form-label">Barcode</label>
                                 <input
                                     type="text"
                                     value={formData.barcode}
                                     onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '0.875rem',
-                                    }}
+                                    className="form-input"
                                 />
                             </div>
 
-                            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                            <div className="modal-actions">
+                                <button type="button" className="btn-secondary" onClick={closeModal}>
+                                    Cancel
+                                </button>
                                 <button type="submit" className="btn-primary" style={{ flex: 1 }}>
                                     {editingProduct ? 'Update Product' : 'Create Product'}
-                                </button>
-                                <button
-                                    type="button"
-                                    className="btn-secondary"
-                                    style={{ flex: 1 }}
-                                    onClick={closeModal}
-                                >
-                                    Cancel
                                 </button>
                             </div>
                         </form>

@@ -3,20 +3,28 @@
     background: white;
     border: 1px solid var(--gray-200);
     border-radius: var(--radius-md);
-    overflow: hidden;
+    overflow-x: auto;
+    /* Allow horizontal scroll */
     box-shadow: var(--shadow-sm);
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scroll on iOS */
+    margin-bottom: 1.5rem;
 }
 
 .data-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 850px;
+    /* Ensure content has enough space, triggering the container scroll */
 }
 
 .data-table th,
 .data-table td {
-    padding: 1rem 1.5rem;
+    padding: 1rem 1.25rem;
     text-align: left;
     border-bottom: 1px solid var(--gray-100);
+    white-space: nowrap;
+    /* Prevent messy wrapping within cells */
 }
 
 .data-table th {
@@ -38,10 +46,25 @@
 }
 
 .data-table td {
-    padding: 1rem 1.5rem;
     color: var(--gray-700);
     font-size: 0.875rem;
     vertical-align: middle;
+}
+
+.data-table td.wrap {
+    white-space: normal;
+    word-break: break-word;
+    min-width: 200px;
+}
+
+.data-table code {
+    font-family: monospace;
+    background-color: var(--gray-100);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    word-break: break-all;
+    white-space: normal;
 }
 
 /* STATUS BADGES - MAPPING TO GLOBAL VARS */
