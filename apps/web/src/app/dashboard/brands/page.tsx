@@ -14,7 +14,6 @@ export default function BrandsPage() {
         name: '',
         slug: '',
         logoUrl: '',
-        taxId: '',
     });
 
     useEffect(() => {
@@ -52,7 +51,7 @@ export default function BrandsPage() {
 
     function openCreateModal() {
         setEditingBrand(null);
-        setFormData({ name: '', slug: '', logoUrl: '', taxId: '' });
+        setFormData({ name: '', slug: '', logoUrl: '' });
         setShowModal(true);
     }
 
@@ -62,7 +61,6 @@ export default function BrandsPage() {
             name: brand.name,
             slug: brand.slug,
             logoUrl: brand.logoUrl || '',
-            taxId: brand.taxId || '',
         });
         setShowModal(true);
     }
@@ -70,7 +68,7 @@ export default function BrandsPage() {
     function closeModal() {
         setShowModal(false);
         setEditingBrand(null);
-        setFormData({ name: '', slug: '', logoUrl: '', taxId: '' });
+        setFormData({ name: '', slug: '', logoUrl: '' });
     }
 
     async function handleDelete(id: string) {
@@ -121,7 +119,6 @@ export default function BrandsPage() {
                         <tr>
                             <th>Brand Name</th>
                             <th>Slug</th>
-                            <th>Tax ID</th>
                             <th>Status</th>
                             <th>Products</th>
                             <th>Warehouses</th>
@@ -132,7 +129,7 @@ export default function BrandsPage() {
                     <tbody>
                         {brands.length === 0 ? (
                             <tr>
-                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                                         <Globe size={48} color="#e5e7eb" />
                                         <p>No brands onboarded yet.</p>
@@ -149,7 +146,6 @@ export default function BrandsPage() {
                                         </div>
                                     </td>
                                     <td><code>{brand.slug}</code></td>
-                                    <td>{brand.taxId || '-'}</td>
                                     <td>
                                         <span className={`status-badge status-${brand.status.toLowerCase()}`}>
                                             {brand.status}
@@ -226,21 +222,6 @@ export default function BrandsPage() {
                                     required
                                     value={formData.slug}
                                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid #d1d5db',
-                                        borderRadius: '8px',
-                                        fontSize: '1rem',
-                                    }}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '1rem' }}>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Tax ID</label>
-                                <input
-                                    type="text"
-                                    value={formData.taxId}
-                                    onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
                                     style={{
                                         width: '100%',
                                         padding: '0.75rem',

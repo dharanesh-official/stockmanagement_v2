@@ -80,7 +80,6 @@ export class SalespersonsService {
     // Check Stock & Prepare Transaction
     const order = await this.prisma.$transaction(async (tx) => {
       let totalAmount = 0;
-      let taxAmount = 0;
       const orderItems: any[] = [];
 
       // Fetch products
@@ -115,10 +114,8 @@ export class SalespersonsService {
 
         // Calculate Costs
         const itemTotal = Number(item.unitPrice) * item.quantity;
-        const itemTax = itemTotal * (Number(product.taxRate) / 100);
 
         totalAmount += itemTotal;
-        taxAmount += itemTax;
 
         orderItems.push({
           productId: item.productId,
@@ -176,8 +173,7 @@ export class SalespersonsService {
           salesPersonId: userId,
           customerId: finalCustomerId,
           status: OrderStatus.PENDING,
-          totalAmount: totalAmount + taxAmount - Number(discountAmount),
-          taxAmount,
+          totalAmount: totalAmount - Number(discountAmount),
           discountAmount: discountAmount,
           items: {
             create: orderItems

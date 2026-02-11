@@ -12,9 +12,6 @@ export class CreateBrandDto {
     @IsString()
     logoUrl?: string;
 
-    @IsOptional()
-    @IsString()
-    taxId?: string;
 
     @IsOptional()
     @IsEnum(BrandStatus)

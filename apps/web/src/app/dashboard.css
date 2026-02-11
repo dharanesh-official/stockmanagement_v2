@@ -361,3 +361,32 @@
     align-items: center;
     margin-bottom: 1rem;
 }
+
+/* ------------------------------------- */
+/* PRINT STYLES */
+/* ------------------------------------- */
+@media print {
+
+    .sidebar,
+    .top-header,
+    .sidebar-backdrop,
+    .no-print {
+        display: none !important;
+    }
+
+    .dashboard-container,
+    .main-wrapper,
+    .page-content {
+        display: block !important;
+        height: auto !important;
+        width: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background-color: white !important;
+    }
+
+    body {
+        background-color: white !important;
+    }
+}

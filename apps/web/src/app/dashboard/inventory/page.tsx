@@ -20,7 +20,6 @@ export default function InventoryPage() {
         brandId: '',
         basePrice: '',
         costPrice: '',
-        taxRate: '0',
         unit: 'pcs',
         barcode: '',
         minStockLevel: '10',
@@ -61,7 +60,6 @@ export default function InventoryPage() {
                 ...formData,
                 basePrice: parseFloat(formData.basePrice),
                 costPrice: formData.costPrice ? parseFloat(formData.costPrice) : undefined,
-                taxRate: parseFloat(formData.taxRate),
                 minStockLevel: parseInt(formData.minStockLevel),
             };
 
@@ -92,7 +90,6 @@ export default function InventoryPage() {
             brandId: product.brandId,
             basePrice: product.basePrice.toString(),
             costPrice: product.costPrice?.toString() || '',
-            taxRate: product.taxRate.toString(),
             unit: product.unit,
             barcode: product.barcode || '',
             minStockLevel: product.minStockLevel.toString(),
@@ -125,7 +122,6 @@ export default function InventoryPage() {
             brandId: '',
             basePrice: '',
             costPrice: '',
-            taxRate: '0',
             unit: 'pcs',
             barcode: '',
             minStockLevel: '10',
@@ -203,7 +199,6 @@ export default function InventoryPage() {
                             <th>Product Name</th>
                             <th>Brand</th>
                             <th>Price</th>
-                            <th>Tax Rate</th>
                             <th>Unit</th>
                             <th>Min Stock</th>
                             <th>Actions</th>
@@ -212,7 +207,7 @@ export default function InventoryPage() {
                     <tbody>
                         {filteredProducts.length === 0 ? (
                             <tr>
-                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                                         <Package size={48} color="#e5e7eb" />
                                         <p>No products found.</p>
@@ -242,7 +237,6 @@ export default function InventoryPage() {
                                             </div>
                                         )}
                                     </td>
-                                    <td>{Number(product.taxRate)}%</td>
                                     <td>{product.unit}</td>
                                     <td>{product.minStockLevel}</td>
                                     <td>
@@ -396,23 +390,7 @@ export default function InventoryPage() {
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Tax Rate (%)</label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        value={formData.taxRate}
-                                        onChange={(e) => setFormData({ ...formData, taxRate: e.target.value })}
-                                        style={{
-                                            width: '100%',
-                                            padding: '0.75rem',
-                                            border: '1px solid #d1d5db',
-                                            borderRadius: '8px',
-                                            fontSize: '0.875rem',
-                                        }}
-                                    />
-                                </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500', fontSize: '0.875rem' }}>Unit</label>
                                     <select

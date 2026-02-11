@@ -79,7 +79,7 @@ export default function InvoiceDetailPage() {
     const { customer, shop, brand } = invoice.order;
 
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', backgroundColor: 'white', minHeight: '100vh' }}>
+        <div className="invoice-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem', backgroundColor: 'white', minHeight: '100vh' }}>
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
                 <button
                     onClick={() => router.back()}
@@ -194,15 +194,18 @@ export default function InvoiceDetailPage() {
 
             <style jsx global>{`
                 @media print {
-                    .no-print {
-                        display: none !important;
+                    /* Reset container for print */
+                    .invoice-container {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        max-width: 100% !important;
+                        width: 100% !important;
                     }
-                    body {
-                        background-color: white;
-                    }
-                    /* Ensure full width standard page */
+                    
+                    /* Clean up for print */
                     @page {
-                        margin: 0.5in;
+                        margin: 1cm;
+                        size: portrait;
                     }
                 }
             `}</style>

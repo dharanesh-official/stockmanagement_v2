@@ -156,7 +156,6 @@ async function main() {
                 sku: p.sku,
                 basePrice: p.basePrice,
                 brandId: p.brandId,
-                taxRate: 10,
                 minStockLevel: 10,
                 unit: 'pcs',
                 imageUrl: p.brandId === brand1.id
@@ -220,7 +219,6 @@ async function main() {
             warehouseId: wh1.id,
             status: OrderStatus.CONFIRMED,
             totalAmount: 799 * 2, // 2 iPhones
-            taxAmount: (799 * 2) * 0.1,
             discountAmount: 0,
             items: {
                 create: [
@@ -265,7 +263,6 @@ async function main() {
             warehouseId: wh1.id,
             status: OrderStatus.PENDING,
             totalAmount: 1599, // 1 MacBook
-            taxAmount: 159.9,
             discountAmount: 0,
             items: {
                 create: [

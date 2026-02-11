@@ -129,7 +129,6 @@ export default function OrdersPage() {
                             <th>Salesperson</th>
                             <th>Status</th>
                             <th>Total Amount</th>
-                            <th>Tax</th>
                             <th>Discount</th>
                             <th>Date</th>
                             <th>Actions</th>
@@ -138,7 +137,7 @@ export default function OrdersPage() {
                     <tbody>
                         {orders.length === 0 ? (
                             <tr>
-                                <td colSpan={9} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
+                                <td colSpan={8} style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                                         <ShoppingCart size={48} color="#e5e7eb" />
                                         <p>No orders found.</p>
@@ -187,7 +186,6 @@ export default function OrdersPage() {
                                     <td>
                                         <strong>₹{Number(order.totalAmount).toFixed(2)}</strong>
                                     </td>
-                                    <td>₹{Number(order.taxAmount).toFixed(2)}</td>
                                     <td>₹{Number(order.discountAmount).toFixed(2)}</td>
                                     <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                     <td>

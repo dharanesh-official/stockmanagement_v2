@@ -7,14 +7,10 @@ export default function FinancePage() {
         <div>
             <div className="section-header">
                 <div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Finance & Tax</h2>
-                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manage invoices, settlements, tax reports and credit notes.</p>
+                    <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '4px' }}>Finance</h2>
+                    <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Manage invoices, settlements, and credit notes.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn-primary" style={{ backgroundColor: '#4b5563' }}>
-                        <FileText size={16} />
-                        Tax Report
-                    </button>
                     <button className="btn-primary">
                         <Plus size={16} />
                         New Invoice
@@ -53,15 +49,6 @@ export default function FinancePage() {
                     <div className="stat-label">Invoices Due</div>
                 </div>
 
-                <div className="stat-card">
-                    <div className="stat-header">
-                        <div className="stat-icon" style={{ backgroundColor: '#fff7ed', color: '#ea580c' }}>
-                            <PieChart size={20} />
-                        </div>
-                    </div>
-                    <div className="stat-value">₹0.00</div>
-                    <div className="stat-label">Tax Liability (GST)</div>
-                </div>
             </div>
 
             <div className="flex gap-6 mt-8">
@@ -99,18 +86,6 @@ export default function FinancePage() {
                         <button className="btn btn-outline" style={{ width: '100%' }}>Issue Credit Note</button>
                     </div>
 
-                    <div className="card">
-                        <h3 className="text-h3 mb-4">Tax Filings</h3>
-                        <div className="flex justify-between items-center text-sm mb-2">
-                            <span>Next Filing (GSTR-1)</span>
-                            <span className="font-semibold text-red-500">Due in 5 days</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm mb-4">
-                            <span>Last Filing</span>
-                            <span className="font-semibold text-green-600">Completed</span>
-                        </div>
-                        <button className="btn btn-outline" style={{ width: '100%' }}>File Taxes</button>
-                    </div>
                 </div>
             </div>
         </div>

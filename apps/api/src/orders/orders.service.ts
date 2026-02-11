@@ -40,7 +40,6 @@ export class OrdersService {
 
     // Calculate totals
     let totalAmount = 0;
-    let taxAmount = 0;
 
     const orderItems = createOrderDto.items.map(item => {
       const product = products.find(p => p.id === item.productId);
@@ -49,10 +48,8 @@ export class OrdersService {
       }
 
       const itemTotal = item.quantity * item.unitPrice;
-      const itemTax = itemTotal * (Number(product.taxRate) / 100);
 
       totalAmount += itemTotal;
-      taxAmount += itemTax;
 
       return {
         productId: item.productId,
@@ -65,7 +62,7 @@ export class OrdersService {
     });
 
     const discountAmount = createOrderDto.discountAmount || 0;
-    const finalTotal = totalAmount + taxAmount - discountAmount;
+    const finalTotal = totalAmount - discountAmount;
 
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -78,7 +75,6 @@ export class OrdersService {
         customerId: createOrderDto.customerId!,
         salesPersonId: createOrderDto.salesPersonId!,
         totalAmount: finalTotal,
-        taxAmount,
         discountAmount,
         status: OrderStatus.PENDING,
         items: {

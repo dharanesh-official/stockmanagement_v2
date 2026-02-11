@@ -30,11 +30,6 @@ export class CreateProductDto {
     @Min(0)
     costPrice?: number;
 
-    @IsOptional()
-    @Type(() => Number)
-    @IsNumber({ maxDecimalPlaces: 2 })
-    @Min(0)
-    taxRate?: number;
 
     @IsOptional()
     @IsString()

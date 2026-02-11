@@ -47,7 +47,6 @@ model Brand {
   name        String
   slug        String      @unique 
   logoUrl     String?
-  taxId       String?     // GST/VAT Number
   status      BrandStatus @default(ACTIVE)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -122,7 +121,6 @@ model Product {
   // Pricing (Decimal for Financial Accuracy)
   basePrice   Decimal  @db.Decimal(10, 2)
   costPrice   Decimal? @db.Decimal(10, 2)
-  taxRate     Decimal  @default(0) 
   
   imageUrl    String?
 
@@ -212,7 +210,6 @@ model Order {
 
   status          OrderStatus @default(PENDING)
   totalAmount     Decimal     @db.Decimal(10, 2)
-  taxAmount       Decimal     @db.Decimal(10, 2)
   discountAmount  Decimal     @db.Decimal(10, 2)
 
   items           OrderItem[]

@@ -89,7 +89,6 @@ export interface Brand {
     name: string;
     slug: string;
     logoUrl?: string;
-    taxId?: string;
     status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
     createdAt: string;
     updatedAt: string;
@@ -109,7 +108,6 @@ export interface Product {
     brandId: string;
     basePrice: number;
     costPrice?: number;
-    taxRate: number;
     imageUrl?: string;
     unit: string;
     barcode?: string;
@@ -178,7 +176,6 @@ export interface Order {
     salesPersonId: string;
     status: 'DRAFT' | 'PENDING' | 'CONFIRMED' | 'PACKED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
     totalAmount: number;
-    taxAmount: number;
     discountAmount: number;
     createdAt: string;
     updatedAt: string;
