@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, ShoppingCart, Users, TrendingUp, AlertTriangle, DollarSign, BarChart3, PlusCircle } from 'lucide-react';
+import { Package, ShoppingCart, Users, TrendingUp, AlertTriangle, IndianRupee, BarChart3, PlusCircle } from 'lucide-react';
 import { api } from '@/services/api';
 
 interface DashboardStats {
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                         <p className="text-xs font-bold uppercase tracking-wider mb-2 opacity-80">Total Revenue</p>
                         <h3 className="text-4xl font-black mb-1">₹{stats.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</h3>
                     </div>
-                    <DollarSign size={80} className="absolute -right-4 -bottom-4 opacity-10 rotate-12" />
+                    <IndianRupee size={80} className="absolute -right-4 -bottom-4 opacity-10 rotate-12" />
                 </div>
 
                 <div className="card text-white overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)' }}>
@@ -165,7 +165,7 @@ export default function DashboardPage() {
                                             <td className="px-4 py-4 text-gray-900 font-medium">{order.customer?.fullName || 'Walk-in'}</td>
                                             <td className="px-4 py-4 text-center">
                                                 <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${order.type === 'SALES' ? 'bg-emerald-100 text-emerald-700' :
-                                                        order.type === 'CREDIT_NOTE' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'
+                                                    order.type === 'CREDIT_NOTE' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {order.type}
                                                 </span>
