@@ -11,7 +11,6 @@ class ApiService {
     }
 
     private async request(endpoint: string, options: RequestInit = {}) {
-        // Ensure we're on the client side
         if (typeof window === 'undefined') {
             console.warn('API calls can only be made from the client side');
             return Promise.reject(new Error('API calls can only be made from the client side'));
@@ -34,7 +33,6 @@ class ApiService {
             });
 
             if (response.status === 401) {
-                // Token expired or invalid
                 if (typeof window !== 'undefined') {
                     localStorage.removeItem('access_token');
                     window.location.href = '/';
@@ -54,12 +52,10 @@ class ApiService {
         }
     }
 
-    // GET request
     async get<T = any>(endpoint: string): Promise<T> {
         return this.request(endpoint, { method: 'GET' });
     }
 
-    // POST request
     async post<T = any>(endpoint: string, data?: any): Promise<T> {
         return this.request(endpoint, {
             method: 'POST',
@@ -67,7 +63,6 @@ class ApiService {
         });
     }
 
-    // PATCH request
     async patch<T = any>(endpoint: string, data?: any): Promise<T> {
         return this.request(endpoint, {
             method: 'PATCH',
@@ -75,7 +70,6 @@ class ApiService {
         });
     }
 
-    // DELETE request
     async delete<T = any>(endpoint: string): Promise<T> {
         return this.request(endpoint, { method: 'DELETE' });
     }
@@ -83,70 +77,18 @@ class ApiService {
 
 export const api = new ApiService();
 
-// Type definitions for API responses
-export interface Brand {
-    id: string;
-    name: string;
-    slug: string;
-    logoUrl?: string;
-    status: 'ACTIVE' | 'SUSPENDED' | 'ARCHIVED';
-    createdAt: string;
-    updatedAt: string;
-    _count?: {
-        products: number;
-        warehouses: number;
-        users: number;
-    };
-}
-
 export interface Product {
     id: string;
     sku: string;
     name: string;
     description?: string;
-    categoryId?: string;
-    brandId: string;
     basePrice: number;
     costPrice?: number;
     imageUrl?: string;
     unit: string;
     barcode?: string;
     minStockLevel: number;
-    createdAt: string;
-    updatedAt: string;
-    brand?: {
-        id: string;
-        name: string;
-        slug: string;
-    };
-}
-
-export interface Warehouse {
-    id: string;
-    name: string;
-    location?: string;
-    brandId: string;
-    createdAt: string;
-    updatedAt: string;
-    brand?: {
-        id: string;
-        name: string;
-        slug: string;
-    };
-    _count?: {
-        stocks: number;
-        managers: number;
-    };
-}
-
-export interface Shop {
-    id: string;
-    name: string;
-    address?: string;
-    phoneNumber?: string;
-    email?: string;
-    managerName?: string;
-    brands: Brand[];
+    quantity: number;
     createdAt: string;
     updatedAt: string;
 }
@@ -157,12 +99,8 @@ export interface Customer {
     phoneNumber?: string;
     email?: string;
     address?: string;
-    brandId: string;
+    isLocked: boolean;
     createdAt: string;
-    brand?: {
-        id: string;
-        name: string;
-    };
     _count?: {
         orders: number;
     };
@@ -171,10 +109,9 @@ export interface Customer {
 export interface Order {
     id: string;
     orderNumber: string;
-    brandId: string;
     customerId: string;
     salesPersonId: string;
-    status: 'DRAFT' | 'PENDING' | 'CONFIRMED' | 'PACKED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'RETURNED';
+    type: 'ORDER' | 'SALES' | 'CREDIT_NOTE';
     totalAmount: number;
     discountAmount: number;
     createdAt: string;
@@ -188,28 +125,19 @@ export interface Order {
         id: string;
         fullName: string;
     };
-    _count?: {
-        items: number;
+    invoice?: {
+        id: string;
+        invoiceNumber: string;
+        amount: number;
+        paidAmount: number;
+        status: string;
     };
 }
 
-export interface Stock {
+export interface User {
     id: string;
-    productId: string;
-    warehouseId: string;
-    quantity: number;
-    batchNumber?: string;
-    expiryDate?: string;
-    updatedAt: string;
-    product?: {
-        id: string;
-        name: string;
-        sku: string;
-        basePrice: number;
-    };
-    warehouse?: {
-        id: string;
-        name: string;
-        location?: string;
-    };
+    email: string;
+    fullName: string;
+    role: 'ADMIN' | 'SALES_PERSON';
+    isActive: boolean;
 }
