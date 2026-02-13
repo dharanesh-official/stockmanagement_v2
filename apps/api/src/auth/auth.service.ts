@@ -26,11 +26,12 @@ export class AuthService {
                     data: {
                         email: 'admin@stockpro.com',
                         passwordHash,
-                        fullName: 'Super Admin',
-                        role: 'SUPER_ADMIN' as any, // Cast to any to avoid potential enum import issues
+                        fullName: 'Administrator',
+                        role: 'ADMIN' as any, // Cast to any to avoid potential enum import issues
                         isActive: true,
                     },
                 });
+
                 console.log('✅ Emergency Admin created successfully.');
             }
             if (user) {

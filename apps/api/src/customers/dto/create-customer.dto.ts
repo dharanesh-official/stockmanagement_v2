@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEmail } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsBoolean } from 'class-validator';
 
 export class CreateCustomerDto {
     @IsString()
@@ -16,6 +16,8 @@ export class CreateCustomerDto {
     @IsString()
     address?: string;
 
-    @IsString()
-    brandId: string;
+    @IsOptional()
+    @IsBoolean()
+    isLocked?: boolean;
 }
+

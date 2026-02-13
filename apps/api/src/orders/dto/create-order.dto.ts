@@ -19,27 +19,25 @@ export class OrderItemDto {
 
 export class CreateOrderDto {
     @IsString()
-    brandId: string;
-
-    @IsString()
-    @IsOptional()
-    customerId?: string;
-
-    @IsString()
-    @IsOptional()
-    shopId?: string;
+    customerId: string;
 
     @IsString()
     @IsOptional()
     salesPersonId?: string;
+
+    @IsEnum(OrderStatus)
+    @IsOptional()
+    type?: OrderStatus;
 
     @IsArray()
     @ValidateNested({ each: true })
     @Type(() => OrderItemDto)
     items: OrderItemDto[];
 
+    @IsOptional()
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @Min(0)
     discountAmount?: number;
 }
+

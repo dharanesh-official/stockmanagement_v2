@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -8,41 +8,14 @@ export class CustomersService {
   constructor(private prisma: PrismaService) { }
 
   async create(createCustomerDto: CreateCustomerDto) {
-    // Verify brand exists
-    const brand = await this.prisma.brand.findUnique({
-      where: { id: createCustomerDto.brandId },
-    });
-
-    if (!brand) {
-      throw new BadRequestException('Brand not found');
-    }
-
     return await this.prisma.customer.create({
       data: createCustomerDto,
-      include: {
-        brand: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
     });
   }
 
-  async findAll(brandId?: string) {
-    const where = brandId ? { brandId } : {};
-
+  async findAll() {
     return await this.prisma.customer.findMany({
-      where,
       include: {
-        brand: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         _count: {
           select: {
             orders: true,
@@ -59,7 +32,6 @@ export class CustomersService {
     const customer = await this.prisma.customer.findUnique({
       where: { id },
       include: {
-        brand: true,
         orders: {
           include: {
             salesPerson: {
@@ -89,14 +61,6 @@ export class CustomersService {
       return await this.prisma.customer.update({
         where: { id },
         data: updateCustomerDto,
-        include: {
-          brand: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
       });
     } catch (error) {
       if (error.code === 'P2025') {
@@ -119,6 +83,14 @@ export class CustomersService {
     }
   }
 
+  // Lock / Unlock Customer
+  async toggleLock(id: string, isLocked: boolean) {
+    return await this.prisma.customer.update({
+      where: { id },
+      data: { isLocked },
+    });
+  }
+
   // Get customer purchase history
   async getPurchaseHistory(id: string) {
     const customer = await this.findOne(id);
@@ -139,7 +111,7 @@ export class CustomersService {
         orderNumber: order.orderNumber,
         date: order.createdAt,
         amount: order.totalAmount,
-        status: order.status,
+        type: order.type,
         salesPerson: order.salesPerson.fullName,
       })),
     };

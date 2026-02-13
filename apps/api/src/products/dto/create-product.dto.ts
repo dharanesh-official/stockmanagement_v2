@@ -12,13 +12,6 @@ export class CreateProductDto {
     @IsString()
     description?: string;
 
-    @IsOptional()
-    @IsString()
-    categoryId?: string;
-
-    @IsString()
-    brandId: string;
-
     @Type(() => Number)
     @IsNumber({ maxDecimalPlaces: 2 })
     @Min(0)
@@ -48,4 +41,11 @@ export class CreateProductDto {
     @IsInt()
     @Min(0)
     minStockLevel?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    @Min(0)
+    quantity?: number;
 }
+

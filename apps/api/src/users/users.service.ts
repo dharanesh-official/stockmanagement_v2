@@ -11,7 +11,7 @@ export class UsersService {
     constructor(private prisma: PrismaService) { }
 
     async create(createUserDto: CreateUserDto) {
-        const { password, assignedShopIds, assignedBrandIds, assignedWarehouseIds, ...rest } = createUserDto;
+        const { password, ...rest } = createUserDto;
         const passwordHash = await argon2.hash(password);
 
         try {
@@ -19,9 +19,6 @@ export class UsersService {
                 data: {
                     ...rest,
                     passwordHash,
-                    assignedShops: assignedShopIds ? { connect: assignedShopIds.map(id => ({ id })) } : undefined,
-                    assignedBrands: assignedBrandIds ? { connect: assignedBrandIds.map(id => ({ id })) } : undefined,
-                    assignedWarehouses: assignedWarehouseIds ? { connect: assignedWarehouseIds.map(id => ({ id })) } : undefined,
                 },
             });
             const { passwordHash: hash, ...result } = user;
@@ -37,10 +34,6 @@ export class UsersService {
     async findAll() {
         const users = await this.prisma.user.findMany({
             orderBy: { createdAt: 'desc' },
-            include: {
-                brand: true,
-                assignedShops: true,
-            }
         });
         return users.map(user => {
             const { passwordHash, ...result } = user;
@@ -51,13 +44,6 @@ export class UsersService {
     async findOne(id: string) {
         const user = await this.prisma.user.findUnique({
             where: { id },
-            include: {
-                assignedShops: true,
-                assignedBrands: true,
-                assignedWarehouses: true,
-                brand: true,
-                assignedWarehouse: true
-            }
         });
         if (!user) throw new NotFoundException('User not found');
         const { passwordHash, ...result } = user;
@@ -65,7 +51,7 @@ export class UsersService {
     }
 
     async update(id: string, updateUserDto: UpdateUserDto) {
-        const { password, assignedShopIds, assignedBrandIds, assignedWarehouseIds, ...rest } = updateUserDto;
+        const { password, ...rest } = updateUserDto;
 
         const data: any = { ...rest };
 
@@ -73,29 +59,15 @@ export class UsersService {
             data.passwordHash = await argon2.hash(password);
         }
 
-        if (assignedShopIds) {
-            data.assignedShops = { set: assignedShopIds.map(id => ({ id })) };
-        }
-        if (assignedBrandIds) {
-            data.assignedBrands = { set: assignedBrandIds.map(id => ({ id })) };
-        }
-        if (assignedWarehouseIds) {
-            data.assignedWarehouses = { set: assignedWarehouseIds.map(id => ({ id })) };
-        }
-
         const user = await this.prisma.user.update({
             where: { id },
             data,
-            include: {
-                assignedShops: true,
-                assignedBrands: true,
-                assignedWarehouses: true
-            }
         });
 
         const { passwordHash, ...result } = user;
         return result;
     }
+
 
     async remove(id: string) {
         return this.prisma.user.delete({ where: { id } });

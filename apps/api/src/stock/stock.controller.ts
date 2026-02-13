@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, Query, UsePipes, ValidationPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UsePipes, ValidationPipe, UseGuards, BadRequestException } from '@nestjs/common';
 import { StockService } from './stock.service';
-import { ReceiveStockDto, TransferStockDto, AdjustStockDto } from './dto/stock-operations.dto';
+import { UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -11,36 +11,25 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class StockController {
   constructor(private readonly stockService: StockService) { }
 
-  @Post('receive')
-  @Roles('SUPER_ADMIN', 'WAREHOUSE_MANAGER')
-  receiveStock(@Body() receiveStockDto: ReceiveStockDto) {
-    return this.stockService.receiveStock(receiveStockDto);
-  }
-
-  @Post('transfer')
-  @Roles('SUPER_ADMIN', 'WAREHOUSE_MANAGER')
-  transferStock(@Body() transferStockDto: TransferStockDto) {
-    return this.stockService.transferStock(transferStockDto);
-  }
-
   @Post('adjust')
-  @Roles('SUPER_ADMIN', 'WAREHOUSE_MANAGER')
-  adjustStock(@Body() adjustStockDto: AdjustStockDto) {
-    return this.stockService.adjustStock(adjustStockDto);
+  @Roles(UserRole.ADMIN)
+  adjustStock(@Body() body: { productId: string, quantity: number, type: 'INCREASE' | 'REDUCE' }) {
+    if (!body.productId || !body.quantity || !body.type) {
+      throw new BadRequestException('productId, quantity, and type are required');
+    }
+    return this.stockService.adjustStock(body.productId, body.quantity, body.type);
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER')
-  findAll(
-    @Query('productId') productId?: string,
-    @Query('warehouseId') warehouseId?: string,
-  ) {
-    return this.stockService.findAll(productId, warehouseId);
+  @Roles(UserRole.ADMIN)
+  findAll() {
+    return this.stockService.findAll();
   }
 
   @Get('low-stock')
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER')
-  getLowStock(@Query('brandId') brandId?: string) {
-    return this.stockService.getLowStock(brandId);
+  @Roles(UserRole.ADMIN)
+  getLowStock() {
+    return this.stockService.getLowStock();
   }
 }
+

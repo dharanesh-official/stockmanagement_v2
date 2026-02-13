@@ -3,28 +3,21 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderStatus } from '@prisma/client';
-import { InvoicesService } from '../invoices/invoices.service';
 
 @Injectable()
 export class OrdersService {
-  constructor(
-    private prisma: PrismaService,
-    private invoicesService: InvoicesService
-  ) { }
+  constructor(private prisma: PrismaService) { }
 
   async create(createOrderDto: CreateOrderDto) {
-    if (!createOrderDto.brandId) throw new BadRequestException('Brand ID is required');
     if (!createOrderDto.customerId) throw new BadRequestException('Customer ID is required');
     if (!createOrderDto.salesPersonId) throw new BadRequestException('Salesperson ID is required');
 
-    // Verify brand, customer, and salesperson exist
-    const [brand, customer, salesPerson] = await Promise.all([
-      this.prisma.brand.findUnique({ where: { id: createOrderDto.brandId } }),
+    // Verify customer and salesperson exist
+    const [customer, salesPerson] = await Promise.all([
       this.prisma.customer.findUnique({ where: { id: createOrderDto.customerId } }),
       this.prisma.user.findUnique({ where: { id: createOrderDto.salesPersonId } }),
     ]);
 
-    if (!brand) throw new BadRequestException('Brand not found');
     if (!customer) throw new BadRequestException('Customer not found');
     if (!salesPerson) throw new BadRequestException('Salesperson not found');
 
@@ -48,7 +41,6 @@ export class OrdersService {
       }
 
       const itemTotal = item.quantity * item.unitPrice;
-
       totalAmount += itemTotal;
 
       return {
@@ -64,64 +56,62 @@ export class OrdersService {
     const discountAmount = createOrderDto.discountAmount || 0;
     const finalTotal = totalAmount - discountAmount;
 
-    // Generate order number
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    // Generate prefix based on type
+    const type = createOrderDto.type || OrderStatus.ORDER;
+    const prefix = type === OrderStatus.SALES ? 'SAL' : (type === OrderStatus.CREDIT_NOTE ? 'CRN' : 'ORD');
+    const orderNumber = `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;
 
     // Create order with items
-    return await this.prisma.order.create({
+    const order = await this.prisma.order.create({
       data: {
         orderNumber,
-        brandId: createOrderDto.brandId,
-        customerId: createOrderDto.customerId!,
-        salesPersonId: createOrderDto.salesPersonId!,
+        customerId: createOrderDto.customerId,
+        salesPersonId: createOrderDto.salesPersonId,
         totalAmount: finalTotal,
         discountAmount,
-        status: OrderStatus.PENDING,
+        type: type,
         items: {
           create: orderItems,
         },
       },
       include: {
-        brand: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        customer: {
-          select: {
-            id: true,
-            fullName: true,
-            phoneNumber: true,
-          },
-        },
-        salesPerson: {
-          select: {
-            id: true,
-            fullName: true,
-            email: true,
-          },
-        },
+        customer: true,
+        salesPerson: true,
         items: true,
       },
     });
+
+    // If it's a SALE, auto-generate an invoice and reduce stock
+    if (type === OrderStatus.SALES) {
+      await this.prisma.invoice.create({
+        data: {
+          invoiceNumber: `INV-${order.orderNumber.split('-').slice(1).join('-')}`,
+          orderId: order.id,
+          amount: finalTotal,
+          status: 'UNPAID',
+        },
+      });
+
+      // Reduce stock
+      for (const item of createOrderDto.items) {
+        await this.prisma.product.update({
+          where: { id: item.productId },
+          data: { quantity: { decrement: item.quantity } }
+        });
+      }
+    }
+
+    return order;
   }
 
-  async findAll(brandId?: string, salesPersonId?: string, status?: OrderStatus) {
+  async findAll(type?: OrderStatus, salesPersonId?: string) {
     const where: any = {};
-    if (brandId) where.brandId = brandId;
+    if (type) where.type = type;
     if (salesPersonId) where.salesPersonId = salesPersonId;
-    if (status) where.status = status;
 
     return await this.prisma.order.findMany({
       where,
       include: {
-        brand: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         customer: {
           select: {
             id: true,
@@ -140,6 +130,7 @@ export class OrdersService {
             items: true,
           },
         },
+        invoice: true
       },
       orderBy: {
         createdAt: 'desc',
@@ -151,7 +142,6 @@ export class OrdersService {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
-        brand: true,
         customer: true,
         salesPerson: {
           select: {
@@ -162,6 +152,7 @@ export class OrdersService {
           },
         },
         items: true,
+        invoice: true
       },
     });
 
@@ -174,23 +165,16 @@ export class OrdersService {
 
   async update(id: string, updateOrderDto: UpdateOrderDto) {
     try {
-      // Extract only updatable fields (exclude items array which requires separate handling)
       const { items, ...updateData } = updateOrderDto;
 
       return await this.prisma.order.update({
         where: { id },
         data: updateData as any,
         include: {
-          brand: true,
           customer: true,
-          salesPerson: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-            },
-          },
+          salesPerson: true,
           items: true,
+          invoice: true
         },
       });
     } catch (error) {
@@ -201,22 +185,11 @@ export class OrdersService {
     }
   }
 
-  async updateStatus(id: string, status: OrderStatus) {
-    const order = await this.update(id, { status });
-
-    if (status === OrderStatus.CONFIRMED) {
-      await this.invoicesService.generateInvoice(id);
-    }
-
-    return order;
-  }
-
   async remove(id: string) {
     try {
-      // Delete order items first, then order
-      await this.prisma.orderItem.deleteMany({
-        where: { orderId: id },
-      });
+      // Delete order items first, then invoice, then order
+      await this.prisma.orderItem.deleteMany({ where: { orderId: id } });
+      await this.prisma.invoice.deleteMany({ where: { orderId: id } });
 
       return await this.prisma.order.delete({
         where: { id },
@@ -229,20 +202,16 @@ export class OrdersService {
     }
   }
 
-  // Get order statistics
-  async getOrderStats(brandId?: string) {
-    const where = brandId ? { brandId } : {};
-
-    const [total, pending, confirmed, delivered, cancelled] = await Promise.all([
-      this.prisma.order.count({ where }),
-      this.prisma.order.count({ where: { ...where, status: OrderStatus.PENDING } }),
-      this.prisma.order.count({ where: { ...where, status: OrderStatus.CONFIRMED } }),
-      this.prisma.order.count({ where: { ...where, status: OrderStatus.DELIVERED } }),
-      this.prisma.order.count({ where: { ...where, status: OrderStatus.CANCELLED } }),
+  async getOrderStats() {
+    const [total, orders, sales, credits] = await Promise.all([
+      this.prisma.order.count(),
+      this.prisma.order.count({ where: { type: OrderStatus.ORDER } }),
+      this.prisma.order.count({ where: { type: OrderStatus.SALES } }),
+      this.prisma.order.count({ where: { type: OrderStatus.CREDIT_NOTE } }),
     ]);
 
     const totalRevenue = await this.prisma.order.aggregate({
-      where: { ...where, status: { not: OrderStatus.CANCELLED } },
+      where: { type: OrderStatus.SALES },
       _sum: {
         totalAmount: true,
       },
@@ -250,10 +219,9 @@ export class OrdersService {
 
     return {
       total,
-      pending,
-      confirmed,
-      delivered,
-      cancelled,
+      orders,
+      sales,
+      credits,
       totalRevenue: totalRevenue._sum.totalAmount || 0,
     };
   }

@@ -1,12 +1,12 @@
-// Enterprise Grade Schema (PostgreSQL)
+// Simplified Inventory & Sales Management Schema
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // --------------------------------------------------------
@@ -14,269 +14,153 @@ datasource db {
 // --------------------------------------------------------
 
 enum UserRole {
-  SUPER_ADMIN       // Platform Owner
-  BRAND_ADMIN       // Tenant Owner
-  WAREHOUSE_MANAGER // Operations
-  FINANCE_MANAGER   // Accounts
-  SALES_PERSON      // Field Agent
-}
-
-enum BrandStatus {
-  ACTIVE
-  SUSPENDED
-  ARCHIVED
+  ADMIN
+  SALES_PERSON
 }
 
 enum OrderStatus {
-  DRAFT
-  PENDING
-  CONFIRMED
-  PACKED
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  RETURNED
-}
-
-// --------------------------------------------------------
-// CORE IDENTITY (Tenancy)
-// --------------------------------------------------------
-
-model Brand {
-  id          String      @id @default(uuid())
-  name        String
-  slug        String      @unique 
-  logoUrl     String?
-  status      BrandStatus @default(ACTIVE)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  users       User[]
-  assignedToUsers User[] @relation("AssignedBrands")
-  products    Product[]
-  warehouses  Warehouse[]
-  customers   Customer[]
-  orders      Order[]
-  shops       Shop[]
-}
-
-model Shop {
-  id          String   @id @default(uuid())
-  name        String
-  address     String?
-  phoneNumber String?
-  email       String?
-  managerName String?
-  
-  brands      Brand[]
-  assignedUsers User[]
-  orders      Order[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String
-  fullName      String
-  role          UserRole
-  isActive      Boolean   @default(true)
-  lastLoginAt   DateTime?
-  
-  brandId       String?   
-  brand         Brand?    @relation(fields: [brandId], references: [id])
-
-  assignedWarehouseId String?
-  assignedWarehouse   Warehouse? @relation("DefaultWarehouse", fields: [assignedWarehouseId], references: [id])
-  
-  assignedShops       Shop[]
-  assignedBrands      Brand[]    @relation("AssignedBrands")
-  assignedWarehouses  Warehouse[] @relation("AssignedWarehouses")
-
-  auditLogs     AuditLog[]
-  salesOrders   Order[]   @relation("SalesPerson")
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([email])
-  @@index([brandId])
-}
-
-// --------------------------------------------------------
-// INVENTORY & PRODUCT MANAGEMENT
-// --------------------------------------------------------
-
-model Product {
-  id          String   @id @default(uuid())
-  sku         String   
-  name        String
-  description String?
-  categoryId  String?
-  brandId     String
-  brand       Brand    @relation(fields: [brandId], references: [id])
-  
-  // Pricing (Decimal for Financial Accuracy)
-  basePrice   Decimal  @db.Decimal(10, 2)
-  costPrice   Decimal? @db.Decimal(10, 2)
-  
-  imageUrl    String?
-
-  unit        String   @default("pcs") 
-  barcode     String?
-
-  minStockLevel Int    @default(10)
-  stocks        Stock[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@unique([brandId, sku]) 
-  @@index([brandId])
-}
-
-model Warehouse {
-  id          String   @id @default(uuid())
-  name        String
-  location    String?
-  brandId     String
-  brand       Brand    @relation(fields: [brandId], references: [id])
-  
-  managers    User[]   @relation("DefaultWarehouse")
-  assignedUsers User[] @relation("AssignedWarehouses")
-  stocks      Stock[]
-  orders      Order[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Stock {
-  id          String   @id @default(uuid())
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id])
-  warehouseId String
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
-  
-  quantity    Int      @default(0)
-  
-  batchNumber String?
-  expiryDate  DateTime?
-
-  updatedAt   DateTime @updatedAt
-
-  @@unique([productId, warehouseId, batchNumber]) 
-}
-
-// --------------------------------------------------------
-// SALES & TRANSACTIONS
-// --------------------------------------------------------
-
-model Customer {
-  id          String   @id @default(uuid())
-  fullName    String
-  phoneNumber String?
-  email       String?
-  address     String?
-  
-  brandId     String
-  brand       Brand    @relation(fields: [brandId], references: [id])
-
-  orders      Order[]
-
-  createdAt   DateTime @default(now())
-}
-
-model Order {
-  id              String      @id @default(uuid())
-  orderNumber     String      
-  
-  brandId         String
-  brand           Brand       @relation(fields: [brandId], references: [id])
-
-  customerId      String
-  customer        Customer    @relation(fields: [customerId], references: [id])
-  
-  salesPersonId   String
-  salesPerson     User        @relation("SalesPerson", fields: [salesPersonId], references: [id])
-
-  shopId          String?
-  shop            Shop?       @relation(fields: [shopId], references: [id])
-  
-  warehouseId     String?
-  warehouse       Warehouse?  @relation(fields: [warehouseId], references: [id])
-
-  status          OrderStatus @default(PENDING)
-  totalAmount     Decimal     @db.Decimal(10, 2)
-  discountAmount  Decimal     @db.Decimal(10, 2)
-
-  items           OrderItem[]
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-  
-  invoice         Invoice?
-}
-
-model Invoice {
-  id              String      @id @default(uuid())
-  invoiceNumber   String      @unique
-  
-  orderId         String      @unique
-  order           Order       @relation(fields: [orderId], references: [id])
-  
-  amount          Decimal     @db.Decimal(10, 2)
-  status          InvoiceStatus @default(UNPAID)
-  
-  issuedAt        DateTime    @default(now())
-  dueDate         DateTime?
-  
-  pdfUrl          String?
-  
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  ORDER // Add or Edit Order
+  SALES // Add or Edit Sales
+  CREDIT_NOTE // Add or Edit Credit Note
 }
 
 enum InvoiceStatus {
-  DRAFT
   UNPAID
+  PARTIALLY_PAID
   PAID
   OVERDUE
   CANCELLED
 }
 
-model OrderItem {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id])
-  
-  productId   String
-  productName String   
-  sku         String   
-  
-  quantity    Int
-  unitPrice   Decimal  @db.Decimal(10, 2)
-  totalPrice  Decimal  @db.Decimal(10, 2)
+// --------------------------------------------------------
+// CORE MODELS
+// --------------------------------------------------------
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  role         UserRole
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+
+  salesOrders Order[]   @relation("SalesPerson")
+  payments    Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
 }
 
-// --------------------------------------------------------
-// SECURITY & AUDIT
-// --------------------------------------------------------
+model Product {
+  id          String  @id @default(uuid())
+  sku         String  @unique
+  name        String
+  description String?
 
-model AuditLog {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  action      String   
-  entity      String   
-  entityId    String   
-  details     Json?    
-  
-  ipAddress   String?
-  userAgent   String?
-  
-  createdAt   DateTime @default(now())
+  // Pricing
+  basePrice Decimal  @db.Decimal(10, 2)
+  costPrice Decimal? @db.Decimal(10, 2)
+
+  imageUrl String?
+  unit     String  @default("pcs")
+  barcode  String?
+
+  minStockLevel Int @default(10)
+  quantity      Int @default(0) // Simplified Stock (Stock Maintenance)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Customer {
+  id          String  @id @default(uuid())
+  fullName    String
+  phoneNumber String?
+  email       String? @unique
+  address     String?
+  isLocked    Boolean @default(false) // Lock Customer feature
+
+  orders   Order[]
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id          String @id @default(uuid())
+  orderNumber String @unique
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  salesPersonId String
+  salesPerson   User   @relation("SalesPerson", fields: [salesPersonId], references: [id])
+
+  type           OrderStatus @default(ORDER)
+  totalAmount    Decimal     @db.Decimal(10, 2)
+  discountAmount Decimal     @db.Decimal(10, 2)
+
+  items   OrderItem[]
+  invoice Invoice?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  payments Payment[]
+}
+
+model OrderItem {
+  id      String @id @default(uuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  productId   String
+  productName String
+  sku         String
+
+  quantity   Int
+  unitPrice  Decimal @db.Decimal(10, 2)
+  totalPrice Decimal @db.Decimal(10, 2)
+}
+
+model Invoice {
+  id            String @id @default(uuid())
+  invoiceNumber String @unique
+
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  amount     Decimal       @db.Decimal(10, 2)
+  paidAmount Decimal       @default(0) @db.Decimal(10, 2)
+  status     InvoiceStatus @default(UNPAID)
+
+  issuedAt DateTime  @default(now())
+  dueDate  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id            String @id @default(uuid())
+  paymentNumber String @unique
+
+  orderId String?
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+
+  amount        Decimal  @db.Decimal(10, 2)
+  paymentDate   DateTime @default(now())
+  paymentMethod String? // Cash, Cheque, etc.
+  reference     String?
+
+  collectedById String
+  collectedBy   User   @relation(fields: [collectedById], references: [id])
+
+  createdAt DateTime @default(now())
 }

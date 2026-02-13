@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UsePipes, Val
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, UserRole } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -14,53 +14,49 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) { }
 
   @Post()
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER')
-  create(@Body() createOrderDto: CreateOrderDto) {
+  @Roles(UserRole.ADMIN, UserRole.SALES_PERSON)
+  create(@Body() createOrderDto: CreateOrderDto, @Req() req) {
+    if (!createOrderDto.salesPersonId) {
+      createOrderDto.salesPersonId = req.user.id;
+    }
     return this.ordersService.create(createOrderDto);
   }
 
   @Get()
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER', 'SALES_PERSON', 'FINANCE_MANAGER')
+  @Roles(UserRole.ADMIN, UserRole.SALES_PERSON)
   findAll(
-    @Query('brandId') brandId: string,
+    @Query('type') type: OrderStatus,
     @Query('salesPersonId') salesPersonId: string,
-    @Query('status') status: OrderStatus,
     @Req() req: any,
   ) {
-    if (req.user.role === 'SALES_PERSON') {
-      // Salesperson can only see their own orders
-      return this.ordersService.findAll(brandId, req.user.sub, status);
+    if (req.user.role === UserRole.SALES_PERSON) {
+      return this.ordersService.findAll(type, req.user.id);
     }
-    return this.ordersService.findAll(brandId, salesPersonId, status);
+    return this.ordersService.findAll(type, salesPersonId);
   }
 
   @Get('stats')
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'FINANCE_MANAGER')
-  getStats(@Query('brandId') brandId?: string) {
-    return this.ordersService.getOrderStats(brandId);
+  @Roles(UserRole.ADMIN)
+  getStats() {
+    return this.ordersService.getOrderStats();
   }
 
   @Get(':id')
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER', 'SALES_PERSON', 'FINANCE_MANAGER')
+  @Roles(UserRole.ADMIN, UserRole.SALES_PERSON)
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER')
+  @Roles(UserRole.ADMIN)
   update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
     return this.ordersService.update(id, updateOrderDto);
   }
 
-  @Patch(':id/status')
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN', 'WAREHOUSE_MANAGER')
-  updateStatus(@Param('id') id: string, @Body('status') status: OrderStatus) {
-    return this.ordersService.updateStatus(id, status);
-  }
-
   @Delete(':id')
-  @Roles('SUPER_ADMIN', 'BRAND_ADMIN')
+  @Roles(UserRole.ADMIN)
   remove(@Param('id') id: string) {
     return this.ordersService.remove(id);
   }
 }
+
