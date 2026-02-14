@@ -5,7 +5,7 @@
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     max-width: 600px;
-    /* margin: 0 auto; Removed to align left/standard flow */
+    margin: 0 auto;
 }
 
 /* Alert Boxes */
