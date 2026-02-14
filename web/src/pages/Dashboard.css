@@ -12,6 +12,15 @@
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+    margin-left: 72px;
+    /* Accounts for collapsed sidebar width */
+    transition: margin-left 0.3s;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+    }
 }
 
 .content-area {
