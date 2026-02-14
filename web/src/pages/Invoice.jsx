@@ -151,42 +151,42 @@ const Invoice = () => {
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="invoice-payments">
-                <h4>Payment History</h4>
-                <table className="invoice-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th className="text-right">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {payments.length === 0 && (
+                <div className="invoice-payments">
+                    <h4>Payment History</h4>
+                    <table className="invoice-table">
+                        <thead>
                             <tr>
-                                <td colSpan="3" style={{ textAlign: 'center', fontStyle: 'italic', padding: '1rem' }}>No separate payment records. Initial payment is included in totals.</td>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th className="text-right">Amount</th>
                             </tr>
-                        )}
-                        {payments.map((p, i) => (
-                            <tr key={i}>
-                                <td>{new Date(p.transaction_date).toLocaleDateString()}</td>
-                                <td>{p.notes}</td>
-                                <td className="text-right">₹{parseFloat(p.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            <footer className="invoice-footer">
-                <p className="disclaimer">This is a computer-generated invoice and does not require a physical signature.</p>
-                <div className="footer-bottom">
-                    <p>Thank you for your business!</p>
-                    <p>Salesman: {sale.salesman_name}</p>
+                        </thead>
+                        <tbody>
+                            {payments.length === 0 && (
+                                <tr>
+                                    <td colSpan="3" style={{ textAlign: 'center', fontStyle: 'italic', padding: '1rem' }}>No separate payment records. Initial payment is included in totals.</td>
+                                </tr>
+                            )}
+                            {payments.map((p, i) => (
+                                <tr key={i}>
+                                    <td>{new Date(p.transaction_date).toLocaleDateString()}</td>
+                                    <td>{p.notes}</td>
+                                    <td className="text-right">₹{parseFloat(p.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-            </footer>
+
+                <footer className="invoice-footer">
+                    <p className="disclaimer">This is a computer-generated invoice and does not require a physical signature.</p>
+                    <div className="footer-bottom">
+                        <p>Thank you for your business!</p>
+                        <p>Salesman: {sale.salesman_name}</p>
+                    </div>
+                </footer>
+            </div>
         </div>
     );
 };
