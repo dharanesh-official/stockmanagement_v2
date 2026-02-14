@@ -129,12 +129,14 @@ const StockList = () => {
     };
 
     const handleDeleteStock = async (id) => {
-        if (!window.confirm('Are you sure?')) return;
+        if (!window.confirm('Are you sure? This action cannot be undone.')) return;
         try {
             await api.delete(`/stock/${id}`);
             fetchStocks();
+            alert('Product deleted successfully');
         } catch (error) {
             console.error(error);
+            alert(error.response?.data || 'Failed to delete product');
         }
     };
 

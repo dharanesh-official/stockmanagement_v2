@@ -98,10 +98,18 @@ const reduceStock = async (req, res) => {
 const deleteStock = async (req, res) => {
     try {
         const { id } = req.params;
-        await pool.query('DELETE FROM stock WHERE id = $1', [id]);
-        res.json({ message: 'Stock deleted successfully' });
+        const result = await pool.query('DELETE FROM stock WHERE id = $1 RETURNING *', [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).send('Product not found');
+        }
+
+        res.json({ message: 'Product deleted successfully' });
     } catch (error) {
         console.error(error.message);
+        if (error.code === '23503') {
+            return res.status(400).send('Cannot delete product because it has associated sales history. Consider setting stock to 0 instead.');
+        }
         res.status(500).send('Server Error');
     }
 };
