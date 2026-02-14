@@ -27,6 +27,7 @@
 }
 
 /* Brand Section */
+/* Brand Section */
 .sidebar-brand {
     padding: 0;
     height: 72px;
@@ -35,9 +36,10 @@
     align-items: center;
     justify-content: center;
     /* Center icon when collapsed */
-    /* font-size, color inherited or set below */
     color: #111827;
     transition: all 0.3s;
+    overflow: hidden;
+    /* Ensure content doesn't spill */
 }
 
 .sidebar:hover .sidebar-brand {
@@ -48,16 +50,18 @@
 .brand-name {
     margin-left: 12px;
     opacity: 0;
+    display: none;
+    /* Hide from flow initially */
     transition: opacity 0.2s;
     font-weight: 700;
     font-size: 1.25rem;
-    pointer-events: none;
-    /* Prevent interaction when hidden */
+    white-space: nowrap;
 }
 
 .sidebar:hover .brand-name {
+    display: block;
     opacity: 1;
-    pointer-events: auto;
+    animation: fadeIn 0.3s forwards;
 }
 
 /* Navigation */
