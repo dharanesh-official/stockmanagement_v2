@@ -666,3 +666,14 @@
     min-width: 100%;
     /* Override default 800px to fit in modal */
 }
+
+/* Loading Spinner Animation */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

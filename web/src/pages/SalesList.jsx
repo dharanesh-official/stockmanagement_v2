@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Search, Trash2, Edit, X, ShoppingCart, Store, User, Hash, Package, ClipboardCheck, FileText, ChevronDown, Filter } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, X, ShoppingCart, Store, User, Hash, Package, ClipboardCheck, FileText, ChevronDown, Filter, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './StockList.css';
 
@@ -170,10 +170,27 @@ const SalesList = ({ user }) => {
                                     <td>
                                         <div
                                             className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' : sale.status === 'Dispatched' ? 'badge-blue' : 'badge-gray'}`}
-                                            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', paddingRight: '1.75rem', cursor: 'pointer', minWidth: '110px', opacity: updatingId === sale.id ? 0.6 : 1 }}
+                                            style={{
+                                                position: 'relative',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                paddingRight: '1.75rem',
+                                                cursor: updatingId === sale.id ? 'wait' : 'pointer',
+                                                minWidth: '110px',
+                                                opacity: updatingId === sale.id ? 0.7 : 1,
+                                                pointerEvents: updatingId === sale.id ? 'none' : 'auto'
+                                            }}
                                         >
                                             <span className="uppercase font-bold" style={{ flex: 1 }}>{sale.status}</span>
-                                            <ChevronDown size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-60" />
+                                            {updatingId === sale.id ? (
+                                                <Loader2
+                                                    size={14}
+                                                    className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                                                    style={{ animation: 'spin 1s linear infinite' }}
+                                                />
+                                            ) : (
+                                                <ChevronDown size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-60" />
+                                            )}
                                             <select
                                                 value={sale.status}
                                                 onChange={(e) => handleStatusUpdate(sale.id, e.target.value, sale.status)}
@@ -185,7 +202,7 @@ const SalesList = ({ user }) => {
                                                     width: '100%',
                                                     height: '100%',
                                                     opacity: 0,
-                                                    cursor: updatingId === sale.id ? 'not-allowed' : 'pointer',
+                                                    cursor: updatingId === sale.id ? 'wait' : 'pointer',
                                                     appearance: 'none'
                                                 }}
                                             >
