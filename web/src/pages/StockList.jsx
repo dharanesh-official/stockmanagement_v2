@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css';
 import './Employees.css';
 
@@ -167,272 +168,274 @@ const StockList = () => {
         }
     };
 
+
     return (
-        <div className="stock-page">
-            <div className="page-header">
-                <div>
-                    <h1>Product Management</h1>
-                    <p className="subtitle">Centralized control for enterprise inventory across all regions.</p>
-                </div>
-                <div className="header-actions">
-                    <button className="btn btn-secondary" onClick={() => setShowCategoryModal(true)}>
-                        <LayoutGrid size={18} /> Manage Categories
-                    </button>
-                    {hasPermission('stock', 'create') && (
-                        <button className="btn btn-primary" onClick={() => { resetStockForm(); setShowModal(true); }}>
-                            <Plus size={18} /> Add Product
+        <>
+            {loading && <LoadingSpinner fullScreen message="Loading inventory..." />}
+            <div className="stock-page">
+                <div className="page-header">
+                    <div>
+                        <h1>Product Management</h1>
+                        <p className="subtitle">Centralized control for enterprise inventory across all regions.</p>
+                    </div>
+                    <div className="header-actions">
+                        <button className="btn btn-secondary" onClick={() => setShowCategoryModal(true)}>
+                            <LayoutGrid size={18} /> Manage Categories
                         </button>
-                    )}
+                        {hasPermission('stock', 'create') && (
+                            <button className="btn btn-primary" onClick={() => { resetStockForm(); setShowModal(true); }}>
+                                <Plus size={18} /> Add Product
+                            </button>
+                        )}
+                    </div>
                 </div>
-            </div>
 
-            <div className="controls-bar">
-                <div className="search-box">
-                    <Search size={18} color="#9ca3af" />
-                    <input
-                        type="text"
-                        placeholder="Search by Product Name..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
+                <div className="controls-bar">
+                    <div className="search-box">
+                        <Search size={18} color="#9ca3af" />
+                        <input
+                            type="text"
+                            placeholder="Search by Product Name..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
                 </div>
-            </div>
 
-            <div className="table-container">
-                <table className="stock-table">
-                    <thead>
-                        <tr>
-                            <th>S.No</th>
-                            <th>PRODUCT NAME</th>
-                            <th>CATEGORY</th>
-                            <th>PRICE</th>
-                            <th>STOCK LEVEL</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan="6" className="loading-cell">Loading inventory...</td></tr>
-                        ) : filteredStocks.map((stock, index) => (
-                            <tr key={stock.id}>
-                                <td className="sno-cell">{index + 1}</td>
-                                <td className="product-cell">
-                                    <span className="product-name">{stock.item_name}</span>
-                                </td>
-                                <td><span className="badge badge-gray">{stock.category_name || 'General'}</span></td>
-                                <td className="price-cell">₹{Number(stock.price).toFixed(2)}</td>
-                                <td>
-                                    <span className={`stock-count ${stock.quantity < 10 ? 'text-red' : ''}`}>
-                                        {stock.quantity} Units
-                                    </span>
-                                </td>
-                                <td className="actions-cell">
-                                    <div className="flex gap-1">
-                                        <button className="icon-btn text-blue-600" title="Increase Stock" onClick={() => {
-                                            setAdjustData({ id: stock.id, name: stock.item_name, quantity: 1, type: 'increase' });
-                                            setShowAdjustModal(true);
-                                        }}>
-                                            <PlusCircle size={18} />
-                                        </button>
-                                        <button className="icon-btn text-orange-600" title="Reduce Stock" onClick={() => {
-                                            setAdjustData({ id: stock.id, name: stock.item_name, quantity: 1, type: 'reduce' });
-                                            setShowAdjustModal(true);
-                                        }}>
-                                            <MinusCircle size={18} />
-                                        </button>
-                                        <div className="w-px h-4 bg-gray-200 mx-1 self-center"></div>
-                                        {hasPermission('stock', 'edit') && (
-                                            <button className="icon-btn" onClick={() => openEditStock(stock)}><Edit size={18} /></button>
-                                        )}
-                                        {hasPermission('stock', 'delete') && (
-                                            <button className="icon-btn delete-btn" onClick={() => handleDeleteStock(stock.id)}>
-                                                <Trash2 size={18} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
+                <div className="table-container">
+                    <table className="stock-table">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>PRODUCT NAME</th>
+                                <th>CATEGORY</th>
+                                <th>PRICE</th>
+                                <th>STOCK LEVEL</th>
+                                <th>ACTIONS</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            {!loading && filteredStocks.map((stock, index) => (
+                                <tr key={stock.id}>
+                                    <td className="sno-cell">{index + 1}</td>
+                                    <td className="product-cell">
+                                        <span className="product-name">{stock.item_name}</span>
+                                    </td>
+                                    <td><span className="badge badge-gray">{stock.category_name || 'General'}</span></td>
+                                    <td className="price-cell">₹{Number(stock.price).toFixed(2)}</td>
+                                    <td>
+                                        <span className={`stock-count ${stock.quantity < 10 ? 'text-red' : ''}`}>
+                                            {stock.quantity} Units
+                                        </span>
+                                    </td>
+                                    <td className="actions-cell">
+                                        <div className="flex gap-1">
+                                            <button className="icon-btn text-blue-600" title="Increase Stock" onClick={() => {
+                                                setAdjustData({ id: stock.id, name: stock.item_name, quantity: 1, type: 'increase' });
+                                                setShowAdjustModal(true);
+                                            }}>
+                                                <PlusCircle size={18} />
+                                            </button>
+                                            <button className="icon-btn text-orange-600" title="Reduce Stock" onClick={() => {
+                                                setAdjustData({ id: stock.id, name: stock.item_name, quantity: 1, type: 'reduce' });
+                                                setShowAdjustModal(true);
+                                            }}>
+                                                <MinusCircle size={18} />
+                                            </button>
+                                            <div className="w-px h-4 bg-gray-200 mx-1 self-center"></div>
+                                            {hasPermission('stock', 'edit') && (
+                                                <button className="icon-btn" onClick={() => openEditStock(stock)}><Edit size={18} /></button>
+                                            )}
+                                            {hasPermission('stock', 'delete') && (
+                                                <button className="icon-btn delete-btn" onClick={() => handleDeleteStock(stock.id)}>
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
 
-            {/* Category Management Modal */}
-            {showCategoryModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '600px' }}>
-                        <div className="modal-header">
-                            <h2>Manage Categories</h2>
+                {/* Category Management Modal */}
+                {showCategoryModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content" style={{ maxWidth: '600px' }}>
+                            <div className="modal-header">
+                                <h2>Manage Categories</h2>
+                            </div>
+                            <div className="managed-form">
+                                <form onSubmit={handleCategorySubmit} className="category-inline-form">
+                                    <div className="form-group mb-4">
+                                        <label className="text-xs font-bold uppercase text-gray-500 mb-2 block">
+                                            {categoryEditMode ? 'Edit Category' : 'Add New Category'}
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                className="category-input"
+                                                value={categoryFormData.name}
+                                                onChange={e => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                                                required
+                                                placeholder="e.g. Mobile Phones"
+                                                style={{ flex: 1, height: '42px' }}
+                                            />
+                                            <button
+                                                type="submit"
+                                                className="btn btn-primary"
+                                                style={{ height: '42px', minWidth: '100px', justifyContent: 'center' }}
+                                                disabled={actionLoading}
+                                            >
+                                                {actionLoading ? 'Saving...' : (categoryEditMode ? 'Update' : 'Add')}
+                                            </button>
+                                            {categoryEditMode && (
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-secondary"
+                                                    onClick={() => { setCategoryEditMode(false); setCategoryFormData({ id: null, name: '' }); }}
+                                                    style={{ height: '42px', width: '42px', padding: 0, justifyContent: 'center' }}
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <div className="categories-list-mini">
+                                    <h3 className="section-title">Existing Categories</h3>
+                                    <div className="table-container" style={{ border: '1px solid #f3f4f6', boxShadow: 'none' }}>
+                                        <table className="stock-table" style={{ fontSize: '0.85rem' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th>Category Name</th>
+                                                    <th style={{ textAlign: 'right' }}>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {categories.map(cat => (
+                                                    <tr key={cat.id}>
+                                                        <td>{cat.name}</td>
+                                                        <td className="actions-cell" style={{ justifyContent: 'flex-end' }}>
+                                                            <button className="icon-btn" onClick={() => openEditCategory(cat)}><Edit size={14} /></button>
+                                                            <button className="icon-btn delete-btn" onClick={() => handleDeleteCategory(cat.id)}><Trash2 size={14} /></button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="modal-actions">
+                                <button className="btn btn-secondary" onClick={() => setShowCategoryModal(false)}>Close</button>
+                            </div>
                         </div>
-                        <div className="managed-form">
-                            <form onSubmit={handleCategorySubmit} className="category-inline-form">
-                                <div className="form-group mb-4">
-                                    <label className="text-xs font-bold uppercase text-gray-500 mb-2 block">
-                                        {categoryEditMode ? 'Edit Category' : 'Add New Category'}
-                                    </label>
-                                    <div className="flex gap-2">
+                    </div>
+                )}
+
+                {/* Product Modal */}
+                {showModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content" style={{ maxWidth: '500px' }}>
+                            <div className="modal-header">
+                                <h2>{formData.id ? 'Edit Product' : 'Add New Product'}</h2>
+                            </div>
+                            <form onSubmit={handleCreateOrUpdateStock}>
+                                <div className="managed-form">
+                                    <div className="form-group">
+                                        <label>Product Name</label>
                                         <input
                                             type="text"
-                                            className="category-input"
-                                            value={categoryFormData.name}
-                                            onChange={e => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                                            value={formData.item_name}
+                                            onChange={e => setFormData({ ...formData, item_name: e.target.value })}
                                             required
-                                            placeholder="e.g. Mobile Phones"
-                                            style={{ flex: 1, height: '42px' }}
                                         />
-                                        <button
-                                            type="submit"
-                                            className="btn btn-primary"
-                                            style={{ height: '42px', minWidth: '100px', justifyContent: 'center' }}
-                                            disabled={actionLoading}
-                                        >
-                                            {actionLoading ? 'Saving...' : (categoryEditMode ? 'Update' : 'Add')}
-                                        </button>
-                                        {categoryEditMode && (
-                                            <button
-                                                type="button"
-                                                className="btn btn-secondary"
-                                                onClick={() => { setCategoryEditMode(false); setCategoryFormData({ id: null, name: '' }); }}
-                                                style={{ height: '42px', width: '42px', padding: 0, justifyContent: 'center' }}
-                                            >
-                                                <X size={18} />
-                                            </button>
-                                        )}
                                     </div>
+                                    <div className="form-group">
+                                        <label>Category</label>
+                                        <select
+                                            value={formData.category_id}
+                                            onChange={e => setFormData({ ...formData, category_id: e.target.value })}
+                                            required
+                                        >
+                                            <option value="">Select Category</option>
+                                            {categories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="form-group" style={{ flex: 1 }}>
+                                            <label>Price (₹)</label>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                value={formData.price}
+                                                onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                                required
+                                            />
+                                        </div>
+                                        <div className="form-group" style={{ flex: 1 }}>
+                                            <label>Quantity</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                value={formData.quantity}
+                                                onChange={e => setFormData({ ...formData, quantity: e.target.value })}
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="modal-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={actionLoading}>Cancel</button>
+                                    <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                                        {actionLoading ? 'Saving...' : 'Save Product'}
+                                    </button>
                                 </div>
                             </form>
-
-                            <div className="categories-list-mini">
-                                <h3 className="section-title">Existing Categories</h3>
-                                <div className="table-container" style={{ border: '1px solid #f3f4f6', boxShadow: 'none' }}>
-                                    <table className="stock-table" style={{ fontSize: '0.85rem' }}>
-                                        <thead>
-                                            <tr>
-                                                <th>Category Name</th>
-                                                <th style={{ textAlign: 'right' }}>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {categories.map(cat => (
-                                                <tr key={cat.id}>
-                                                    <td>{cat.name}</td>
-                                                    <td className="actions-cell" style={{ justifyContent: 'flex-end' }}>
-                                                        <button className="icon-btn" onClick={() => openEditCategory(cat)}><Edit size={14} /></button>
-                                                        <button className="icon-btn delete-btn" onClick={() => handleDeleteCategory(cat.id)}><Trash2 size={14} /></button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="modal-actions">
-                            <button className="btn btn-secondary" onClick={() => setShowCategoryModal(false)}>Close</button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            {/* Product Modal */}
-            {showModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '500px' }}>
-                        <div className="modal-header">
-                            <h2>{formData.id ? 'Edit Product' : 'Add New Product'}</h2>
-                        </div>
-                        <form onSubmit={handleCreateOrUpdateStock}>
-                            <div className="managed-form">
-                                <div className="form-group">
-                                    <label>Product Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.item_name}
-                                        onChange={e => setFormData({ ...formData, item_name: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Category</label>
-                                    <select
-                                        value={formData.category_id}
-                                        onChange={e => setFormData({ ...formData, category_id: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Select Category</option>
-                                        {categories.map(cat => (
-                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="flex gap-4">
-                                    <div className="form-group" style={{ flex: 1 }}>
-                                        <label>Price (₹)</label>
+                {/* Adjustment Modal */}
+                {showAdjustModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content" style={{ maxWidth: '400px' }}>
+                            <div className="modal-header">
+                                <h2>{adjustData.type === 'increase' ? 'Increase Stock' : 'Reduce Stock'}</h2>
+                                <p className="text-secondary text-sm mt-1">{adjustData.name}</p>
+                            </div>
+                            <form onSubmit={handleAdjustment}>
+                                <div className="managed-form">
+                                    <div className="form-group">
+                                        <label>Adjustment Quantity</label>
                                         <input
                                             type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={formData.price}
-                                            onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                            min="1"
+                                            value={adjustData.quantity}
+                                            onChange={e => setAdjustData({ ...adjustData, quantity: e.target.value })}
                                             required
-                                        />
-                                    </div>
-                                    <div className="form-group" style={{ flex: 1 }}>
-                                        <label>Quantity</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={formData.quantity}
-                                            onChange={e => setFormData({ ...formData, quantity: e.target.value })}
-                                            required
+                                            autoFocus
                                         />
                                     </div>
                                 </div>
-                            </div>
-                            <div className="modal-actions">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={actionLoading}>Cancel</button>
-                                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
-                                    {actionLoading ? 'Saving...' : 'Save Product'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Adjustment Modal */}
-            {showAdjustModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content" style={{ maxWidth: '400px' }}>
-                        <div className="modal-header">
-                            <h2>{adjustData.type === 'increase' ? 'Increase Stock' : 'Reduce Stock'}</h2>
-                            <p className="text-secondary text-sm mt-1">{adjustData.name}</p>
-                        </div>
-                        <form onSubmit={handleAdjustment}>
-                            <div className="managed-form">
-                                <div className="form-group">
-                                    <label>Adjustment Quantity</label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={adjustData.quantity}
-                                        onChange={e => setAdjustData({ ...adjustData, quantity: e.target.value })}
-                                        required
-                                        autoFocus
-                                    />
+                                <div className="modal-actions">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(false)} disabled={actionLoading}>Cancel</button>
+                                    <button type="submit" className={`btn ${adjustData.type === 'increase' ? 'btn-primary' : 'btn-danger'}`} disabled={actionLoading}>
+                                        {actionLoading ? 'Processing...' : `Confirm ${adjustData.type === 'increase' ? 'Addition' : 'Reduction'}`}
+                                    </button>
                                 </div>
-                            </div>
-                            <div className="modal-actions">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(false)} disabled={actionLoading}>Cancel</button>
-                                <button type="submit" className={`btn ${adjustData.type === 'increase' ? 'btn-primary' : 'btn-danger'}`} disabled={actionLoading}>
-                                    {actionLoading ? 'Processing...' : `Confirm ${adjustData.type === 'increase' ? 'Addition' : 'Reduction'}`}
-                                </button>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        </>
     );
 };
 

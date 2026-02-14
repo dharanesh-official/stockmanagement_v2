@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Search, Trash2, Edit, X, Store, Phone, MapPin, Mail, User } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, Store, User, Phone, MapPin } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css'; // Reusing common table/page styles
 import './Shops.css';
 

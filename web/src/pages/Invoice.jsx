@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { Printer, ArrowLeft, Download, Mail, Building2, Store, User, FileText } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Invoice.css';
 
 const Invoice = () => {
@@ -50,7 +51,7 @@ const Invoice = () => {
         window.print();
     };
 
-    if (loading) return <div className="loading-container">Generating Invoice...</div>;
+    if (loading) return <LoadingSpinner fullScreen message="Generating Invoice..." />;
     if (!sale) return <div className="error-container">Invoice not found.</div>;
 
     const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
