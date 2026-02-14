@@ -13,6 +13,7 @@ const StockList = () => {
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showAdjustModal, setShowAdjustModal] = useState(false);
     const [adjustData, setAdjustData] = useState({ id: null, name: '', quantity: 1, type: 'increase' });
+    const [actionLoading, setActionLoading] = useState(false);
 
     // Category Management
     const [categories, setCategories] = useState([]);
@@ -64,6 +65,7 @@ const StockList = () => {
     // Category CRUD
     const handleCategorySubmit = async (e) => {
         e.preventDefault();
+        setActionLoading(true);
         try {
             if (categoryEditMode) {
                 await api.put(`/categories/${categoryFormData.id}`, { name: categoryFormData.name });
@@ -78,6 +80,8 @@ const StockList = () => {
             fetchCategories();
         } catch (error) {
             alert(error.response?.data || 'Failed to save category');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -99,6 +103,7 @@ const StockList = () => {
     // Stock CRUD
     const handleCreateOrUpdateStock = async (e) => {
         e.preventDefault();
+        setActionLoading(true);
         try {
             if (formData.id) {
                 await api.put(`/stock/${formData.id}`, formData);
@@ -110,6 +115,8 @@ const StockList = () => {
             fetchStocks();
         } catch (error) {
             alert('Failed to save product');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -146,6 +153,7 @@ const StockList = () => {
 
     const handleAdjustment = async (e) => {
         e.preventDefault();
+        setActionLoading(true);
         try {
             const endpoint = adjustData.type === 'increase' ? `/stock/increase/${adjustData.id}` : `/stock/reduce/${adjustData.id}`;
             await api.put(endpoint, { quantity: parseInt(adjustData.quantity) });
@@ -154,6 +162,8 @@ const StockList = () => {
         } catch (error) {
             console.error(error);
             alert('Failed to adjust stock');
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -270,8 +280,13 @@ const StockList = () => {
                                             placeholder="e.g. Mobile Phones"
                                             style={{ flex: 1, height: '42px' }}
                                         />
-                                        <button type="submit" className="btn btn-primary" style={{ height: '42px', minWidth: '100px', justifyContent: 'center' }}>
-                                            {categoryEditMode ? 'Update' : 'Add'}
+                                        <button
+                                            type="submit"
+                                            className="btn btn-primary"
+                                            style={{ height: '42px', minWidth: '100px', justifyContent: 'center' }}
+                                            disabled={actionLoading}
+                                        >
+                                            {actionLoading ? 'Saving...' : (categoryEditMode ? 'Update' : 'Add')}
                                         </button>
                                         {categoryEditMode && (
                                             <button
@@ -375,8 +390,10 @@ const StockList = () => {
                                 </div>
                             </div>
                             <div className="modal-actions">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">Save Product</button>
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={actionLoading}>Cancel</button>
+                                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                                    {actionLoading ? 'Saving...' : 'Save Product'}
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -406,9 +423,9 @@ const StockList = () => {
                                 </div>
                             </div>
                             <div className="modal-actions">
-                                <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(false)}>Cancel</button>
-                                <button type="submit" className={`btn ${adjustData.type === 'increase' ? 'btn-primary' : 'btn-danger'}`}>
-                                    Confirm {adjustData.type === 'increase' ? 'Addition' : 'Reduction'}
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(false)} disabled={actionLoading}>Cancel</button>
+                                <button type="submit" className={`btn ${adjustData.type === 'increase' ? 'btn-primary' : 'btn-danger'}`} disabled={actionLoading}>
+                                    {actionLoading ? 'Processing...' : `Confirm ${adjustData.type === 'increase' ? 'Addition' : 'Reduction'}`}
                                 </button>
                             </div>
                         </form>
