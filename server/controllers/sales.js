@@ -231,23 +231,16 @@ const updateOrderPayment = async (req, res) => {
 
         await client.query('BEGIN');
 
-        const transRes = await client.query('SELECT total_amount, paid_amount, customer_id FROM transactions WHERE id = $1', [id]);
+        const transRes = await client.query('SELECT total_amount, paid_amount, customer_id, status FROM transactions WHERE id = $1', [id]);
         if (transRes.rows.length === 0) throw new Error('Order not found');
 
         const trans = transRes.rows[0];
         const newPaidAmount = Number(trans.paid_amount) + Number(amountPaid);
         const total = Number(trans.total_amount);
 
-        let status = 'Ordered';
-        if (newPaidAmount >= total) {
-            status = 'Payment Completed';
-        } else if (newPaidAmount > 0) {
-            status = 'Partially Paid';
-        }
-
         await client.query(
-            'UPDATE transactions SET paid_amount = $1, status = $2 WHERE id = $3',
-            [newPaidAmount, status, id]
+            'UPDATE transactions SET paid_amount = $1 WHERE id = $2',
+            [newPaidAmount, id]
         );
 
         await client.query(
@@ -262,7 +255,7 @@ const updateOrderPayment = async (req, res) => {
         );
 
         await client.query('COMMIT');
-        res.json({ message: 'Payment updated successfully', status, paid_amount: newPaidAmount });
+        res.json({ message: 'Payment updated successfully', status: trans.status, paid_amount: newPaidAmount });
     } catch (error) {
         await client.query('ROLLBACK');
         console.error(error.message);

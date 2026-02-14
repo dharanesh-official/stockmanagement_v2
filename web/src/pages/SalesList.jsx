@@ -148,26 +148,30 @@ const SalesList = ({ user }) => {
                                         </span>
                                     </td>
                                     <td>
-                                        <div className="relative inline-block">
+                                        <div
+                                            className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' : sale.status === 'Dispatched' ? 'badge-blue' : 'badge-gray'}`}
+                                            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', paddingRight: '1.75rem', cursor: 'pointer', minWidth: '110px' }}
+                                        >
+                                            <span className="uppercase font-bold" style={{ flex: 1 }}>{sale.status}</span>
+                                            <ChevronDown size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-60" />
                                             <select
-                                                className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' : sale.status === 'Dispatched' ? 'badge-blue' : 'badge-gray'}`}
                                                 value={sale.status}
                                                 onChange={(e) => handleStatusUpdate(sale.id, e.target.value)}
                                                 style={{
-                                                    border: 'none',
-                                                    background: 'transparent',
-                                                    outline: 'none',
+                                                    position: 'absolute',
+                                                    top: 0,
+                                                    left: 0,
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    opacity: 0,
                                                     cursor: 'pointer',
-                                                    appearance: 'none',
-                                                    paddingRight: '1.5rem',
-                                                    width: '100%'
+                                                    appearance: 'none'
                                                 }}
                                             >
                                                 <option value="Ordered">Ordered</option>
                                                 <option value="Dispatched">Dispatched</option>
                                                 <option value="Delivered">Delivered</option>
                                             </select>
-                                            <ChevronDown size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none opacity-50" />
                                         </div>
                                     </td>
                                     <td>
