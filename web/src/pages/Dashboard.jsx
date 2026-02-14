@@ -17,6 +17,7 @@ import './Dashboard.css';
 
 const Dashboard = () => {
     const [user, setUser] = useState(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -32,9 +33,16 @@ const Dashboard = () => {
 
     return (
         <div className="dashboard-container">
-            <Sidebar user={user} />
+            <Sidebar
+                user={user}
+                isOpen={isSidebarOpen}
+                closeSidebar={() => setIsSidebarOpen(false)}
+            />
             <div className="main-content">
-                <Header user={user} />
+                <Header
+                    user={user}
+                    toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+                />
                 <div className="content-area">
                     <Routes>
                         <Route index element={<DashboardHome user={user} />} />

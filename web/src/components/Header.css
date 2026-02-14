@@ -11,6 +11,46 @@
 .breadcrumb {
     font-size: 0.9rem;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #374151;
+    display: none;
+    /* Hidden by default */
+    padding: 0;
+}
+
+.crumb-text {
+    display: flex;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .header {
+        padding: 0 16px;
+    }
+
+    .menu-btn {
+        display: block;
+    }
+
+    .crumb-text {
+        display: none;
+    }
+
+    .search-wrapper input {
+        width: 140px;
+    }
+
+    .search-wrapper input:focus {
+        width: 180px;
+    }
 }
 
 .separator {

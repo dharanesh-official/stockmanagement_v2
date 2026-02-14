@@ -1,15 +1,20 @@
 import React from 'react';
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Menu } from 'lucide-react';
 import './Header.css';
 import './Header.css';
 
-const Header = ({ user }) => {
+const Header = ({ user, toggleSidebar }) => {
     return (
         <header className="header">
             <div className="breadcrumb">
-                <span className="text-gray-500">Dashboard</span>
-                <span className="separator">/</span>
-                <span className="active-crumb">Overview</span>
+                <button className="menu-btn" onClick={toggleSidebar}>
+                    <Menu size={24} />
+                </button>
+                <div className="crumb-text">
+                    <span className="text-gray-500">Dashboard</span>
+                    <span className="separator">/</span>
+                    <span className="active-crumb">Overview</span>
+                </div>
             </div>
 
             <div className="header-right">
