@@ -36,10 +36,9 @@ const SalesList = ({ user }) => {
     };
 
     const handleStatusUpdate = async (id, nextStatus) => {
-        if (!window.confirm(`Update status to "${nextStatus}"?`)) return;
-
         try {
             await api.put(`/sales/${id}`, { status: nextStatus });
+            // Auto-refresh the list after successful update
             fetchSales();
         } catch (err) {
             alert('Failed to update status');
@@ -74,19 +73,33 @@ const SalesList = ({ user }) => {
                         {user.role === 'admin' ? 'Viewing all salesman orders' : 'Viewing your orders'}
                     </p>
                 </div>
-                <div className="flex gap-3">
-                    <div className="relative">
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ position: 'relative' }}>
                         <select
-                            className="btn bg-white border border-gray-300 text-gray-700 pl-4 pr-10 py-2 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="btn"
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
+                            style={{
+                                backgroundColor: 'white',
+                                border: '1px solid #d1d5db',
+                                color: '#374151',
+                                paddingLeft: '12px',
+                                paddingRight: '36px',
+                                paddingTop: '10px',
+                                paddingBottom: '10px',
+                                borderRadius: '6px',
+                                appearance: 'none',
+                                cursor: 'pointer',
+                                fontSize: '0.875rem',
+                                fontWeight: '500'
+                            }}
                         >
                             <option value="All">All Status</option>
                             <option value="Ordered">Ordered</option>
                             <option value="Dispatched">Dispatched</option>
                             <option value="Delivered">Delivered</option>
                         </select>
-                        <Filter size={16} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        <Filter size={16} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
                     </div>
                     <button className="btn btn-primary" onClick={() => navigate('/dashboard/create-order')}>
                         <Plus size={18} /> New Order
