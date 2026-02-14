@@ -660,3 +660,9 @@
         justify-content: center;
     }
 }
+
+/* Fix for Category Modal Table Scrolling */
+.categories-list-mini .stock-table {
+    min-width: 100%;
+    /* Override default 800px to fit in modal */
+}
