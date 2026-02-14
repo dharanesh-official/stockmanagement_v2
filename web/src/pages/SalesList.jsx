@@ -34,6 +34,22 @@ const SalesList = ({ user }) => {
         }
     };
 
+    const handleStatusUpdate = async (id, currentStatus) => {
+        let nextStatus = '';
+        if (currentStatus === 'Ordered') nextStatus = 'Dispatched';
+        else if (currentStatus === 'Dispatched') nextStatus = 'Delivered';
+        else return;
+
+        if (!window.confirm(`Update status to ${nextStatus}?`)) return;
+
+        try {
+            await api.put(`/sales/${id}`, { status: nextStatus });
+            fetchSales();
+        } catch (err) {
+            alert('Failed to update status');
+        }
+    };
+
     return (
         <div className="stock-page">
             <div className="page-header">
@@ -56,6 +72,7 @@ const SalesList = ({ user }) => {
                             <th>Shop</th>
                             <th>Customer</th>
                             <th>Salesman</th>
+                            <th>Status</th>
                             <th>Amount</th>
                             <th>Actions</th>
                         </tr>
@@ -87,9 +104,23 @@ const SalesList = ({ user }) => {
                                 </td>
                                 <td>
                                     <span className="badge badge-purple">
-                                        <User size={12} className="inline mr-1" />
                                         {sale.salesman_name}
                                     </span>
+                                </td>
+                                <td>
+                                    <span className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' :
+                                        sale.status === 'Dispatched' ? 'badge-blue' : 'badge-gray'
+                                        }`}>
+                                        {sale.status}
+                                    </span>
+                                    {sale.status !== 'Delivered' && (
+                                        <button
+                                            className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                                            onClick={() => handleStatusUpdate(sale.id, sale.status)}
+                                        >
+                                            Next Stage
+                                        </button>
+                                    )}
                                 </td>
                                 <td>
                                     <span className="text-lg font-black text-gray-900 line-height-none">₹{Number(sale.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>

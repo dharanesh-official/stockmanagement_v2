@@ -76,11 +76,9 @@ const createSale = async (req, res) => {
         let status = type === 'order' ? 'Ordered' : 'completed';
 
         if (type === 'order') {
-            if (paid_amount >= total_amount) {
-                status = 'Payment Completed';
-            } else if (paid_amount > 0) {
-                status = 'Partially Paid';
-            }
+            // Default to Ordered, payments update status elsewhere if needed but let's stick to user request flow
+            // User requested: Ordered -> Dispatched -> Delivered
+            status = 'Ordered';
         }
 
         const transactionRes = await client.query(
@@ -98,9 +96,15 @@ const createSale = async (req, res) => {
                 );
 
                 // Inventory Logic
-                if (type === 'sale') {
+                if (type === 'sale' || type === 'order') {
+                    // Check stock first (for safety, though frontend should prevent)
+                    const stockRes = await client.query('SELECT quantity FROM stock WHERE id = $1', [item.stock_id]);
+                    if (stockRes.rows.length === 0 || stockRes.rows[0].quantity < item.quantity) {
+                        throw new Error(`Insufficient stock for item ID: ${item.stock_id}`);
+                    }
+
                     await client.query(
-                        'UPDATE stock SET quantity = GREATEST(quantity - $1, 0) WHERE id = $2',
+                        'UPDATE stock SET quantity = quantity - $1 WHERE id = $2',
                         [item.quantity, item.stock_id]
                     );
                 } else if (type === 'credit_note') {

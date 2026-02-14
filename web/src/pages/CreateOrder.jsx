@@ -58,6 +58,10 @@ const CreateOrder = ({ user }) => {
     };
 
     const toggleProduct = (product) => {
+        if (product.quantity <= 0 && !orderData.items.some(item => item.stock_id === product.id)) {
+            alert('This product is out of stock.');
+            return;
+        }
         const index = orderData.items.findIndex(item => item.stock_id === product.id);
         if (index > -1) {
             const newItems = [...orderData.items];
@@ -261,10 +265,18 @@ const CreateOrder = ({ user }) => {
                                                             onChange={(e) => updateQuantity(product.id, e.target.value)}
                                                             className="qty-input"
                                                         />
-                                                        <button className="qty-btn" onClick={() => updateQuantity(product.id, currentItem.quantity + 1)}>+</button>
+                                                        <button
+                                                            className="qty-btn"
+                                                            onClick={() => product.quantity > currentItem.quantity ? updateQuantity(product.id, currentItem.quantity + 1) : alert('No more stock available')}
+                                                            disabled={currentItem.quantity >= product.quantity}
+                                                        >+</button>
                                                     </div>
                                                 ) : (
-                                                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Select Item</div>
+                                                    product.quantity <= 0 ? (
+                                                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Out of Stock</div>
+                                                    ) : (
+                                                        <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' }}>Select Item</div>
+                                                    )
                                                 )}
                                             </div>
                                         </div>
