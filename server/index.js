@@ -27,9 +27,12 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/shops', require('./routes/shops'));
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+// Start Server only if not in production/serverless environment or if running directly
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
 
 // Global Error Handler
 app.use((err, req, res, next) => {
