@@ -263,6 +263,22 @@
 }
 
 
+.invoice-payments {
+    margin-bottom: 3rem;
+    page-break-inside: avoid;
+}
+
+.invoice-payments h4 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0.5rem;
+}
+
 /* Perfect Print Styles */
 @media print {
 

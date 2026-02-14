@@ -272,4 +272,20 @@ const updateOrderPayment = async (req, res) => {
     }
 };
 
-module.exports = { getSales, createSale, updateSale, deleteSale, getSaleItems, getSaleById, updateOrderPayment };
+const getOrderPayments = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await pool.query(
+            `SELECT * FROM transactions 
+             WHERE type = 'payment' AND notes LIKE $1 
+             ORDER BY transaction_date DESC`,
+            [`%${id.slice(0, 8).toUpperCase()}%`]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+module.exports = { getSales, createSale, updateSale, deleteSale, getSaleItems, getSaleById, updateOrderPayment, getOrderPayments };

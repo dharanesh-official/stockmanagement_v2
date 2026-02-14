@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getSales, createSale, updateSale, deleteSale, getSaleItems, getSaleById, updateOrderPayment } = require('../controllers/sales');
+const { getSales, createSale, updateSale, deleteSale, getSaleItems, getSaleById, updateOrderPayment, getOrderPayments } = require('../controllers/sales');
 const { verifyToken } = require('../middleware/auth');
 
 router.get('/', verifyToken, getSales);
@@ -9,6 +9,7 @@ router.get('/items/:id', verifyToken, getSaleItems);
 router.post('/', verifyToken, createSale);
 router.put('/:id', verifyToken, updateSale);
 router.put('/payment/:id', verifyToken, updateOrderPayment);
+router.get('/payments/:id', verifyToken, getOrderPayments);
 router.delete('/:id', verifyToken, deleteSale);
 
 module.exports = router;
