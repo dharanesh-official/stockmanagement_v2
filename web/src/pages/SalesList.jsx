@@ -34,13 +34,8 @@ const SalesList = ({ user }) => {
         }
     };
 
-    const handleStatusUpdate = async (id, currentStatus) => {
-        let nextStatus = '';
-        if (currentStatus === 'Ordered') nextStatus = 'Dispatched';
-        else if (currentStatus === 'Dispatched') nextStatus = 'Delivered';
-        else return;
-
-        if (!window.confirm(`Update status to ${nextStatus}?`)) return;
+    const handleStatusUpdate = async (id, nextStatus) => {
+        if (!window.confirm(`Update status to "${nextStatus}"?`)) return;
 
         try {
             await api.put(`/sales/${id}`, { status: nextStatus });
@@ -108,19 +103,16 @@ const SalesList = ({ user }) => {
                                     </span>
                                 </td>
                                 <td>
-                                    <span className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' :
-                                        sale.status === 'Dispatched' ? 'badge-blue' : 'badge-gray'
-                                        }`}>
-                                        {sale.status}
-                                    </span>
-                                    {sale.status !== 'Delivered' && (
-                                        <button
-                                            className="ml-2 text-xs text-blue-600 hover:text-blue-800 underline"
-                                            onClick={() => handleStatusUpdate(sale.id, sale.status)}
-                                        >
-                                            Next Stage
-                                        </button>
-                                    )}
+                                    <select
+                                        className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' : sale.status === 'Dispatched' ? 'badge-blue' : 'badge-gray'}`}
+                                        value={sale.status}
+                                        onChange={(e) => handleStatusUpdate(sale.id, e.target.value)}
+                                        style={{ border: 'none', background: 'transparent', outline: 'none', cursor: 'pointer', appearance: 'none', textAlign: 'center' }}
+                                    >
+                                        <option value="Ordered">Ordered</option>
+                                        <option value="Dispatched">Dispatched</option>
+                                        <option value="Delivered">Delivered</option>
+                                    </select>
                                 </td>
                                 <td>
                                     <span className="text-lg font-black text-gray-900 line-height-none">₹{Number(sale.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>

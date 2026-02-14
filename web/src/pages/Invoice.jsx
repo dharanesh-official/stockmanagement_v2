@@ -188,7 +188,6 @@ const Invoice = () => {
                 </div>
             </footer>
         </div>
-        </div >
     );
 };
 
