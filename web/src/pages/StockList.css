@@ -1,8 +1,9 @@
 .stock-page {
     padding: 32px;
     background-color: #f9fafb;
-    height: 100vh;
-    overflow-y: auto;
+    /* Height handled by dashboard container */
+    min-height: 100%;
+    /* Remove overflow-y to let parent handle scroll */
 }
 
 .page-header {
@@ -97,11 +98,54 @@
     border-radius: 12px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     border: 1px solid #f3f4f6;
-    overflow: hidden;
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .stock-page {
+        padding: 16px;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .btn {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.9rem;
+    }
+
+    .controls-bar {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    .search-box {
+        width: 100%;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
 }
 
 .stock-table {
     width: 100%;
+    min-width: 800px;
+    /* Force scroll on small screens */
     border-collapse: collapse;
 }
 
@@ -458,6 +502,7 @@
 .justify-between {
     justify-content: space-between;
 }
+
 .clickable-link {
     color: #10b981;
     font-weight: 700;
@@ -480,4 +525,3 @@
 .clickable-row:hover {
     background-color: #f1f5f9;
 }
-
