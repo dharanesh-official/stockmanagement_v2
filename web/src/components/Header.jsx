@@ -11,8 +11,6 @@ const Header = ({ user, toggleSidebar }) => {
                 </button>
                 <div className="crumb-text">
                     <span className="text-gray-500">Dashboard</span>
-                    <span className="separator">/</span>
-                    <span className="active-crumb">Overview</span>
                 </div>
             </div>
 
