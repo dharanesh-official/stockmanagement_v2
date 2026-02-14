@@ -7,6 +7,7 @@ const getAllStocks = async (req, res) => {
             SELECT s.*, c.name as category_name 
             FROM stock s
             LEFT JOIN categories c ON s.category_id = c.id
+            WHERE s.is_archived IS NOT TRUE
             ORDER BY s.item_name
         `);
         res.json(result.rows);
@@ -108,7 +109,21 @@ const deleteStock = async (req, res) => {
     } catch (error) {
         console.error(error.message);
         if (error.code === '23503') {
-            return res.status(400).send('Cannot delete product because it has associated sales history. Consider setting stock to 0 instead.');
+            // Foreign Key Violation - Archive instead
+            try {
+                // Append timestamp to SKU to avoid unique constraint if re-added later
+                await pool.query(
+                    `UPDATE stock 
+                     SET is_archived = TRUE, 
+                         sku = sku || '_ARCHIVED_' || EXTRACT(EPOCH FROM NOW()) 
+                     WHERE id = $1`,
+                    [req.params.id]
+                );
+                return res.json({ message: 'Product archived successfully (sales history preserved)' });
+            } catch (archiveError) {
+                console.error(archiveError);
+                return res.status(500).send('Failed to archive product');
+            }
         }
         res.status(500).send('Server Error');
     }
