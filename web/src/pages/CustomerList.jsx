@@ -111,7 +111,7 @@ const CustomerList = ({ user }) => {
     );
 
     return (
-        <div style={{ padding: '32px' }}>
+        <div className="stock-page">
             <div className="page-header">
                 <div>
                     <h1>Customer Management</h1>

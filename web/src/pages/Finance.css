@@ -492,3 +492,103 @@ form {
     font-style: italic;
     font-size: 1.125rem;
 }
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .finance-page {
+        padding: 16px;
+        height: auto;
+        min-height: 100%;
+        overflow-y: auto;
+    }
+
+    .finance-stats {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+    }
+
+    .stat-content h3 {
+        font-size: 1.5rem;
+        margin-top: 4px;
+    }
+
+    .finance-tabs {
+        flex-direction: column;
+        padding: 16px;
+        gap: 12px;
+        height: auto;
+        border-bottom: none;
+    }
+
+    .tab {
+        width: 100%;
+        padding: 12px;
+        background: #f8fafc;
+        border-radius: 8px;
+        justify-content: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .tab:after {
+        display: none;
+    }
+
+    .tab.active {
+        background: #10b981;
+        color: white;
+        border-color: #10b981;
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+
+    .tab.active:after {
+        background: transparent;
+    }
+
+    .tab-search {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+
+    /* Table Responsiveness */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-top: 1px solid #f1f5f9;
+    }
+
+    .finance-table {
+        min-width: 800px;
+    }
+
+    .modal-content {
+        max-width: 95%;
+        margin: 16px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .selected-customer-box,
+    .order-context {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    form {
+        padding: 1.5rem;
+    }
+
+    .amount-input input {
+        font-size: 1.5rem;
+    }
+}
