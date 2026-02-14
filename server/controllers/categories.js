@@ -15,7 +15,7 @@ const addCategory = async (req, res) => {
     try {
         const result = await pool.query(
             'INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING *',
-            [name, description]
+            [name, description || null]
         );
         res.json(result.rows[0]);
     } catch (error) {
@@ -33,7 +33,7 @@ const updateCategory = async (req, res) => {
     try {
         const result = await pool.query(
             'UPDATE categories SET name = $1, description = $2 WHERE id = $3 RETURNING *',
-            [name, description, id]
+            [name, description || null, id]
         );
         if (result.rows.length === 0) return res.status(404).send('Category not found');
         res.json(result.rows[0]);
