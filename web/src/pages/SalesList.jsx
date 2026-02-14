@@ -9,6 +9,7 @@ const SalesList = ({ user }) => {
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState('All');
+    const [updatingId, setUpdatingId] = useState(null);
 
     useEffect(() => {
         fetchSales();
@@ -35,13 +36,19 @@ const SalesList = ({ user }) => {
         }
     };
 
-    const handleStatusUpdate = async (id, nextStatus) => {
+    const handleStatusUpdate = async (id, nextStatus, currentStatus) => {
+        // Prevent update if already updating or if status hasn't changed
+        if (updatingId === id || nextStatus === currentStatus) return;
+
+        setUpdatingId(id);
         try {
             await api.put(`/sales/${id}`, { status: nextStatus });
             // Auto-refresh the list after successful update
-            fetchSales();
+            await fetchSales();
         } catch (err) {
             alert('Failed to update status');
+        } finally {
+            setUpdatingId(null);
         }
     };
 
@@ -163,13 +170,14 @@ const SalesList = ({ user }) => {
                                     <td>
                                         <div
                                             className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' : sale.status === 'Dispatched' ? 'badge-blue' : 'badge-gray'}`}
-                                            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', paddingRight: '1.75rem', cursor: 'pointer', minWidth: '110px' }}
+                                            style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', paddingRight: '1.75rem', cursor: 'pointer', minWidth: '110px', opacity: updatingId === sale.id ? 0.6 : 1 }}
                                         >
                                             <span className="uppercase font-bold" style={{ flex: 1 }}>{sale.status}</span>
                                             <ChevronDown size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-60" />
                                             <select
                                                 value={sale.status}
-                                                onChange={(e) => handleStatusUpdate(sale.id, e.target.value)}
+                                                onChange={(e) => handleStatusUpdate(sale.id, e.target.value, sale.status)}
+                                                disabled={updatingId === sale.id}
                                                 style={{
                                                     position: 'absolute',
                                                     top: 0,
@@ -177,7 +185,7 @@ const SalesList = ({ user }) => {
                                                     width: '100%',
                                                     height: '100%',
                                                     opacity: 0,
-                                                    cursor: 'pointer',
+                                                    cursor: updatingId === sale.id ? 'not-allowed' : 'pointer',
                                                     appearance: 'none'
                                                 }}
                                             >
