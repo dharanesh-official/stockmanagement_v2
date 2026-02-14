@@ -3,6 +3,8 @@ const pool = require('../db');
 const getSales = async (req, res) => {
     try {
         const { role, id } = req.user;
+        const limit = req.query.limit ? parseInt(req.query.limit) : 100; // Default limit to 100 recent orders
+
         let query = `
       SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name
       FROM transactions t
@@ -17,7 +19,8 @@ const getSales = async (req, res) => {
             params.push(id);
         }
 
-        query += ' ORDER BY t.transaction_date DESC';
+        query += ' ORDER BY t.transaction_date DESC LIMIT $' + (params.length + 1);
+        params.push(limit);
 
         const result = await pool.query(query, params);
         res.json(result.rows);

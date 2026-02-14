@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const pool = require('./db');
 
 const app = express();
@@ -12,6 +13,10 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
 }));
+
+// Enable gzip compression for all responses
+app.use(compression());
+
 app.use(express.json());
 
 // Routes Placeholder
