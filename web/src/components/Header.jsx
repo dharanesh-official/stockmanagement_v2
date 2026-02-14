@@ -1,6 +1,5 @@
 import React from 'react';
-import { Bell, Search, Menu } from 'lucide-react';
-import './Header.css';
+import { Menu } from 'lucide-react';
 import './Header.css';
 
 const Header = ({ user, toggleSidebar }) => {
@@ -18,14 +17,6 @@ const Header = ({ user, toggleSidebar }) => {
             </div>
 
             <div className="header-right">
-                <div className="search-wrapper">
-                    <Search size={18} className="search-icon" />
-                    <input type="text" placeholder="Search..." />
-                </div>
-                <button className="icon-btn-header">
-                    <Bell size={20} />
-                    <span className="notification-dot"></span>
-                </button>
                 <div className="user-profile">
                     <div className="user-info">
                         <span className="user-name">{user.full_name || 'User'}</span>
