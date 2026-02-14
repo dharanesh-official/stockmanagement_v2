@@ -262,24 +262,90 @@
     font-weight: 500;
 }
 
+
+/* Perfect Print Styles */
 @media print {
-    .no-print {
+
+    /* Hide Global UI Elements */
+    .sidebar,
+    .header,
+    .page-header,
+    .no-print,
+    .btn-back,
+    .invoice-actions,
+    button {
         display: none !important;
     }
 
-    body {
-        background: white;
+    /* Reset Layout Containers */
+    body,
+    html,
+    #root {
+        background: white !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
+    .main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    /* Invoice Specific Adjustments for Print */
     .invoice-page-container {
-        padding: 0;
-        background: white;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+        width: 100% !important;
+        min-height: 0 !important;
+        display: block !important;
+        /* Remove flex centering */
     }
 
     .invoice-paper {
-        max-width: none;
-        box-shadow: none;
-        padding: 0;
+        margin: 0 !important;
+        padding: 20px !important;
+        width: 100% !important;
+        max-width: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        border-radius: 0 !important;
+    }
+
+    /* Ensure Colors Print */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Font Sizing for Paper */
+    .invoice-header h1 {
+        font-size: 2rem;
+    }
+
+    .invoice-table th,
+    .invoice-table td {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+
+    .invoice-summary {
+        margin-bottom: 2rem;
+        page-break-inside: avoid;
+    }
+
+    .invoice-footer {
+        padding-top: 1rem;
+        page-break-inside: avoid;
+    }
+
+    /* Remove URL/Page Headers if supported */
+    @page {
+        margin: 10mm;
+        size: auto;
     }
 }
 
