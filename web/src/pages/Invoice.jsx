@@ -137,16 +137,29 @@ const Invoice = () => {
                             <span>Order Total</span>
                             <span>₹{parseFloat(sale.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                         </div>
-                        <div className="total-row">
-                            <span>Amount Paid</span>
-                            <span className="text-emerald-600">₹{parseFloat(sale.paid_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="total-row grand-total">
-                            <span>Balance Due</span>
-                            <span className={parseFloat(sale.total_amount) - parseFloat(sale.paid_amount || 0) > 0 ? 'text-red-600' : 'text-emerald-600'}>
-                                ₹{(parseFloat(sale.total_amount) - parseFloat(sale.paid_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                            </span>
-                        </div>
+                        {(() => {
+                            const balance = parseFloat(sale.total_amount) - parseFloat(sale.paid_amount || 0);
+                            const isOverpaid = balance < 0;
+                            return (
+                                <>
+                                    <div className="total-row">
+                                        <span>{isOverpaid ? 'Amount Received' : 'Amount Paid'}</span>
+                                        <span className="text-emerald-600">₹{parseFloat(sale.paid_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    </div>
+                                    {isOverpaid ? (
+                                        <div className="total-row">
+                                            <span>Change Returned</span>
+                                            <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>₹{Math.abs(balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                    ) : balance > 0 ? (
+                                        <div className="total-row grand-total">
+                                            <span>Balance Due</span>
+                                            <span className="text-red-600">₹{balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                        </div>
+                                    ) : null}
+                                </>
+                            );
+                        })()}
                     </div>
                 </div>
 

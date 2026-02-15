@@ -1,16 +1,20 @@
 
+
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Text, Platform } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Alert, TouchableOpacity, Text, Platform, ScrollView } from 'react-native';
+import { WebView } from 'react-native-webview';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { ArrowLeft, Share2, Printer } from 'lucide-react-native';
+import { ArrowLeft, Share2, Printer, Eye } from 'lucide-react-native';
 
 const InvoiceScreen = ({ route, navigation }) => {
     const { orderId } = route.params;
     const [loading, setLoading] = useState(true);
     const [htmlContent, setHtmlContent] = useState('');
+    const [viewMode, setViewMode] = useState('preview'); // 'preview' or 'actions'
+
 
     useEffect(() => {
         fetchInvoiceData();
@@ -143,13 +147,20 @@ const InvoiceScreen = ({ route, navigation }) => {
                             <span>₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                         </div>
                         <div class="total-row">
-                            <span>Amount Paid</span>
+                            <span>${balanceDue < 0 ? 'Amount Received' : 'Amount Paid'}</span>
                             <span style="color: #059669;">₹${paidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                         </div>
+                        ${balanceDue < 0 ? `
+                        <div class="total-row">
+                            <span>Change Returned</span>
+                            <span style="color: #f59e0b;">₹${Math.abs(balanceDue).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                        ` : balanceDue > 0 ? `
                         <div class="total-row grand-total">
                             <span>Balance Due</span>
-                            <span style="color: ${balanceDue > 0 ? '#ef4444' : '#059669'};">₹${balanceDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            <span style="color: #ef4444;">₹${balanceDue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                         </div>
+                        ` : ''}
                     </div>
                 </div>
 
@@ -206,31 +217,58 @@ const InvoiceScreen = ({ route, navigation }) => {
                     <ArrowLeft size={24} color="#374151" />
                     <Text style={styles.backText}>Back</Text>
                 </TouchableOpacity>
-                <Text style={styles.title}>Invoice View</Text>
+                <Text style={styles.title}>Invoice</Text>
             </View>
 
-            <View style={styles.previewContainer}>
-                {/* We can't render HTML directly in RN nicely without WebView, but since we just want to print/share, showing a placeholder or button is fine. 
-                   Actually, let's just make the screen essentially a big "Share PDF" button.
-                   Or better, assume native print/share is the main interaction. 
-                */}
-                <Text style={styles.previewText}>Invoice Generated Successfully!</Text>
-                <Text style={styles.previewSub}>You can now print or share the PDF invoice.</Text>
+            {/* Tabs */}
+            <View style={styles.tabContainer}>
+                <TouchableOpacity
+                    style={[styles.tab, viewMode === 'preview' && styles.activeTab]}
+                    onPress={() => setViewMode('preview')}
+                >
+                    <Eye size={20} color={viewMode === 'preview' ? '#059669' : '#6b7280'} />
+                    <Text style={[styles.tabText, viewMode === 'preview' && styles.activeTabText]}>View</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.tab, viewMode === 'actions' && styles.activeTab]}
+                    onPress={() => setViewMode('actions')}
+                >
+                    <Printer size={20} color={viewMode === 'actions' ? '#059669' : '#6b7280'} />
+                    <Text style={[styles.tabText, viewMode === 'actions' && styles.activeTabText]}>Actions</Text>
+                </TouchableOpacity>
             </View>
 
-            <View style={styles.actions}>
-                <TouchableOpacity style={[styles.btn, styles.printBtn]} onPress={handlePrint}>
-                    <Printer size={24} color="#374151" />
-                    <Text style={styles.btnTextDark}>Print Invoice</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.btn, styles.shareBtn]} onPress={handleShare}>
-                    <Share2 size={24} color="white" />
-                    <Text style={styles.btnTextLight}>Share PDF</Text>
-                </TouchableOpacity>
-            </View>
+            {viewMode === 'preview' ? (
+                <View style={styles.webViewContainer}>
+                    <WebView
+                        originWhitelist={['*']}
+                        source={{ html: htmlContent }}
+                        style={styles.webView}
+                        scalesPageToFit={true}
+                    />
+                </View>
+            ) : (
+                <View style={styles.actionsContainer}>
+                    <Text style={styles.previewText}>Invoice Actions</Text>
+                    <Text style={styles.previewSub}>Print or share the invoice with your customer</Text>
+
+                    <View style={styles.actions}>
+                        <TouchableOpacity style={[styles.btn, styles.printBtn]} onPress={handlePrint}>
+                            <Printer size={24} color="#374151" />
+                            <Text style={styles.btnTextDark}>Print Invoice</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.btn, styles.shareBtn]} onPress={handleShare}>
+                            <Share2 size={24} color="white" />
+                            <Text style={styles.btnTextLight}>Share PDF</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
         </View>
     );
+
 };
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f3f4f6' },
@@ -239,10 +277,23 @@ const styles = StyleSheet.create({
     backBtn: { flexDirection: 'row', alignItems: 'center', marginRight: 16 },
     backText: { fontSize: 16, color: '#374151', marginLeft: 8 },
     title: { fontSize: 20, fontWeight: 'bold', color: '#111827' },
-    previewContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
-    previewText: { fontSize: 24, fontWeight: 'bold', color: '#059669', marginBottom: 8, textAlign: 'center' },
-    previewSub: { fontSize: 16, color: '#6b7280', textAlign: 'center' },
-    actions: { padding: 24, gap: 16 },
+
+    // Tabs
+    tabContainer: { flexDirection: 'row', backgroundColor: '#e5e7eb', margin: 16, borderRadius: 8, padding: 4 },
+    tab: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 12, borderRadius: 6, gap: 8 },
+    activeTab: { backgroundColor: 'white', elevation: 2 },
+    tabText: { fontSize: 14, fontWeight: '600', color: '#6b7280' },
+    activeTabText: { color: '#059669' },
+
+    // WebView Preview
+    webViewContainer: { flex: 1, margin: 16, backgroundColor: 'white', borderRadius: 12, overflow: 'hidden', elevation: 2 },
+    webView: { flex: 1 },
+
+    // Actions Container
+    actionsContainer: { flex: 1, padding: 24 },
+    previewText: { fontSize: 24, fontWeight: 'bold', color: '#059669', marginBottom: 8, textAlign: 'center', marginTop: 40 },
+    previewSub: { fontSize: 16, color: '#6b7280', textAlign: 'center', marginBottom: 40 },
+    actions: { gap: 16 },
     btn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 12, gap: 12 },
     printBtn: { backgroundColor: 'white', borderWidth: 1, borderColor: '#d1d5db' },
     shareBtn: { backgroundColor: '#059669' },
