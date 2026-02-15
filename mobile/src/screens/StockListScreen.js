@@ -19,6 +19,7 @@ const StockListScreen = () => {
     // modal states
     const [modalVisible, setModalVisible] = useState(false); // Add/Edit
     const [adjustModalVisible, setAdjustModalVisible] = useState(false); // Increase/Reduce
+    const [saving, setSaving] = useState(false);
 
     const [formData, setFormData] = useState({
         id: null,
@@ -70,6 +71,7 @@ const StockListScreen = () => {
         }
 
         try {
+            setSaving(true);
             if (formData.id) {
                 await api.put(`/stock/${formData.id}`, formData);
             } else {
@@ -80,6 +82,8 @@ const StockListScreen = () => {
             resetForm();
         } catch (err) {
             Alert.alert('Error', 'Failed to save product');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -108,6 +112,7 @@ const StockListScreen = () => {
         }
 
         try {
+            setSaving(true);
             const endpoint = adjustData.type === 'increase'
                 ? `/stock/increase/${adjustData.id}`
                 : `/stock/reduce/${adjustData.id}`;
@@ -117,6 +122,8 @@ const StockListScreen = () => {
             fetchData();
         } catch (err) {
             Alert.alert('Error', 'Failed to adjust stock');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -300,8 +307,12 @@ const StockListScreen = () => {
                                 placeholder="Optional SKU"
                             />
 
-                            <TouchableOpacity style={styles.saveBtn} onPress={handleCreateOrUpdate}>
-                                <Text style={styles.saveBtnText}>Save Product</Text>
+                            <TouchableOpacity
+                                style={[styles.saveBtn, saving && { opacity: 0.5 }]}
+                                onPress={handleCreateOrUpdate}
+                                disabled={saving}
+                            >
+                                <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Product'}</Text>
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
@@ -336,10 +347,15 @@ const StockListScreen = () => {
                         />
 
                         <TouchableOpacity
-                            style={[styles.saveBtn, adjustData.type === 'reduce' && { backgroundColor: '#dc2626' }]}
+                            style={[
+                                styles.saveBtn,
+                                adjustData.type === 'reduce' && { backgroundColor: '#dc2626' },
+                                saving && { opacity: 0.5 }
+                            ]}
                             onPress={handleAdjustment}
+                            disabled={saving}
                         >
-                            <Text style={styles.saveBtnText}>Confirm {adjustData.type === 'increase' ? 'Addition' : 'Reduction'}</Text>
+                            <Text style={styles.saveBtnText}>{saving ? 'Processing...' : `Confirm ${adjustData.type === 'increase' ? 'Addition' : 'Reduction'}`}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

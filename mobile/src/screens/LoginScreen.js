@@ -31,7 +31,24 @@ const LoginScreen = () => {
         try {
             await login(email, password);
         } catch (error) {
-            Alert.alert('Login Failed', error.response?.data?.message || 'Invalid credentials');
+            let msg = 'Login Failed';
+            if (error.response) {
+                const status = error.response.status;
+                if (status === 404) {
+                    msg = 'Email address not found.';
+                } else if (status === 401) {
+                    msg = 'Incorrect password.';
+                } else {
+                    msg = error.response.data?.message || 'Server error. Please try again.';
+                }
+            } else if (error.request) {
+                // The request was made but no response was received
+                msg = 'Network error. Please check your internet connection.';
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                msg = error.message;
+            }
+            Alert.alert('Login Failed', msg);
         } finally {
             setLoading(false);
         }

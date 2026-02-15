@@ -17,6 +17,7 @@ const FinanceScreen = () => {
     const [activeTab, setActiveTab] = useState('dues');
     const [stats, setStats] = useState({ outstanding: 0, todayCollection: 0 });
     const [refreshing, setRefreshing] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     // Dues Payment Modal
     const [paymentModalVisible, setPaymentModalVisible] = useState(false);
@@ -93,6 +94,7 @@ const FinanceScreen = () => {
         }
 
         try {
+            setSaving(true);
             await api.post('/sales', {
                 customer_id: selectedCustomer.id,
                 type: 'payment',
@@ -107,9 +109,10 @@ const FinanceScreen = () => {
             Alert.alert('Success', 'Payment recorded successfully!');
         } catch (err) {
             Alert.alert('Error', 'Failed to record payment');
+        } finally {
+            setSaving(false);
         }
     };
-
     // Specific Order Payment (Credit Note)
     const handleOrderPayment = async () => {
         if (!orderPaymentAmount || isNaN(orderPaymentAmount)) {
@@ -118,6 +121,7 @@ const FinanceScreen = () => {
         }
 
         try {
+            setSaving(true);
             await api.put(`/sales/payment/${selectedOrder.id}`, {
                 amountPaid: parseFloat(orderPaymentAmount)
             });
@@ -128,6 +132,8 @@ const FinanceScreen = () => {
             Alert.alert('Success', 'Order payment updated successfully!');
         } catch (err) {
             Alert.alert('Error', 'Failed to update order payment');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -278,8 +284,12 @@ const FinanceScreen = () => {
                             placeholder="e.g. Cash, GPay"
                         />
 
-                        <TouchableOpacity style={styles.saveBtn} onPress={handleRecordPayment}>
-                            <Text style={styles.saveBtnText}>Confirm Payment</Text>
+                        <TouchableOpacity
+                            style={[styles.saveBtn, saving && { opacity: 0.5 }]}
+                            onPress={handleRecordPayment}
+                            disabled={saving}
+                        >
+                            <Text style={styles.saveBtnText}>{saving ? 'Procesing...' : 'Confirm Payment'}</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -329,8 +339,12 @@ const FinanceScreen = () => {
                                     <Text style={styles.linkText}>Settle Full Amount</Text>
                                 </TouchableOpacity>
 
-                                <TouchableOpacity style={styles.saveBtn} onPress={handleOrderPayment}>
-                                    <Text style={styles.saveBtnText}>Update Payment</Text>
+                                <TouchableOpacity
+                                    style={[styles.saveBtn, saving && { opacity: 0.5 }]}
+                                    onPress={handleOrderPayment}
+                                    disabled={saving}
+                                >
+                                    <Text style={styles.saveBtnText}>{saving ? 'Processing...' : 'Update Payment'}</Text>
                                 </TouchableOpacity>
                             </>
                         )}

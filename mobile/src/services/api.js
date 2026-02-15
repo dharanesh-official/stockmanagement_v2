@@ -3,7 +3,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // REPLACE WITH YOUR BACKEND IP ADDRESS
-const API_URL = 'http://10.1.44.51:5001/api';
+const API_URL = 'https://stockmanager-server.vercel.app/api';
 
 const api = axios.create({
     baseURL: API_URL,

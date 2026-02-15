@@ -109,10 +109,7 @@ const InvoiceScreen = ({ route, navigation }) => {
                             <span class="meta-label">DATE</span>
                             <span class="meta-value">${new Date(sale.transaction_date).toLocaleDateString()}</span>
                         </div>
-                        <div class="meta-row">
-                            <span class="meta-label">STATUS</span>
-                            <span class="meta-value" style="color: #10b981;">${sale.status.toUpperCase()}</span>
-                        </div>
+
                     </div>
                 </div>
 

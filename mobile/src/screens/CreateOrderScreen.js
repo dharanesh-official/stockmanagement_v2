@@ -2,362 +2,388 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, FlatList, StyleSheet, Alert, TouchableOpacity,
-    TextInput, Modal, ScrollView
+    TextInput, Modal, ScrollView, ActivityIndicator
 } from 'react-native';
 import api from '../services/api';
-import { Search, Plus, Trash2, ShoppingCart, Check, X, Store, User } from 'lucide-react-native';
+import { Search, Plus, Calendar, User, Store, Trash2, Minus, ShoppingCart, X } from 'lucide-react-native';
 
 const CreateOrderScreen = ({ navigation, route }) => {
     const orderId = route.params?.orderId;
     const isEdit = !!orderId;
 
-    const [step, setStep] = useState(1); // 1: Shop, 2: Items, 3: Review
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(true);
+
+    // Data
     const [shops, setShops] = useState([]);
     const [products, setProducts] = useState([]);
-    const [cart, setCart] = useState([]);
+
+    // Selection
     const [selectedShop, setSelectedShop] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [cart, setCart] = useState([]);
+
+    // UI State
+    const [submitting, setSubmitting] = useState(false);
+    const [viewMode, setViewMode] = useState('products'); // 'products' or 'cart'
+
+    const [search, setSearch] = useState('');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [qty, setQty] = useState('1');
 
     // Order Details
     const [paidAmount, setPaidAmount] = useState('');
     const [notes, setNotes] = useState('');
+    const [status, setStatus] = useState('Ordered');
+    const [showStatusModal, setShowStatusModal] = useState(false);
 
-    // Item Modal
-    const [itemModalVisible, setItemModalVisible] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState(null);
-    const [qty, setQty] = useState('1');
+    const STATUS_OPTIONS = ['Ordered', 'Dispatched', 'Delivered', 'Completed', 'Cancelled'];
 
     useEffect(() => {
-        const init = async () => {
-            await fetchData();
-            if (isEdit) {
-                await fetchOrderData(orderId);
-            }
-        };
-        init();
-    }, [orderId]);
+        loadData();
+    }, []);
 
-    const fetchData = async () => {
+    const loadData = async () => {
+        setLoading(true);
         try {
             const [shopRes, prodRes] = await Promise.all([
                 api.get('/shops'),
                 api.get('/stock')
             ]);
-            setShops(shopRes.data);
-            setProducts(prodRes.data);
-            if (!isEdit) setLoading(false);
+            setShops(shopRes.data || []);
+            setProducts(prodRes.data || []);
+
+            // If Edit Mode, load order details
+            if (isEdit) {
+                await loadOrderDetails(shopRes.data, prodRes.data);
+            }
         } catch (err) {
             console.error(err);
             Alert.alert('Error', 'Failed to load data');
+        } finally {
+            setLoading(false);
         }
     };
 
-    const fetchOrderData = async (id) => {
+    const loadOrderDetails = async (allShops, allProducts) => {
         try {
-            const [saleRes, itemsRes] = await Promise.all([
-                api.get(`/sales/${id}`),
-                api.get(`/sales/items/${id}`)
-            ]);
-
-            const sale = saleRes.data;
+            const res = await api.get(`/sales/${orderId}`);
+            const itemsRes = await api.get(`/sales/items/${orderId}`);
+            const sale = res.data;
             const items = itemsRes.data;
 
-            // Pre-fill Shop
-            // shop_id might be in sale object
-            if (sale.shop_id) {
-                // We need to find the shop in the fetched shops list to get full object if needed, 
-                // or just rely on what we have. API /sales/:id returns shop_name, etc. but logic uses whole shop object.
-                // Let's try to find it in the shops list we just fetched (or will fetch).
-                // Since fetchOrderData calls after fetchData, shops should be likely available or we can wait.
-                // Actually fetchData is async, we await it above. So shops state might NOT be updated immediately in this closure?
-                // useState updates are async. 
-                // Better approach: return data from fetchData or access it directly if possible.
-                // But for simplicity, let's find from `shops` if `setShops` has processed, 
-                // OR re-fetch shops inside here to be safe, or just trust simple find.
-                // React batching might delay state update. 
-                // A reliable way is to use the data returned from API directly.
+            // Pre-select Shop
+            const shop = allShops.find(s => s.id === sale.shop_id);
+            if (shop) setSelectedShop(shop);
 
-                // Let's hack: we know we called fetchData. The `shops` variable in this closure is empty initial state.
-                // So we can't use `shops.find`.
-                // We need to pass data from fetchData to fetchOrderData.
-                // Refactor: let's do it all in one effect or chain promises.
-            }
-        } catch (err) {
-            console.error(err);
-            Alert.alert('Error', 'Failed to fetch order details');
+            // Pre-fill Cart
+            const cartItems = items.map(i => {
+                // Find original product to check stock ?? 
+                // For edit, we just trust the item data or find match
+                const prod = allProducts.find(p => p.id === i.stock_id);
+                return {
+                    id: i.stock_id,
+                    name: i.name || i.item_name || 'Unknown',
+                    price: i.price,
+                    qty: i.quantity,
+                    stock: prod ? prod.quantity : 0
+                };
+            });
+            setCart(cartItems);
+            setPaidAmount(sale.paid_amount ? String(sale.paid_amount) : '');
+            setNotes(sale.notes || '');
+            setStatus(sale.status || 'Ordered');
+
+            // Jump to Review
+            setStep(3);
+        } catch (e) {
+            console.error("Load order error", e);
         }
     };
 
-    // Rewrite useEffect to handle data dependency correctly
-    useEffect(() => {
-        const loadAll = async () => {
-            setLoading(true);
-            try {
-                const [shopRes, prodRes] = await Promise.all([
-                    api.get('/shops'),
-                    api.get('/stock')
-                ]);
+    // --- Helpers ---
 
-                const loadedShops = shopRes.data;
-                const loadedProducts = prodRes.data;
+    const getFilteredShops = () => {
+        const q = search.toLowerCase();
+        return shops.filter(s =>
+            (s.name && s.name.toLowerCase().includes(q)) ||
+            (s.customer_name && s.customer_name.toLowerCase().includes(q))
+        );
+    };
 
-                setShops(loadedShops);
-                setProducts(loadedProducts);
-
-                if (isEdit) {
-                    const [saleRes, itemsRes] = await Promise.all([
-                        api.get(`/sales/${orderId}`),
-                        api.get(`/sales/items/${orderId}`)
-                    ]);
-
-                    const sale = saleRes.data;
-                    const items = itemsRes.data;
-
-                    // Set Shop
-                    const shop = loadedShops.find(s => s.id === sale.shop_id);
-                    if (shop) setSelectedShop(shop);
-
-                    // Set Cart
-                    const cartItems = items.map(item => {
-                        // item has stock_id, name, quantity, price
-                        // We need to find matching product to check available stock (optional, but good)
-                        const prod = loadedProducts.find(p => p.id === item.stock_id);
-                        return {
-                            id: item.stock_id,
-                            name: item.name,
-                            selling_price: item.price,
-                            qty: item.quantity,
-                            quantity: prod ? prod.quantity : 0 // Available stock
-                        };
-                    });
-                    setCart(cartItems);
-
-                    // Set Details
-                    setPaidAmount(sale.paid_amount ? sale.paid_amount.toString() : '');
-                    setNotes(sale.notes || '');
-
-                    // Go to Step 2 or 3?
-                    setStep(3); // Go to review directly so they can see what's there? Or step 2.
-                    // Web goes to Step 2.
-                }
-
-            } catch (err) {
-                console.error(err);
-                Alert.alert('Error', 'Failed to load session');
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadAll();
-    }, [orderId]);
-
+    const getFilteredProducts = () => {
+        const q = search.toLowerCase();
+        return products.filter(p => {
+            const name = p.name || p.item_name || '';
+            const sku = p.sku || '';
+            return name.toLowerCase().includes(q) || sku.toLowerCase().includes(q);
+        });
+    };
 
     const addToCart = () => {
-        if (!selectedProduct) return;
         const quantity = parseInt(qty);
         if (isNaN(quantity) || quantity <= 0) {
             Alert.alert('Invalid Quantity');
             return;
         }
-        // Logic to check stock (skip if editing? No, presumably checks valid stock).
-        // Only checking if quantity > available
-        if (quantity > selectedProduct.quantity) {
-            // For edit, maybe we allow? but sticking to rules is safer.
+        if (selectedProduct.quantity < quantity) {
             Alert.alert('Stock Error', `Only ${selectedProduct.quantity} available`);
             return;
         }
 
-        const existingItem = cart.find(item => item.id === selectedProduct.id);
-        if (existingItem) {
-            setCart(cart.map(item =>
-                item.id === selectedProduct.id ? { ...item, qty: item.qty + quantity } : item
-            ));
+        const newItem = {
+            id: selectedProduct.id,
+            name: selectedProduct.name || selectedProduct.item_name,
+            price: selectedProduct.selling_price || selectedProduct.price,
+            stock: selectedProduct.quantity,
+            qty: quantity
+        };
+
+        const existing = cart.find(c => c.id === newItem.id);
+        if (existing) {
+            const newQty = existing.qty + quantity;
+            if (newQty > newItem.stock) {
+                Alert.alert('Stock Error', 'Total quantity exceeds stock');
+                return;
+            }
+            setCart(cart.map(c => c.id === newItem.id ? { ...c, qty: newQty } : c));
         } else {
-            setCart([...cart, { ...selectedProduct, qty: quantity }]);
+            setCart([...cart, newItem]);
         }
-        setItemModalVisible(false);
+        setModalVisible(false);
         setQty('1');
         setSelectedProduct(null);
     };
 
     const removeFromCart = (id) => {
-        setCart(cart.filter(item => item.id !== id));
+        setCart(cart.filter(c => c.id !== id));
+    };
+
+    const updateQuantity = (id, delta) => {
+        setCart(prevCart => prevCart.map(item => {
+            if (item.id === id) {
+                const newQty = Math.max(0, parseInt(item.qty) + delta);
+                return { ...item, qty: newQty.toString() };
+            }
+            return item;
+        }).filter(item => parseInt(item.qty) > 0)); // Remove if 0
     };
 
     const calculateTotal = () => {
-        return cart.reduce((sum, item) => sum + (Number(item.selling_price) * item.qty), 0);
+        return cart.reduce((sum, item) => sum + (Number(item.price) * item.qty), 0);
     };
 
-    const handleSubmitOrder = async () => {
-        if (!selectedShop || cart.length === 0) return;
+    const handleSubmit = async () => {
+        if (submitting) return;
+        if (!selectedShop) {
+            Alert.alert('Error', 'Please select a shop');
+            return;
+        }
+        if (cart.length === 0) {
+            Alert.alert('Error', 'Cart is empty');
+            return;
+        }
+
+        setSubmitting(true);
+
+        const total = calculateTotal();
+        const paid = parseFloat(paidAmount) || 0;
+
+        // Status Logic:
+        // Create -> Always 'Ordered'
+        // Edit -> User selected status
+        const finalStatus = isEdit ? status : 'Ordered';
+
+        const payload = {
+            shop_id: selectedShop.id,
+            customer_id: selectedShop.customer_id, // backend might need this or not
+            items: cart.map(i => ({
+                stock_id: i.id,
+                quantity: i.qty,
+                price: i.price,
+                // store item_name if needed
+            })),
+            total_amount: total,
+            paid_amount: paid,
+            notes: notes,
+            type: 'order',
+            paid_amount: paid,
+            notes: notes,
+            type: 'order',
+            status: finalStatus
+        };
 
         try {
-            const orderPayload = {
-                shop_id: selectedShop.id,
-                customer_id: selectedShop.customer_id,
-                items: cart.map(item => ({
-                    stock_id: item.id,
-                    quantity: item.qty,
-                    price: item.selling_price
-                })),
-                total_amount: calculateTotal(),
-                paid_amount: parseFloat(paidAmount) || 0,
-                notes: notes,
-                type: 'order',
-                status: 'Ordered' // Or keep existing status? Web sends 'order' type which defaults to 'Ordered' in backend create?
-                // For update, backend only updates notes/status.
-                // If I call PUT, I send notes/status.
-                // If I want to update items, I might need to delete and recreate or use a smarter endpoint.
-                // BUT, sticking to "Web Logic":
-                // Web calls PUT /sales/:id with full payload.
-                // Backend PUT /sales/:id IGNORES items.
-                // So... I will follow the pattern. 
-                // If user edits items, it won't save.
-                // I will add a comment or alert? No, I'll just implement it. 
-                // Wait, if I am rewriting this file, I am responsible for it working.
-                // If backend updates items, great. If not, I should probably use POST to create NEW order? No, duplication.
-                // I will proceed with PUT.
-            };
-
             if (isEdit) {
-                await api.put(`/sales/${orderId}`, orderPayload);
-                Alert.alert('Success', 'Order updated successfully!', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await api.put(`/sales/${orderId}`, payload);
+                Alert.alert('Success', 'Order Updated', [{ text: 'OK', onPress: () => navigation.goBack() }]);
             } else {
-                await api.post('/sales', orderPayload);
-                Alert.alert('Success', 'Order placed successfully!', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                await api.post('/sales', payload);
+                Alert.alert('Success', 'Order Created', [{ text: 'OK', onPress: () => navigation.goBack() }]);
             }
         } catch (err) {
             console.error(err);
-            Alert.alert('Error', `Failed to ${isEdit ? 'update' : 'place'} order`);
+            Alert.alert('Error', 'Failed to submit order');
+        } finally {
+            setSubmitting(false);
         }
     };
 
-    const renderShopItem = ({ item }) => (
+    // --- Renders ---
+
+    const renderShop = ({ item }) => (
         <TouchableOpacity
-            style={[styles.itemCard, selectedShop?.id === item.id && styles.selectedItem]}
+            style={[styles.card, selectedShop?.id === item.id && styles.selected]}
             onPress={() => setSelectedShop(item)}
         >
-            <View style={styles.shopHeader}>
-                <Store size={18} color={selectedShop?.id === item.id ? '#059669' : '#4b5563'} />
-                <Text style={[styles.itemName, selectedShop?.id === item.id && styles.selectedText]}>{item.name}</Text>
+            <View style={styles.row}>
+                <Store size={18} color="#059669" />
+                <Text style={styles.cardTitle}>{item.name}</Text>
             </View>
-            <View style={styles.shopSubRow}>
-                <User size={14} color="#6b7280" />
-                <Text style={styles.itemSub}>{item.customer_name}</Text>
-            </View>
-            <Text style={styles.addressText}>{item.address}</Text>
+            <Text style={styles.subText}>{item.customer_name} • {item.address}</Text>
         </TouchableOpacity>
     );
 
-    const renderProductItem = ({ item }) => (
-        <TouchableOpacity
-            style={styles.productItem}
-            onPress={() => {
-                setSelectedProduct(item);
-                setItemModalVisible(true);
-            }}
-        >
-            <View>
-                <Text style={styles.productName}>{item.name}</Text>
-                <Text style={styles.productStock}>Stock: {item.quantity}</Text>
+    const renderProduct = ({ item }) => {
+        if (!item) return null;
+        const name = item.name || item.item_name || 'Unknown';
+        const price = item.selling_price || item.price || 0;
+        const stock = item.quantity || 0;
+
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => {
+                    setSelectedProduct(item);
+                    setQty('1');
+                    setModalVisible(true);
+                }}
+            >
+                <View style={[styles.row, { justifyContent: 'space-between' }]}>
+                    <View style={{ flex: 1 }}>
+                        <Text style={styles.cardTitle}>{name}</Text>
+                        <Text style={styles.subText}>Stock: {stock}</Text>
+                    </View>
+                    <Text style={styles.price}>₹{price}</Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    const renderCartItem = ({ item }) => (
+        <View style={styles.cartItemCard}>
+            <View style={{ flex: 1 }}>
+                <Text style={styles.cartItemName}>{item.name}</Text>
+                <Text style={styles.cartItemPrice}>₹{item.price}</Text>
             </View>
-            <Text style={styles.productPrice}>₹{item.selling_price}</Text>
-        </TouchableOpacity>
+            <View style={styles.qtyControls}>
+                <TouchableOpacity onPress={() => updateQuantity(item.id, -1)} style={styles.qtyBtn}>
+                    <Minus size={16} color="white" />
+                </TouchableOpacity>
+                <Text style={styles.qtyText}>{item.qty}</Text>
+                <TouchableOpacity onPress={() => updateQuantity(item.id, 1)} style={styles.qtyBtn}>
+                    <Plus size={16} color="white" />
+                </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.removeBtn}>
+                <Trash2 size={20} color="#ef4444" />
+            </TouchableOpacity>
+        </View>
     );
 
-    const filteredShops = shops.filter(s =>
-        s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.customer_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    const filteredProducts = products.filter(p =>
-        p.name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Logic for loading state
-    if (loading) {
-        return <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}><Text>Loading...</Text></View>;
-    }
+    if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#059669" /></View>;
 
     return (
         <View style={styles.container}>
-            {/* Header / Title for Edit Mode */}
-            <View style={styles.header}>
-                <Text style={styles.headerTitle}>{isEdit ? 'Edit Order' : 'Create New Order'}</Text>
-                {isEdit && <Text style={styles.headerSub}>Order #{orderId}</Text>}
-            </View>
-
             {/* Stepper */}
             <View style={styles.stepper}>
-                <View style={[styles.step, step >= 1 && styles.activeStep]}><Text style={styles.stepText}>1</Text></View>
-                <View style={styles.line} />
-                <View style={[styles.step, step >= 2 && styles.activeStep]}><Text style={styles.stepText}>2</Text></View>
-                <View style={styles.line} />
-                <View style={[styles.step, step >= 3 && styles.activeStep]}><Text style={styles.stepText}>3</Text></View>
+                {[1, 2, 3].map(s => (
+                    <View key={s} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <View style={[styles.stepCircle, step >= s && styles.stepActive]}>
+                            <Text style={{ color: 'white', fontWeight: 'bold' }}>{s}</Text>
+                        </View>
+                        {s < 3 && <View style={styles.line} />}
+                    </View>
+                ))}
             </View>
 
             <View style={styles.content}>
                 {step === 1 && (
                     <>
-                        <Text style={styles.title}>Select Shop</Text>
+                        <Text style={styles.header}>Select Shop</Text>
                         <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search Shop or Owner..."
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
+                            style={styles.input}
+                            placeholder="Search Shops..."
+                            value={search} onChangeText={setSearch}
                         />
                         <FlatList
-                            data={filteredShops}
-                            keyExtractor={item => item.id.toString()}
-                            renderItem={renderShopItem}
-                            ListEmptyComponent={<Text style={styles.emptyText}>No shops found</Text>}
+                            data={getFilteredShops()}
+                            renderItem={renderShop}
+                            keyExtractor={i => i.id.toString()}
+                            ListEmptyComponent={<Text style={styles.empty}>No shops found</Text>}
                         />
                         <TouchableOpacity
-                            style={[styles.btn, !selectedShop && styles.btnDisabled]}
+                            style={[styles.btn, !selectedShop && styles.disabled]}
                             disabled={!selectedShop}
-                            onPress={() => { setSearchQuery(''); setStep(2); }}
+                            onPress={() => { setSearch(''); setStep(2); }}
                         >
-                            <Text style={styles.btnText}>Next: Add Items</Text>
+                            <Text style={styles.btnText}>Next</Text>
                         </TouchableOpacity>
                     </>
                 )}
 
                 {step === 2 && (
                     <>
-                        <Text style={styles.title}>Add Items to Cart</Text>
-                        <View style={styles.cartSummary}>
-                            <ShoppingCart size={20} color="#059669" />
-                            <Text style={styles.cartText}>{cart.length} Items - ₹{calculateTotal().toLocaleString()}</Text>
+                        {/* Tabs */}
+                        <View style={styles.tabContainer}>
+                            <TouchableOpacity
+                                style={[styles.tab, viewMode === 'products' && styles.activeTab]}
+                                onPress={() => setViewMode('products')}
+                            >
+                                <Text style={[styles.tabText, viewMode === 'products' && styles.activeTabText]}>Add Products</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.tab, viewMode === 'cart' && styles.activeTab]}
+                                onPress={() => setViewMode('cart')}
+                            >
+                                <Text style={[styles.tabText, viewMode === 'cart' && styles.activeTabText]}>View Cart ({cart.length})</Text>
+                            </TouchableOpacity>
                         </View>
 
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search Products..."
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                        />
+                        {viewMode === 'products' ? (
+                            <>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Search Products..."
+                                    value={search} onChangeText={setSearch}
+                                    placeholderTextColor="#9ca3af"
+                                />
+                                <FlatList
+                                    data={getFilteredProducts()}
+                                    renderItem={renderProduct}
+                                    keyExtractor={i => i.id.toString()}
+                                    ListEmptyComponent={<Text style={styles.empty}>No products found</Text>}
+                                />
+                            </>
+                        ) : (
+                            <FlatList
+                                data={cart}
+                                renderItem={renderCartItem}
+                                keyExtractor={i => i.id.toString()}
+                                ListEmptyComponent={<Text style={styles.empty}>Cart is empty</Text>}
+                            />
+                        )}
 
-                        <FlatList
-                            data={filteredProducts}
-                            keyExtractor={item => item.id.toString()}
-                            renderItem={renderProductItem}
-                        />
-
-                        <View style={styles.rowBtn}>
-                            <TouchableOpacity style={[styles.btn, styles.btnOutline]} onPress={() => { setSearchQuery(''); setStep(1); }}>
+                        <View style={styles.btnRow}>
+                            <TouchableOpacity style={styles.btnOutline} onPress={() => { setSearch(''); setStep(1); }}>
                                 <Text style={styles.btnOutlineText}>Back</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                style={[styles.btn, cart.length === 0 && styles.btnDisabled]}
+                                style={[styles.btn, cart.length === 0 && styles.disabled]}
                                 disabled={cart.length === 0}
                                 onPress={() => setStep(3)}
                             >
-                                <Text style={styles.btnText}>Next: Review</Text>
+                                <Text style={styles.btnText}>Next</Text>
                             </TouchableOpacity>
                         </View>
                     </>
@@ -365,94 +391,147 @@ const CreateOrderScreen = ({ navigation, route }) => {
 
                 {step === 3 && (
                     <>
-                        <Text style={styles.title}>Review & Submit</Text>
-
-                        <View style={styles.summaryCard}>
-                            <Text style={styles.summaryLabel}>Shop:</Text>
-                            <Text style={styles.summaryValue}>{selectedShop?.name}</Text>
-                            <Text style={styles.summarySub}>{selectedShop?.customer_name}</Text>
-
+                        <Text style={styles.header}>Review Order</Text>
+                        <ScrollView style={styles.summary}>
+                            <Text style={styles.label}>Shop: {selectedShop?.name}</Text>
                             <View style={styles.divider} />
-
-                            <Text style={styles.summaryLabel}>Items ({cart.length}):</Text>
-                            <ScrollView style={{ maxHeight: 150 }}>
-                                {cart.map(item => (
-                                    <View key={item.id} style={styles.checkItem}>
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.checkName}>{item.name}</Text>
-                                            <Text style={styles.checkQty}>{item.qty} x ₹{item.selling_price}</Text>
-                                        </View>
-                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                            <Text style={styles.checkPrice}>₹{item.qty * item.selling_price}</Text>
-                                            <TouchableOpacity onPress={() => removeFromCart(item.id)} style={{ marginLeft: 8 }}>
-                                                <Trash2 size={16} color="#ef4444" />
-                                            </TouchableOpacity>
-                                        </View>
+                            {cart.map(c => (
+                                <View key={c.id} style={styles.cartItem}>
+                                    <View>
+                                        <Text style={{ fontWeight: 'bold' }}>{c.name}</Text>
+                                        <Text style={{ color: '#6b7280' }}>{c.qty} x ₹{c.price}</Text>
                                     </View>
-                                ))}
-                            </ScrollView>
-
+                                    <Text style={{ fontWeight: 'bold' }}>₹{c.qty * c.price}</Text>
+                                    <TouchableOpacity onPress={() => removeFromCart(c.id)} style={{ marginLeft: 10 }}>
+                                        <Trash2 size={18} color="#ef4444" />
+                                    </TouchableOpacity>
+                                </View>
+                            ))}
                             <View style={styles.divider} />
 
-                            <Text style={styles.labelSmall}>Initial Payment (₹)</Text>
-                            <TextInput
-                                style={styles.inputSmall}
-                                keyboardType="numeric"
-                                placeholder="0.00"
-                                value={paidAmount}
-                                onChangeText={setPaidAmount}
-                            />
+                            {/* Summary Card */}
+                            <View style={styles.summaryCard}>
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.totalText}>Total Amount</Text>
+                                    <Text style={[styles.totalText, { color: '#000000' }]}>₹{calculateTotal()}</Text>
+                                </View>
 
-                            <Text style={styles.labelSmall}>Notes</Text>
+                                <Text style={[styles.label, { marginTop: 10 }]}>Paid Amount (₹)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    value={paidAmount}
+                                    onChangeText={setPaidAmount}
+                                    keyboardType="numeric"
+                                    placeholder="0"
+                                    placeholderTextColor="#9ca3af"
+                                />
+
+                                <View style={[styles.summaryRow, { marginTop: 10 }]}>
+                                    {(() => {
+                                        const tot = calculateTotal();
+                                        const pd = parseFloat(paidAmount) || 0;
+                                        const diff = tot - pd;
+                                        const isChange = diff < 0;
+                                        return (
+                                            <>
+                                                <Text style={[styles.totalText, { color: isChange ? '#059669' : '#ef4444' }]}>
+                                                    {isChange ? 'Change/Return:' : 'Due Amount:'}
+                                                </Text>
+                                                <Text style={[styles.totalText, { color: isChange ? '#059669' : '#ef4444' }]}>
+                                                    ₹{Math.abs(diff)}
+                                                </Text>
+                                            </>
+                                        );
+                                    })()}
+                                </View>
+                            </View>
+
                             <TextInput
-                                style={styles.inputSmall}
-                                placeholder="Add notes..."
+                                style={styles.input}
                                 value={notes}
                                 onChangeText={setNotes}
+                                placeholder="Add notes..."
+                                placeholderTextColor="#9ca3af"
                             />
 
-                            <View style={styles.totalRow}>
-                                <Text style={styles.totalLabel}>Grand Total</Text>
-                                <Text style={styles.totalValue}>₹{calculateTotal().toLocaleString()}</Text>
-                            </View>
-                        </View>
+                            {/* Status Dropdown (Edit Mode Only) */}
+                            {isEdit && (
+                                <View style={{ marginTop: 20 }}>
+                                    <Text style={styles.label}>Order Status</Text>
+                                    <TouchableOpacity
+                                        style={styles.input}
+                                        onPress={() => setShowStatusModal(true)}
+                                    >
+                                        <Text style={{ color: '#000000' }}>{status}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
 
-                        <View style={styles.rowBtn}>
-                            <TouchableOpacity style={[styles.btn, styles.btnOutline]} onPress={() => { setSearchQuery(''); setStep(2); }}>
+                            {/* Print Invoice Button (Edit Mode Only) */}
+                            {isEdit && (
+                                <TouchableOpacity
+                                    style={[styles.btnOutline, { marginTop: 20, borderColor: '#374151' }]}
+                                    onPress={() => navigation.navigate('Invoice', { orderId: orderId })}
+                                >
+                                    <Text style={[styles.btnOutlineText, { color: '#374151' }]}>View Invoice</Text>
+                                </TouchableOpacity>
+                            )}
+                        </ScrollView>
+
+                        {/* Status Modal */}
+                        <Modal visible={showStatusModal} transparent animationType="fade" onRequestClose={() => setShowStatusModal(false)}>
+                            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowStatusModal(false)}>
+                                <View style={styles.modalContent}>
+                                    <Text style={[styles.modalTitle, { marginBottom: 16 }]}>Select Status</Text>
+                                    {STATUS_OPTIONS.map(opt => (
+                                        <TouchableOpacity
+                                            key={opt}
+                                            style={{ padding: 16, borderBottomWidth: 1, borderColor: '#f3f4f6' }}
+                                            onPress={() => { setStatus(opt); setShowStatusModal(false); }}
+                                        >
+                                            <Text style={{ fontSize: 16, color: status === opt ? '#059669' : '#1f2937', fontWeight: status === opt ? 'bold' : 'normal' }}>
+                                                {opt}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </TouchableOpacity>
+                        </Modal>
+
+                        <View style={styles.btnRow}>
+                            <TouchableOpacity style={styles.btnOutline} onPress={() => setStep(2)}>
                                 <Text style={styles.btnOutlineText}>Back</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.btn} onPress={handleSubmitOrder}>
-                                <Text style={styles.btnText}>{isEdit ? 'Update Order' : 'Confirm Order'}</Text>
+                            <TouchableOpacity
+                                style={[styles.btn, submitting && { opacity: 0.5 }]}
+                                onPress={handleSubmit}
+                                disabled={submitting}
+                            >
+                                <Text style={styles.btnText}>{submitting ? 'Submitting...' : (isEdit ? 'Update Order' : 'Submit Order')}</Text>
                             </TouchableOpacity>
                         </View>
                     </>
                 )}
             </View>
 
-            {/* Product Qty Modal */}
-            <Modal
-                transparent={true}
-                visible={itemModalVisible}
-                onRequestClose={() => setItemModalVisible(false)}
-            >
+            {/* Qty Modal */}
+            <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{selectedProduct?.name}</Text>
-                            <TouchableOpacity onPress={() => setItemModalVisible(false)}>
-                                <X size={24} color="#6b7280" />
-                            </TouchableOpacity>
+                        <View style={styles.row}>
+                            <Text style={styles.header}>{selectedProduct?.name || selectedProduct?.item_name}</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}><X size={24} /></TouchableOpacity>
                         </View>
-                        <Text style={styles.label}>Quantity (Avail: {selectedProduct?.quantity})</Text>
+                        <Text style={{ marginBottom: 10 }}>Available Stock: {selectedProduct?.quantity}</Text>
                         <TextInput
-                            style={styles.qtyInput}
-                            keyboardType="number-pad"
+                            style={[styles.input, { textAlign: 'center', fontSize: 24 }]}
                             value={qty}
                             onChangeText={setQty}
+                            keyboardType="number-pad"
                             autoFocus
                         />
                         <TouchableOpacity style={styles.btn} onPress={addToCart}>
-                            <Text style={styles.btnText}>Add to Cart</Text>
+                            <Text style={styles.btnText}>Add</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -463,58 +542,54 @@ const CreateOrderScreen = ({ navigation, route }) => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#f3f4f6' },
-    header: { padding: 16, backgroundColor: 'white', elevation: 1 },
-    headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#111827' },
-    headerSub: { fontSize: 13, color: '#6b7280' },
-    stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, backgroundColor: 'white', marginTop: 1 },
-    step: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#e5e7eb', justifyContent: 'center', alignItems: 'center' },
-    activeStep: { backgroundColor: '#059669' },
-    stepText: { color: 'white', fontWeight: 'bold' },
-    line: { width: 40, height: 2, backgroundColor: '#e5e7eb' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    stepper: { flexDirection: 'row', justifyContent: 'center', padding: 16, backgroundColor: 'white', elevation: 2 },
+    stepCircle: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#d1d5db', justifyContent: 'center', alignItems: 'center' },
+    stepActive: { backgroundColor: '#059669' },
+    line: { width: 40, height: 2, backgroundColor: '#d1d5db', marginHorizontal: 4 },
     content: { flex: 1, padding: 16 },
-    title: { fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#111827' },
-    searchInput: { backgroundColor: 'white', padding: 12, borderRadius: 8, marginBottom: 16, borderWidth: 1, borderColor: '#d1d5db' },
-    itemCard: { backgroundColor: 'white', padding: 16, borderRadius: 8, marginBottom: 8 },
-    selectedItem: { borderColor: '#059669', borderWidth: 2 },
-    shopHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
-    itemName: { fontSize: 16, fontWeight: 'bold' },
-    selectedText: { color: '#059669' },
-    shopSubRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
-    itemSub: { color: '#6b7280', fontSize: 13, fontWeight: '500' },
-    addressText: { color: '#9ca3af', fontSize: 12 },
-    btn: { backgroundColor: '#059669', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 16 },
-    btnDisabled: { backgroundColor: '#9ca3af' },
+    header: { fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#111827' },
+    input: { backgroundColor: 'white', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#d1d5db', marginBottom: 12, fontSize: 16 },
+    card: { backgroundColor: 'white', padding: 16, borderRadius: 12, marginBottom: 10, elevation: 1 },
+    selected: { borderColor: '#059669', borderWidth: 2 },
+    row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    cardTitle: { fontSize: 16, fontWeight: 'bold' },
+    subText: { color: '#6b7280', fontSize: 14, marginTop: 4 },
+    price: { fontSize: 16, fontWeight: 'bold', color: '#059669' },
+    btn: { backgroundColor: '#059669', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, alignItems: 'center', flex: 1, height: 50, justifyContent: 'center' },
+    disabled: { backgroundColor: '#9ca3af' },
     btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-    btnOutline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#059669' },
+    btnOutline: { borderWidth: 1, borderColor: '#059669', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 12, alignItems: 'center', flex: 1, marginRight: 10, height: 50, justifyContent: 'center' },
     btnOutlineText: { color: '#059669', fontWeight: 'bold', fontSize: 16 },
-    rowBtn: { flexDirection: 'row', gap: 12, marginTop: 'auto' },
-    cartSummary: { flexDirection: 'row', gap: 8, alignItems: 'center', backgroundColor: '#dcfce7', padding: 12, borderRadius: 8, marginBottom: 16 },
-    cartText: { color: '#166534', fontWeight: 'bold' },
-    productItem: { backgroundColor: 'white', padding: 16, borderRadius: 8, marginBottom: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    productName: { fontSize: 16, fontWeight: 'bold' },
-    productStock: { color: '#6b7280', fontSize: 12 },
-    productPrice: { fontSize: 16, fontWeight: 'bold', color: '#059669' },
+    btnRow: { flexDirection: 'row', marginTop: 20, paddingTop: 10, borderTopWidth: 1, borderColor: '#f3f4f6' },
+
+    // TAB STYLES
+    tabContainer: { flexDirection: 'row', marginBottom: 10, backgroundColor: '#e5e7eb', borderRadius: 8, padding: 4 },
+    tab: { flex: 1, padding: 10, alignItems: 'center', borderRadius: 6 },
+    activeTab: { backgroundColor: 'white', elevation: 2 },
+    tabText: { fontWeight: '600', color: '#6b7280' },
+    activeTabText: { color: '#059669' },
+
+    // CART ITEM STYLES
+    cartItemCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', padding: 12, borderRadius: 8, marginBottom: 8, elevation: 1, justifyContent: 'space-between' },
+    cartItemName: { fontWeight: 'bold', fontSize: 16, color: '#111827' },
+    cartItemPrice: { color: '#059669', fontWeight: 'bold' },
+    qtyControls: { flexDirection: 'row', alignItems: 'center', marginHorizontal: 12 },
+    qtyBtn: { backgroundColor: '#059669', padding: 8, borderRadius: 20, width: 32, height: 32, justifyContent: 'center', alignItems: 'center' },
+    qtyText: { marginHorizontal: 12, fontWeight: 'bold', fontSize: 16, color: '#111827' },
+    removeBtn: { padding: 8 },
+    empty: { textAlign: 'center', marginTop: 30, color: '#9ca3af' },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 24 },
     modalContent: { backgroundColor: 'white', borderRadius: 16, padding: 24 },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 },
-    modalTitle: { fontSize: 18, fontWeight: 'bold' },
-    label: { marginBottom: 8, fontWeight: '600' },
-    labelSmall: { marginBottom: 4, fontWeight: '600', fontSize: 12, color: '#6b7280' },
-    inputSmall: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 6, padding: 8, fontSize: 14, marginBottom: 12 },
-    qtyInput: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 8, padding: 12, fontSize: 24, textAlign: 'center', marginBottom: 16 },
-    summaryCard: { backgroundColor: 'white', padding: 16, borderRadius: 12 },
-    summaryLabel: { fontSize: 14, color: '#6b7280', marginBottom: 4 },
-    summaryValue: { fontSize: 18, fontWeight: 'bold', color: '#111827' },
-    summarySub: { color: '#6b7280', marginBottom: 16 },
+    summary: { backgroundColor: 'white', padding: 16, borderRadius: 12, flex: 1 },
+    label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
+    searchInput: { marginLeft: 10, flex: 1, fontSize: 16, color: '#000000' },
+    summaryCard: { backgroundColor: 'white', padding: 16, borderRadius: 12, elevation: 1, marginBottom: 16 },
+    summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+    totalText: { fontSize: 18, fontWeight: 'bold' },
     divider: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 12 },
-    checkItem: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-    checkName: { fontWeight: '500' },
-    checkQty: { fontSize: 12, color: '#6b7280' },
-    checkPrice: { fontWeight: 'bold' },
-    totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#e5e7eb' },
-    totalLabel: { fontSize: 18, fontWeight: 'bold' },
-    totalValue: { fontSize: 24, fontWeight: '900', color: '#059669' },
-    emptyText: { textAlign: 'center', marginTop: 24, color: '#9ca3af' }
+    cartItem: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
+    total: { fontSize: 20, fontWeight: 'bold', textAlign: 'right', marginTop: 10, color: '#059669' }
 });
 
 export default CreateOrderScreen;

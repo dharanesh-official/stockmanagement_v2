@@ -88,10 +88,7 @@ const Invoice = () => {
                             <span className="label">DATE</span>
                             <span className="value">: &nbsp;{new Date(sale.transaction_date).toLocaleDateString('en-GB').replace(/\//g, '.')}</span>
                         </div>
-                        <div className="meta-row">
-                            <span className="label">STATUS</span>
-                            <span className="value status-badge">: &nbsp;{sale.type === 'order' ? 'ORDERED' : sale.type.toUpperCase()}</span>
-                        </div>
+
                     </div>
                 </header>
 

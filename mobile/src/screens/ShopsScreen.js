@@ -21,6 +21,7 @@ const ShopsScreen = () => {
         email: '',
         customer_id: ''
     });
+    const [saving, setSaving] = useState(false);
 
     const fetchShops = async () => {
         try {
@@ -46,6 +47,7 @@ const ShopsScreen = () => {
         }
 
         try {
+            setSaving(true);
             if (formData.id) {
                 await api.put(`/shops/${formData.id}`, formData);
             } else {
@@ -56,6 +58,8 @@ const ShopsScreen = () => {
             resetForm();
         } catch (err) {
             Alert.alert('Error', 'Failed to save shop');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -206,8 +210,12 @@ const ShopsScreen = () => {
                                 multiline
                             />
 
-                            <TouchableOpacity style={styles.saveBtn} onPress={handleCreateOrUpdate}>
-                                <Text style={styles.saveBtnText}>Save Shop</Text>
+                            <TouchableOpacity
+                                style={[styles.saveBtn, saving && { opacity: 0.5 }]}
+                                onPress={handleCreateOrUpdate}
+                                disabled={saving}
+                            >
+                                <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Shop'}</Text>
                             </TouchableOpacity>
                         </ScrollView>
                     </View>

@@ -2,11 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, FlatList, StyleSheet, ActivityIndicator, Alert,
-    TouchableOpacity, TextInput, Modal, ScrollView
+    TouchableOpacity, TextInput, Modal, ScrollView, Switch
 } from 'react-native';
 import api from '../services/api';
 import { User, Mail, Phone, ShieldCheck, Briefcase, Plus, Trash2, Edit, X } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+
+const MODULES = ['stock', 'sales', 'customers', 'employees', 'finance', 'settings'];
+const ACTIONS = ['view', 'create', 'edit', 'delete'];
+
+const DEFAULT_PERMISSIONS = MODULES.reduce((acc, module) => {
+    acc[module] = { view: false, create: false, edit: false, delete: false };
+    return acc;
+}, {});
+
+const SALESMAN_PERMISSIONS = {
+    stock: { view: true, create: false, edit: false, delete: false },
+    sales: { view: true, create: true, edit: false, delete: false },
+    customers: { view: true, create: true, edit: false, delete: false },
+    employees: { view: false, create: false, edit: false, delete: false },
+    finance: { view: false, create: false, edit: false, delete: false },
+    settings: { view: false, create: false, edit: false, delete: false }
+};
 
 const EmployeesScreen = () => {
     const { user } = useAuth();
@@ -19,8 +36,11 @@ const EmployeesScreen = () => {
         email: '',
         phone: '',
         password: '',
-        role: 'salesman'
+        role: 'salesman',
+        customRole: ''
     });
+    const [permissions, setPermissions] = useState(JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)));
+    const [saving, setSaving] = useState(false);
 
     const fetchEmployees = async () => {
         try {
@@ -42,22 +62,46 @@ const EmployeesScreen = () => {
     }, [user]);
 
     const handleCreateOrUpdate = async () => {
-        if (!formData.full_name || !formData.email || !formData.role) {
+        const finalRole = formData.role === 'custom' ? formData.customRole : formData.role;
+
+        if (!formData.full_name || !formData.email || !finalRole) {
             Alert.alert('Validation', 'Name, Email and Role are required');
             return;
         }
 
+        // Determine permissions to send
+        let finalPermissions = {};
+        if (formData.role === 'salesman') {
+            finalPermissions = SALESMAN_PERMISSIONS;
+        } else if (formData.role === 'custom') {
+            finalPermissions = permissions;
+        }
+        // Admin gets full access generally handled by backend/frontend checks via check 'role' === 'admin'
+
+        const payload = {
+            ...formData,
+            role: finalRole,
+            permissions: finalPermissions
+        };
+        delete payload.customRole;
+
+        setSaving(true);
         try {
             if (formData.id) {
-                await api.put(`/users/${formData.id}`, formData);
+                await api.put(`/users/${formData.id}`, payload);
             } else {
-                await api.post('/users', formData);
+                await api.post('/users', payload);
             }
             setModalVisible(false);
             fetchEmployees();
             resetForm();
+            Alert.alert('Success', 'User saved successfully');
         } catch (err) {
-            Alert.alert('Error', err.response?.data || 'Failed to save user');
+            console.error(err);
+            const errMsg = err.response?.data?.message || err.message || 'Failed to save user';
+            Alert.alert('Error', errMsg);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -80,19 +124,43 @@ const EmployeesScreen = () => {
     };
 
     const resetForm = () => {
-        setFormData({ id: null, full_name: '', email: '', phone: '', password: '', role: 'salesman' });
+        setFormData({ id: null, full_name: '', email: '', phone: '', password: '', role: 'salesman', customRole: '' });
+        setPermissions(JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)));
     };
 
     const openEdit = (emp) => {
+        const isStandard = emp.role === 'admin' || emp.role === 'salesman';
+        const roleState = isStandard ? emp.role : 'custom';
+        const customRoleState = isStandard ? '' : emp.role;
+
         setFormData({
             id: emp.id,
             full_name: emp.full_name,
             email: emp.email,
             phone: emp.phone || '',
             password: '',
-            role: emp.role
+            role: roleState,
+            customRole: customRoleState
         });
+
+        if (emp.permissions && Object.keys(emp.permissions).length > 0) {
+            setPermissions(emp.permissions);
+        } else {
+            // Fallback if no permissions saved, use default
+            setPermissions(JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)));
+        }
+
         setModalVisible(true);
+    };
+
+    const togglePermission = (module, action) => {
+        setPermissions(prev => ({
+            ...prev,
+            [module]: {
+                ...prev[module],
+                [action]: !prev[module]?.[action]
+            }
+        }));
     };
 
     const renderItem = ({ item }) => (
@@ -174,7 +242,7 @@ const EmployeesScreen = () => {
                                 <X size={24} color="#6b7280" />
                             </TouchableOpacity>
                         </View>
-                        <ScrollView>
+                        <ScrollView showsVerticalScrollIndicator={false}>
                             <Text style={styles.label}>Full Name</Text>
                             <TextInput
                                 style={styles.input}
@@ -216,7 +284,49 @@ const EmployeesScreen = () => {
                                 >
                                     <Text style={[styles.roleOptionText, formData.role === 'admin' && styles.roleActiveText]}>Admin</Text>
                                 </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.roleOption, formData.role === 'custom' && styles.roleActive]}
+                                    onPress={() => {
+                                        setFormData({ ...formData, role: 'custom', customRole: '' });
+                                        // Reset to defaults if switching to custom so they can choose
+                                        setPermissions(JSON.parse(JSON.stringify(DEFAULT_PERMISSIONS)));
+                                    }}
+                                >
+                                    <Text style={[styles.roleOptionText, formData.role === 'custom' && styles.roleActiveText]}>Custom</Text>
+                                </TouchableOpacity>
                             </View>
+
+                            {formData.role === 'custom' && (
+                                <View style={styles.formGroup}>
+                                    <Text style={styles.label}>Custom Role Name</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={formData.customRole}
+                                        onChangeText={t => setFormData({ ...formData, customRole: t })}
+                                        placeholder="Enter role name (e.g. Supervisor)"
+                                    />
+
+                                    <Text style={[styles.label, { marginTop: 12 }]}>Permissions</Text>
+                                    {MODULES.map(module => (
+                                        <View key={module} style={styles.permRow}>
+                                            <Text style={styles.permModule}>{module.toUpperCase()}</Text>
+                                            <View style={styles.permToggles}>
+                                                {ACTIONS.map(action => (
+                                                    <TouchableOpacity
+                                                        key={action}
+                                                        style={[styles.permBtn, permissions[module]?.[action] && styles.permBtnActive]}
+                                                        onPress={() => togglePermission(module, action)}
+                                                    >
+                                                        <Text style={[styles.permBtnText, permissions[module]?.[action] && styles.permBtnTextActive]}>
+                                                            {action.charAt(0).toUpperCase()}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                ))}
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
 
                             {!formData.id && (
                                 <>
@@ -231,8 +341,12 @@ const EmployeesScreen = () => {
                                 </>
                             )}
 
-                            <TouchableOpacity style={styles.saveBtn} onPress={handleCreateOrUpdate}>
-                                <Text style={styles.saveBtnText}>Save Employee</Text>
+                            <TouchableOpacity
+                                style={[styles.saveBtn, saving && { opacity: 0.5 }]}
+                                onPress={handleCreateOrUpdate}
+                                disabled={saving}
+                            >
+                                <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Save Employee'}</Text>
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
@@ -265,7 +379,7 @@ const styles = StyleSheet.create({
     accessText: { color: '#6b7280', marginTop: 8 },
     fab: { position: 'absolute', bottom: 24, right: 24, backgroundColor: '#059669', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 },
+    modalContent: { backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '90%' },
     modalHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
     modalTitle: { fontSize: 20, fontWeight: 'bold' },
     label: { fontWeight: '600', marginBottom: 8, color: '#374151' },
@@ -276,7 +390,14 @@ const styles = StyleSheet.create({
     roleOptionText: { color: '#374151', fontWeight: 'bold' },
     roleActiveText: { color: 'white' },
     saveBtn: { backgroundColor: '#059669', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8, marginBottom: 24 },
-    saveBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' }
+    saveBtnText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+    permRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
+    permModule: { fontSize: 14, fontWeight: 'bold', flex: 1 },
+    permToggles: { flexDirection: 'row', gap: 8 },
+    permBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#f3f4f6', justifyContent: 'center', alignItems: 'center' },
+    permBtnActive: { backgroundColor: '#059669' },
+    permBtnText: { fontSize: 12, fontWeight: 'bold', color: '#6b7280' },
+    permBtnTextActive: { color: 'white' }
 });
 
 export default EmployeesScreen;

@@ -144,4 +144,39 @@ const updateShops = async (req, res) => {
     }
 };
 
-module.exports = { getEmployees, createEmployee, updateEmployee, deleteUser, getEmployeeDetails, updateShops };
+const changePassword = async (req, res) => {
+    const { id } = req.params;
+    const { currentPassword, newPassword } = req.body;
+
+    // Security Check: Only allow self or admin
+    // Note: req.user.id is from token.
+    if (req.user.id !== parseInt(id) && req.user.role !== 'admin') {
+        return res.status(403).send('Access Denied');
+    }
+
+    try {
+        const userRes = await pool.query('SELECT password_hash FROM users WHERE id = $1', [id]);
+        if (userRes.rows.length === 0) return res.status(404).send('User not found');
+
+        const user = userRes.rows[0];
+
+        // If currentPassword provided, verify it.
+        // If user is admin resetting someone else's, maybe skip current check?
+        // But let's enforce current password for self-change.
+        if (req.user.role !== 'admin' || (req.user.id === parseInt(id))) {
+            if (!currentPassword) return res.status(400).send('Current password is required');
+            const validPass = await bcrypt.compare(currentPassword, user.password_hash);
+            if (!validPass) return res.status(401).send('Incorrect current password');
+        }
+
+        const hash = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, id]);
+
+        res.json({ message: 'Password updated successfully' });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+module.exports = { getEmployees, createEmployee, updateEmployee, deleteUser, getEmployeeDetails, updateShops, changePassword };
