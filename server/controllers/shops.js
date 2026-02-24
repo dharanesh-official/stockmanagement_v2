@@ -3,10 +3,11 @@ const pool = require('../db');
 const getShops = async (req, res) => {
     try {
         let query = `
-            SELECT s.*, c.full_name as customer_name, u.full_name as salesman_name
+            SELECT s.*, c.full_name as customer_name, u.full_name as salesman_name, a.name as area_name
             FROM shops s
             LEFT JOIN customers c ON s.customer_id = c.id
             LEFT JOIN users u ON s.salesman_id = u.id
+            LEFT JOIN areas a ON s.area_id = a.id
         `;
         const params = [];
 
@@ -27,7 +28,11 @@ const getShops = async (req, res) => {
 
 const createShop = async (req, res) => {
     try {
-        const { name, address, phone, email, customer_id, salesman_id, location } = req.body;
+        const { name, address, phone, email, customer_id, salesman_id, location, area_id } = req.body;
+
+        if (!area_id) {
+            return res.status(400).send('Area selection is mandatory');
+        }
 
         // Determine the effective salesman_id
         let assignedSalesmanId = null;
@@ -38,8 +43,8 @@ const createShop = async (req, res) => {
         }
 
         const result = await pool.query(
-            'INSERT INTO shops (name, address, phone, email, customer_id, salesman_id, location) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-            [name, address, phone, email, customer_id, assignedSalesmanId, location]
+            'INSERT INTO shops (name, address, phone, email, customer_id, salesman_id, location, area_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+            [name, address, phone, email, customer_id, assignedSalesmanId, location, area_id || null]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -51,18 +56,22 @@ const createShop = async (req, res) => {
 const updateShop = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, address, phone, email, customer_id, salesman_id, location } = req.body;
+        const { name, address, phone, email, customer_id, salesman_id, location, area_id } = req.body;
 
-        let query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, updated_at = NOW()';
-        const params = [name, address, phone, email, customer_id, location, id];
+        if (!area_id) {
+            return res.status(400).send('Area selection is mandatory');
+        }
+
+        let query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, area_id = $7, updated_at = NOW()';
+        const params = [name, address, phone, email, customer_id, location, area_id || null, id];
 
         if (req.user.role === 'admin') {
             const assignedSalesmanId = salesman_id || req.user.id;
-            query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, salesman_id = $8, updated_at = NOW() WHERE id = $7 RETURNING *';
+            query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, area_id = $7, salesman_id = $9, updated_at = NOW() WHERE id = $8 RETURNING *';
             params.push(assignedSalesmanId);
         } else {
             // Salesman can only update their own shop
-            query += ' WHERE id = $7 AND salesman_id = $8 RETURNING *';
+            query += ' WHERE id = $8 AND salesman_id = $9 RETURNING *';
             params.push(req.user.id);
         }
 

@@ -1,535 +1,991 @@
-import React, { useEffect, useState } from 'react';
-import api from '../services/api';
-import { Plus, Search, Trash2, Edit, Store, User, Phone, MapPin, Navigation } from 'lucide-react';
-import LoadingSpinner from '../components/LoadingSpinner';
-import './StockList.css'; // Reusing common table/page styles
-import './Shops.css';
+import React, { useEffect, useState } from "react";
+import api from "../services/api";
+import {
+  Plus,
+  Search,
+  Trash2,
+  Edit,
+  Store,
+  User,
+  Phone,
+  MapPin,
+  Navigation,
+  Map,
+  ArrowLeft,
+} from "lucide-react";
+import LoadingSpinner from "../components/LoadingSpinner";
+import "./StockList.css"; // Reusing common table/page styles
+import "./Shops.css";
 
 const Shops = () => {
-    const [shops, setShops] = useState([]);
-    const [customers, setCustomers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
-    const [user, setUser] = useState(null);
-    const [employees, setEmployees] = useState([]);
+  const [shops, setShops] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [user, setUser] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState(null);
 
-    const [showModal, setShowModal] = useState(false);
-    const [showHistory, setShowHistory] = useState(false);
-    const [selectedShop, setSelectedShop] = useState(null);
-    const [historyTab, setHistoryTab] = useState('orders');
-    const [allTransactions, setAllTransactions] = useState([]);
-    const [historyLoading, setHistoryLoading] = useState(false);
+  const [showAreaModal, setShowAreaModal] = useState(false);
+  const [newAreaName, setNewAreaName] = useState("");
+  const [editingAreaId, setEditingAreaId] = useState(null);
+  const [editAreaName, setEditAreaName] = useState('');
 
-    const [formData, setFormData] = useState({
-        id: null,
-        name: '',
-        address: '',
-        phone: '',
-        email: '',
-        customer_id: '',
-        salesman_id: '',
-        location: ''
+  const [showModal, setShowModal] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [selectedShop, setSelectedShop] = useState(null);
+  const [historyTab, setHistoryTab] = useState("orders");
+  const [allTransactions, setAllTransactions] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
+    id: null,
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    customer_id: "",
+    salesman_id: "",
+    location: "",
+    area_id: "",
+  });
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    if (storedUser) {
+      setUser(storedUser);
+      if (storedUser.role === "admin") {
+        fetchEmployees();
+      }
+    }
+    fetchAreas();
+    fetchShops();
+    fetchCustomers();
+  }, []);
+
+  const fetchAreas = async () => {
+    try {
+      const response = await api.get("/areas");
+      setAreas(response.data);
+    } catch (error) {
+      console.error("Error fetching areas:", error);
+    }
+  };
+
+  const fetchShops = async () => {
+    try {
+      const response = await api.get("/shops");
+      setShops(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching shops:", error);
+      setLoading(false);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const res = await api.get("/customers");
+      setCustomers(res.data);
+    } catch (error) {
+      console.error("Error fetching customers:", error);
+    }
+  };
+
+  const fetchEmployees = async () => {
+    try {
+      const res = await api.get("/users");
+      setEmployees(res.data);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    }
+  };
+
+  const hasPermission = (module, action) => {
+    if (!user) return false;
+    if (user.role === "admin") return true;
+    const permissions = user.permissions || {};
+    return permissions[module]?.[action] === true;
+  };
+
+  const openHistory = async (shop) => {
+    try {
+      setSelectedShop(shop);
+      setHistoryLoading(true);
+      const res = await api.get("/sales"); // This will be filtered by salesman if applicable
+      const shopSales = res.data.filter((t) => t.shop_id === shop.id);
+      setAllTransactions(shopSales);
+      setShowHistory(true);
+      setHistoryTab("orders");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to load shop history");
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleCreateOrUpdateShop = async (e) => {
+    e.preventDefault();
+
+    // Phone validation: should be exactly 10 digits
+    const phoneDigits = formData.phone.replace(/[^0-9]/g, "");
+    if (phoneDigits.length !== 10) {
+      alert("Please enter a valid 10-digit phone number");
+      return;
+    }
+
+    const finalData = {
+      ...formData,
+      phone: `+91 ${phoneDigits}`,
+    };
+
+    try {
+      if (formData.id) {
+        await api.put(`/shops/${formData.id}`, finalData);
+      } else {
+        await api.post("/shops", finalData);
+      }
+      setShowModal(false);
+      resetForm();
+      fetchShops();
+    } catch (error) {
+      alert("Failed to save shop");
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      id: null,
+      name: "",
+      address: "",
+      phone: "",
+      email: "",
+      customer_id: "",
+      salesman_id: "",
+      location: "",
+      area_id: selectedArea ? selectedArea.id : "",
     });
+  };
 
-    useEffect(() => {
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        if (storedUser) {
-            setUser(storedUser);
-            if (storedUser.role === 'admin') {
-                fetchEmployees();
-            }
-        }
-        fetchShops();
-        fetchCustomers();
-    }, []);
+  const handleCreateArea = async (e) => {
+    e.preventDefault();
+    if (!newAreaName.trim()) return;
+    try {
+      await api.post('/areas', { name: newAreaName.trim() });
+      setNewAreaName('');
+      fetchAreas();
+    } catch (err) {
+      alert('Failed to save Area. It might already exist.');
+    }
+  };
 
-    const fetchShops = async () => {
-        try {
-            const response = await api.get('/shops');
-            setShops(response.data);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching shops:', error);
-            setLoading(false);
-        }
-    };
+  const handleUpdateArea = async (areaId) => {
+    if (!editAreaName.trim()) return;
+    try {
+      await api.put(`/areas/${areaId}`, { name: editAreaName.trim() });
+      setEditingAreaId(null);
+      fetchAreas();
+      fetchShops();
+    } catch (err) {
+      alert('Failed to update Area. Name might exist.');
+    }
+  };
 
-    const fetchCustomers = async () => {
-        try {
-            const res = await api.get('/customers');
-            setCustomers(res.data);
-        } catch (error) {
-            console.error('Error fetching customers:', error);
-        }
-    };
+  const handleDeleteArea = async (areaId, areaName) => {
+    if (!window.confirm(`Are you sure you want to delete the Area "${areaName}"? Shops in this area will lose their area assignment.`)) return;
+    try {
+      await api.delete(`/areas/${areaId}`);
+      fetchAreas();
+      fetchShops();
+      if (selectedArea && selectedArea.id === areaId) setSelectedArea(null);
+    } catch (err) {
+      alert('Failed to delete Area.');
+    }
+  };
 
-    const fetchEmployees = async () => {
-        try {
-            const res = await api.get('/users');
-            setEmployees(res.data);
-        } catch (error) {
-            console.error('Error fetching employees:', error);
-        }
-    };
+  const openEditShop = (shop) => {
+    // Strip prefix for editing
+    const rawPhone = shop.phone ? shop.phone.replace("+91 ", "") : "";
+    setFormData({
+      id: shop.id,
+      name: shop.name,
+      address: shop.address,
+      phone: rawPhone,
+      email: shop.email || "",
+      customer_id: shop.customer_id,
+      salesman_id: shop.salesman_id || "",
+      location: shop.location || "",
+      area_id: shop.area_id || "",
+    });
+    setShowModal(true);
+  };
 
-    const hasPermission = (module, action) => {
-        if (!user) return false;
-        if (user.role === 'admin') return true;
-        const permissions = user.permissions || {};
-        return permissions[module]?.[action] === true;
-    };
+  const handleGetDirections = (location) => {
+    if (!location) return;
+    if (location.startsWith("http://") || location.startsWith("https://")) {
+      window.open(location, "_blank");
+    } else {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+      window.open(url, "_blank");
+    }
+  };
 
-    const openHistory = async (shop) => {
-        try {
-            setSelectedShop(shop);
-            setHistoryLoading(true);
-            const res = await api.get('/sales'); // This will be filtered by salesman if applicable
-            const shopSales = res.data.filter(t => t.shop_id === shop.id);
-            setAllTransactions(shopSales);
-            setShowHistory(true);
-            setHistoryTab('orders');
-        } catch (err) {
-            console.error(err);
-            alert('Failed to load shop history');
-        } finally {
-            setHistoryLoading(false);
-        }
-    };
+  const handleDeleteShop = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this shop?")) return;
+    try {
+      await api.delete(`/shops/${id}`);
+      fetchShops();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-    const handleCreateOrUpdateShop = async (e) => {
-        e.preventDefault();
+  const filteredShops = shops.filter((shop) => {
+    const matchesArea = selectedArea ? shop.area_id === selectedArea.id : true;
+    const matchesSearch =
+      shop.name.toLowerCase().includes(search.toLowerCase()) ||
+      shop.phone.includes(search);
+    return matchesArea && matchesSearch;
+  });
 
-        // Phone validation: should be exactly 10 digits
-        const phoneDigits = formData.phone.replace(/[^0-9]/g, '');
-        if (phoneDigits.length !== 10) {
-            alert('Please enter a valid 10-digit phone number');
-            return;
-        }
+  const getAreaShopCount = (areaId) => {
+    return shops.filter((s) => s.area_id === areaId).length;
+  };
 
-        const finalData = {
-            ...formData,
-            phone: `+91 ${phoneDigits}`
-        };
-
-        try {
-            if (formData.id) {
-                await api.put(`/shops/${formData.id}`, finalData);
-            } else {
-                await api.post('/shops', finalData);
-            }
-            setShowModal(false);
-            resetForm();
-            fetchShops();
-        } catch (error) {
-            alert('Failed to save shop');
-        }
-    };
-
-    const resetForm = () => {
-        setFormData({ id: null, name: '', address: '', phone: '', email: '', customer_id: '', salesman_id: '', location: '' });
-    };
-
-    const openEditShop = (shop) => {
-        // Strip prefix for editing
-        const rawPhone = shop.phone ? shop.phone.replace('+91 ', '') : '';
-        setFormData({
-            id: shop.id,
-            name: shop.name,
-            address: shop.address,
-            phone: rawPhone,
-            email: shop.email || '',
-            customer_id: shop.customer_id,
-            salesman_id: shop.salesman_id || '',
-            location: shop.location || ''
-        });
-        setShowModal(true);
-    };
-
-    const handleGetDirections = (location) => {
-        if (!location) return;
-        if (location.startsWith('http://') || location.startsWith('https://')) {
-            window.open(location, '_blank');
-        } else {
-            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-            window.open(url, '_blank');
-        }
-    };
-
-    const handleDeleteShop = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this shop?')) return;
-        try {
-            await api.delete(`/shops/${id}`);
-            fetchShops();
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const filteredShops = shops.filter(shop =>
-        shop.name.toLowerCase().includes(search.toLowerCase()) ||
-        shop.phone.includes(search)
-    );
-
-    return (
-        <div className="stock-page">
-            <div className="page-header">
-                <div>
-                    <h1>Shop Management</h1>
-                    <p className="subtitle">Manage branches and linked customers across regions.</p>
-                </div>
-                <div className="header-actions">
-                    {hasPermission('shops', 'create') && (
-                        <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                            <Plus size={18} /> Add Shop
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            <div className="controls-bar">
-                <div className="search-box">
-                    <Search size={18} color="#9ca3af" />
-                    <input
-                        type="text"
-                        placeholder="Search by Shop Name or Phone..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-            </div>
-
-            <div className="table-container">
-                <table className="stock-table">
-                    <thead>
-                        <tr>
-                            <th>S.No</th>
-                            <th>SHOP NAME</th>
-                            <th>CUSTOMER</th>
-                            {user?.role === 'admin' && <th>SALESMAN</th>}
-                            <th>CONTACT</th>
-                            <th>ADDRESS</th>
-                            <th>ACTIONS</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <tr><td colSpan="6" className="loading-cell">Loading shops...</td></tr>
-                        ) : filteredShops.map((shop, index) => (
-                            <tr key={shop.id} onClick={() => openHistory(shop)} className="clickable-row">
-                                <td className="sno-cell">{index + 1}</td>
-                                <td className="product-cell">
-                                    <div className="flex flex-col">
-                                        <span className="product-name font-medium text-gray-900">
-                                            {shop.name}
-                                        </span>
-                                        {shop.email && <span className="text-xs text-gray-500">{shop.email}</span>}
-                                    </div>
-                                </td>
-                                <td>
-                                    <span className="badge badge-blue">
-                                        <User size={12} className="inline mr-1" />
-                                        {shop.customer_name}
-                                    </span>
-                                </td>
-                                {user?.role === 'admin' && (
-                                    <td>
-                                        <span className="badge badge-purple">
-                                            <User size={12} className="inline mr-1" />
-                                            {shop.salesman_name || 'Unassigned'}
-                                        </span>
-                                    </td>
-                                )}
-                                <td>
-                                    <div className="flex items-center gap-1 text-sm">
-                                        <Phone size={14} className="text-gray-400" />
-                                        {shop.phone}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div className="flex flex-col gap-1 items-start text-sm max-w-xs">
-                                        <div className="flex gap-2">
-                                            <MapPin size={14} className="text-emerald-500 mt-1 shrink-0" />
-                                            <span className="text-gray-600 leading-relaxed">{shop.address}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="actions-cell">
-                                    <div className="flex gap-1">
-                                        {shop.location && (
-                                            <button
-                                                className="icon-btn text-blue-500 hover:text-blue-700"
-                                                title="Get Directions"
-                                                onClick={(e) => { e.stopPropagation(); handleGetDirections(shop.location); }}
-                                            >
-                                                <Navigation size={18} />
-                                            </button>
-                                        )}
-                                        {hasPermission('shops', 'edit') && (
-                                            <button className="icon-btn" onClick={(e) => { e.stopPropagation(); openEditShop(shop); }}><Edit size={18} /></button>
-                                        )}
-                                        {hasPermission('shops', 'delete') && (
-                                            <button className="icon-btn delete-btn" onClick={(e) => { e.stopPropagation(); handleDeleteShop(shop.id); }}>
-                                                <Trash2 size={18} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {/* Shop Modal */}
-            {showModal && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h2>{formData.id ? 'Edit Shop' : 'Add New Shop'}</h2>
-                        </div>
-                        <form onSubmit={handleCreateOrUpdateShop} className="shop-form">
-                            <div className="managed-form">
-                                <div className="form-group">
-                                    <label>Shop Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="Enter shop name"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Customer</label>
-                                    <select
-                                        value={formData.customer_id}
-                                        onChange={e => setFormData({ ...formData, customer_id: e.target.value })}
-                                        required
-                                    >
-                                        <option value="">Select Customer</option>
-                                        {customers.map(customer => (
-                                            <option key={customer.id} value={customer.id}>{customer.full_name}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {user?.role === 'admin' && (
-                                    <div className="form-group">
-                                        <label>Assign Salesman</label>
-                                        <select
-                                            value={formData.salesman_id}
-                                            onChange={e => setFormData({ ...formData, salesman_id: e.target.value })}
-                                        >
-                                            <option value="">Assign to Me (Default)</option>
-                                            {employees.map(emp => (
-                                                <option key={emp.id} value={emp.id}>{emp.full_name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                )}
-                                <div className="form-group">
-                                    <label>Phone Number</label>
-                                    <div className="flex items-center">
-                                        <div className="phone-prefix">+91</div>
-                                        <input
-                                            type="text"
-                                            className="phone-input"
-                                            placeholder="98765 43210"
-                                            value={formData.phone}
-                                            onChange={e => setFormData({ ...formData, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 10) })}
-                                            required
-                                            style={{ flex: 1 }}
-                                        />
-                                    </div>
-                                    <p className="text-xs text-gray-400 mt-2">Enter exactly 10 digits</p>
-                                </div>
-                                <div className="form-group">
-                                    <label>Email (Optional)</label>
-                                    <input
-                                        type="email"
-                                        placeholder="shop@example.com"
-                                        value={formData.email}
-                                        onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>Address</label>
-                                    <textarea
-                                        placeholder="Full shop address"
-                                        value={formData.address}
-                                        onChange={e => setFormData({ ...formData, address: e.target.value })}
-                                        required
-                                        style={{ minHeight: '100px' }}
-                                    ></textarea>
-                                </div>
-                                <div className="form-group">
-                                    <label>Location Link</label>
-                                    <input
-                                        type="url"
-                                        placeholder="E.g., https://maps.google.com/..."
-                                        value={formData.location}
-                                        onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                            <div className="modal-actions">
-                                <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">Save Shop</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {/* Shop History Modal */}
-            {showHistory && selectedShop && (
-                <div className="modal-overlay">
-                    <div className="modal-content history-modal">
-                        <div className="modal-header history-header">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h2>{selectedShop.name} - History</h2>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Owner: {selectedShop.customer_name} | Salesman: {selectedShop.salesman_name || 'N/A'}
-                                    </p>
-                                </div>
-                                <button className="close-btn" onClick={() => setShowHistory(false)}>
-                                    <X size={24} />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="history-stats">
-                            <div className="h-stat-card">
-                                <span className="h-stat-label">Total Orders</span>
-                                <span className="h-stat-value">{allTransactions.filter(t => t.type === 'order').length}</span>
-                            </div>
-                            <div className="h-stat-card">
-                                <span className="h-stat-label">Total Paid</span>
-                                <span className="h-stat-value text-emerald-600">
-                                    ₹{allTransactions.filter(t => t.type === 'payment').reduce((sum, t) => sum + Number(t.total_amount), 0).toLocaleString()}
-                                </span>
-                            </div>
-                            <div className="h-stat-card">
-                                <span className="h-stat-label">Current Due</span>
-                                <span className="h-stat-value text-rose-600">
-                                    ₹{(allTransactions.filter(t => t.type === 'order').reduce((sum, t) => sum + (Number(t.total_amount) - Number(t.paid_amount || 0)), 0)).toLocaleString()}
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="history-tabs">
-                            <button
-                                className={`h-tab ${historyTab === 'orders' ? 'active' : ''}`}
-                                onClick={() => setHistoryTab('orders')}
-                            >
-                                Order History
-                            </button>
-                            <button
-                                className={`h-tab ${historyTab === 'payments' ? 'active' : ''}`}
-                                onClick={() => setHistoryTab('payments')}
-                            >
-                                Payment History
-                            </button>
-                            <button
-                                className={`h-tab ${historyTab === 'dues' ? 'active' : ''}`}
-                                onClick={() => setHistoryTab('dues')}
-                            >
-                                Due Details
-                            </button>
-                        </div>
-
-                        <div className="history-content">
-                            {historyLoading ? (
-                                <div className="loading-cell p-20">Refreshing history and financial data...</div>
-                            ) : (
-                                <>
-                                    {historyTab === 'orders' && (
-                                        <table className="history-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Total</th>
-                                                    <th>Paid</th>
-                                                    <th>Balance</th>
-                                                    <th>Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {allTransactions.filter(t => t.type === 'order').length > 0 ? (
-                                                    allTransactions.filter(t => t.type === 'order').map(t => (
-                                                        <tr key={t.id}>
-                                                            <td>{new Date(t.transaction_date).toLocaleDateString()}</td>
-                                                            <td>₹{Number(t.total_amount).toLocaleString()}</td>
-                                                            <td>₹{Number(t.paid_amount || 0).toLocaleString()}</td>
-                                                            <td className="text-rose-600">₹{(Number(t.total_amount) - Number(t.paid_amount || 0)).toLocaleString()}</td>
-                                                            <td><span className={`status-pill ${t.status.toLowerCase().replace(' ', '-')}`}>{t.status}</span></td>
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr><td colSpan="5" className="text-center p-8 text-gray-500">No orders found</td></tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    )}
-
-                                    {historyTab === 'payments' && (
-                                        <table className="history-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Date</th>
-                                                    <th>Amount</th>
-                                                    <th>Notes</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {allTransactions.filter(t => t.type === 'payment').length > 0 ? (
-                                                    allTransactions.filter(t => t.type === 'payment').map(t => (
-                                                        <tr key={t.id}>
-                                                            <td>{new Date(t.transaction_date).toLocaleDateString()}</td>
-                                                            <td className="text-emerald-600">₹{Number(t.total_amount).toLocaleString()}</td>
-                                                            <td className="text-gray-500 italic">{t.notes || 'No notes'}</td>
-                                                        </tr>
-                                                    ))
-                                                ) : (
-                                                    <tr><td colSpan="3" className="text-center p-8 text-gray-500">No payments found</td></tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    )}
-
-                                    {historyTab === 'dues' && (
-                                        <div className="dues-view">
-                                            <p className="p-4 bg-rose-50 text-rose-800 rounded-lg text-sm border border-rose-200">
-                                                These are the individual outstanding amounts for current active orders in this shop.
-                                            </p>
-                                            <table className="history-table mt-4">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Order ID</th>
-                                                        <th>Date</th>
-                                                        <th>Pending Amount</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {allTransactions.filter(t => t.type === 'order' && (Number(t.total_amount) - Number(t.paid_amount || 0)) > 0).map(t => (
-                                                        <tr key={t.id}>
-                                                            <td className="font-mono text-xs">#{t.id.slice(0, 8).toUpperCase()}</td>
-                                                            <td>{new Date(t.transaction_date).toLocaleDateString()}</td>
-                                                            <td className="text-rose-600 font-bold">₹{(Number(t.total_amount) - Number(t.paid_amount || 0)).toLocaleString()}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+  return (
+    <div className="stock-page">
+      <div className="page-header">
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+          {selectedArea && (
+            <button
+              className="icon-btn"
+              onClick={() => setSelectedArea(null)}
+              style={{
+                padding: "8px",
+                backgroundColor: "white",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+              }}
+            >
+              <ArrowLeft size={20} />
+            </button>
+          )}
+          <div>
+            <h1>
+              {selectedArea
+                ? `${selectedArea.name} - Shops`
+                : "Shop Management"}
+            </h1>
+            <p className="subtitle">
+              {selectedArea
+                ? "Manage branches in this area."
+                : "Select an area to view shops or manage branches."}
+            </p>
+          </div>
         </div>
-    );
+        <div className="header-actions">
+          {!selectedArea && hasPermission('shops', 'create') && (
+            <button className="btn btn-secondary" onClick={() => setShowAreaModal(true)}>
+              <Map size={18} /> Manage Areas
+            </button>
+          )}   {hasPermission("shops", "create") && (
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                resetForm();
+                setShowModal(true);
+              }}
+            >
+              <Plus size={18} /> Add Shop
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="controls-bar">
+        <div className="search-box">
+          <Search size={18} color="#9ca3af" />
+          <input
+            type="text"
+            placeholder="Search by Shop Name or Phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {!selectedArea ? (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+            gap: "16px",
+            padding: "0 16px 16px",
+          }}
+        >
+          {areas.map((area) => (
+            <div
+              key={area.id}
+              onClick={() => setSelectedArea(area)}
+              style={{
+                backgroundColor: "white",
+                padding: "20px",
+                borderRadius: "12px",
+                cursor: "pointer",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                border: "1px solid #f3f4f6",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "translateY(-2px)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "translateY(0)")
+              }
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+              >
+                <div
+                  style={{
+                    backgroundColor: "#ecfdf5",
+                    padding: "12px",
+                    borderRadius: "12px",
+                  }}
+                >
+                  <Map size={24} color="#059669" />
+                </div>
+                <div>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: "18px",
+                      fontWeight: "bold",
+                      color: "#111827",
+                    }}
+                  >
+                    {area.name}
+                  </h3>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "14px",
+                      color: "#6b7280",
+                      marginTop: "4px",
+                    }}
+                  >
+                    {getAreaShopCount(area.id)} Shops
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+          {areas.length === 0 && (
+            <div
+              style={{
+                gridColumn: "1 / -1",
+                textAlign: "center",
+                padding: "40px",
+                color: "#6b7280",
+              }}
+            >
+              No areas found. Add an area to get started.
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="table-container">
+          <table className="stock-table">
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>SHOP NAME</th>
+                <th>CUSTOMER</th>
+                {user?.role === "admin" && <th>SALESMAN</th>}
+                <th>CONTACT</th>
+                <th>ADDRESS</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="loading-cell">
+                    Loading shops...
+                  </td>
+                </tr>
+              ) : (
+                filteredShops.map((shop, index) => (
+                  <tr
+                    key={shop.id}
+                    onClick={() => openHistory(shop)}
+                    className="clickable-row"
+                  >
+                    <td className="sno-cell">{index + 1}</td>
+                    <td className="product-cell">
+                      <div className="flex flex-col">
+                        <span className="product-name font-medium text-gray-900">
+                          {shop.name}
+                        </span>
+                        {shop.email && (
+                          <span className="text-xs text-gray-500">
+                            {shop.email}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <span className="badge badge-blue">
+                        <User size={12} className="inline mr-1" />
+                        {shop.customer_name}
+                      </span>
+                    </td>
+                    {user?.role === "admin" && (
+                      <td>
+                        <span className="badge badge-purple">
+                          <User size={12} className="inline mr-1" />
+                          {shop.salesman_name || "Unassigned"}
+                        </span>
+                      </td>
+                    )}
+                    <td>
+                      <div className="flex items-center gap-1 text-sm">
+                        <Phone size={14} className="text-gray-400" />
+                        {shop.phone}
+                      </div>
+                    </td>
+                    <td>
+                      <div className="flex flex-col gap-1 items-start text-sm max-w-xs">
+                        <div className="flex gap-2">
+                          <MapPin
+                            size={14}
+                            className="text-emerald-500 mt-1 shrink-0"
+                          />
+                          <span className="text-gray-600 leading-relaxed">
+                            {shop.address}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="actions-cell">
+                      <div className="flex gap-1">
+                        {shop.location && (
+                          <button
+                            className="icon-btn text-blue-500 hover:text-blue-700"
+                            title="Get Directions"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleGetDirections(shop.location);
+                            }}
+                          >
+                            <Navigation size={18} />
+                          </button>
+                        )}
+                        {hasPermission("shops", "edit") && (
+                          <button
+                            className="icon-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditShop(shop);
+                            }}
+                          >
+                            <Edit size={18} />
+                          </button>
+                        )}
+                        {hasPermission("shops", "delete") && (
+                          <button
+                            className="icon-btn delete-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteShop(shop.id);
+                            }}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+              {!loading && filteredShops.length === 0 && (
+                <tr>
+                  <td colSpan="7" className="text-center p-8 text-gray-500">
+                    No shops found in this area.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Area Modal */}
+      {showAreaModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '600px', width: '90%', padding: '24px' }}>
+            <div className="modal-header" style={{ marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Manage Sub-Areas & Districts</h2>
+              <button className="close-btn" onClick={() => { setShowAreaModal(false); setEditingAreaId(null); }}>
+                <span style={{ cursor: 'pointer', fontSize: '28px' }}>&times;</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateArea} style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+              <input
+                type="text"
+                placeholder="Add New Area... (e.g. Chennai Central)"
+                value={newAreaName}
+                onChange={e => setNewAreaName(e.target.value)}
+                required
+                style={{ flex: 1, padding: '12px 16px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '15px' }}
+              />
+              <button type="submit" className="btn btn-primary" style={{ padding: '12px 24px', whiteSpace: 'nowrap', borderRadius: '8px' }}>Add Area</button>
+            </form>
+
+            <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', backgroundColor: '#fafafa' }}>
+              {areas.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#6b7280', padding: '40px 0' }}>No areas defined yet. Create your first area above.</p>
+              ) : (
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  {areas.map((area, idx) => (
+                    <li key={area.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: idx === areas.length - 1 ? 'none' : '1px solid #e5e7eb', backgroundColor: 'white' }}>
+                      {editingAreaId === area.id ? (
+                        <div style={{ display: 'flex', gap: '8px', flex: 1, marginRight: '16px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={editAreaName}
+                            onChange={e => setEditAreaName(e.target.value)}
+                            style={{ flex: 1, padding: '10px 12px', border: '2px solid #059669', borderRadius: '6px', fontSize: '15px' }}
+                            autoFocus
+                          />
+                          <button type="button" onClick={() => handleUpdateArea(area.id)} className="btn btn-primary" style={{ padding: '10px 16px', borderRadius: '6px' }}>Save</button>
+                          <button type="button" onClick={() => setEditingAreaId(null)} className="btn btn-secondary" style={{ padding: '10px 16px', borderRadius: '6px' }}>Cancel</button>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <div style={{ backgroundColor: '#ecfdf5', padding: '10px', borderRadius: '10px' }}>
+                              <Map size={24} color="#059669" />
+                            </div>
+                            <div>
+                              <span style={{ fontWeight: '600', color: '#111827', fontSize: '16px', display: 'block' }}>{area.name}</span>
+                              <span style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px', display: 'block' }}>{getAreaShopCount(area.id)} Registered Shops</span>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => { setEditingAreaId(area.id); setEditAreaName(area.name); }} className="icon-btn" title="Edit Area" style={{ padding: '8px', backgroundColor: '#f3f4f6', borderRadius: '8px', border: '1px solid #e5e7eb' }}><Edit size={18} color="#4b5563" /></button>
+                            <button onClick={() => handleDeleteArea(area.id, area.name)} className="icon-btn delete-btn" title="Delete Area" style={{ padding: '8px', backgroundColor: '#fef2f2', borderRadius: '8px', border: '1px solid #fca5a5' }}><Trash2 size={18} color="#ef4444" /></button>
+                          </div>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Shop Modal */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>{formData.id ? "Edit Shop" : "Add New Shop"}</h2>
+            </div>
+            <form onSubmit={handleCreateOrUpdateShop} className="shop-form">
+              <div className="managed-form">
+                <div className="form-group">
+                  <label>Shop Name</label>
+                  <input
+                    type="text"
+                    placeholder="Enter shop name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Area</label>
+                  <select
+                    value={formData.area_id || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, area_id: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="">Select Area</option>
+                    {areas.map((area) => (
+                      <option key={area.id} value={area.id}>
+                        {area.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Customer</label>
+                  <select
+                    value={formData.customer_id}
+                    onChange={(e) =>
+                      setFormData({ ...formData, customer_id: e.target.value })
+                    }
+                    required
+                  >
+                    <option value="">Select Customer</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {user?.role === "admin" && (
+                  <div className="form-group">
+                    <label>Assign Salesman</label>
+                    <select
+                      value={formData.salesman_id}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          salesman_id: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Assign to Me (Default)</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.full_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="form-group">
+                  <label>Phone Number</label>
+                  <div className="flex items-center">
+                    <div className="phone-prefix">+91</div>
+                    <input
+                      type="text"
+                      className="phone-input"
+                      placeholder="98765 43210"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          phone: e.target.value
+                            .replace(/[^0-9]/g, "")
+                            .slice(0, 10),
+                        })
+                      }
+                      required
+                      style={{ flex: 1 }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">
+                    Enter exactly 10 digits
+                  </p>
+                </div>
+                <div className="form-group">
+                  <label>Email (Optional)</label>
+                  <input
+                    type="email"
+                    placeholder="shop@example.com"
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Address</label>
+                  <textarea
+                    placeholder="Full shop address"
+                    value={formData.address}
+                    onChange={(e) =>
+                      setFormData({ ...formData, address: e.target.value })
+                    }
+                    required
+                    style={{ minHeight: "100px" }}
+                  ></textarea>
+                </div>
+                <div className="form-group">
+                  <label>Location Link</label>
+                  <input
+                    type="url"
+                    placeholder="E.g., https://maps.google.com/..."
+                    value={formData.location}
+                    onChange={(e) =>
+                      setFormData({ ...formData, location: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    setShowModal(false);
+                    resetForm();
+                  }}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Save Shop
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Shop History Modal */}
+      {showHistory && selectedShop && (
+        <div className="modal-overlay">
+          <div className="modal-content history-modal">
+            <div className="modal-header history-header">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2>{selectedShop.name} - History</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Owner: {selectedShop.customer_name} | Salesman:{" "}
+                    {selectedShop.salesman_name || "N/A"}
+                  </p>
+                </div>
+                <button
+                  className="close-btn"
+                  onClick={() => setShowHistory(false)}
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="history-stats">
+              <div className="h-stat-card">
+                <span className="h-stat-label">Total Orders</span>
+                <span className="h-stat-value">
+                  {allTransactions.filter((t) => t.type === "order").length}
+                </span>
+              </div>
+              <div className="h-stat-card">
+                <span className="h-stat-label">Total Paid</span>
+                <span className="h-stat-value text-emerald-600">
+                  ₹
+                  {allTransactions
+                    .filter((t) => t.type === "payment")
+                    .reduce((sum, t) => sum + Number(t.total_amount), 0)
+                    .toLocaleString()}
+                </span>
+              </div>
+              <div className="h-stat-card">
+                <span className="h-stat-label">Current Due</span>
+                <span className="h-stat-value text-rose-600">
+                  ₹
+                  {allTransactions
+                    .filter((t) => t.type === "order")
+                    .reduce(
+                      (sum, t) =>
+                        sum +
+                        (Number(t.total_amount) - Number(t.paid_amount || 0)),
+                      0,
+                    )
+                    .toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="history-tabs">
+              <button
+                className={`h-tab ${historyTab === "orders" ? "active" : ""}`}
+                onClick={() => setHistoryTab("orders")}
+              >
+                Order History
+              </button>
+              <button
+                className={`h-tab ${historyTab === "payments" ? "active" : ""}`}
+                onClick={() => setHistoryTab("payments")}
+              >
+                Payment History
+              </button>
+              <button
+                className={`h-tab ${historyTab === "dues" ? "active" : ""}`}
+                onClick={() => setHistoryTab("dues")}
+              >
+                Due Details
+              </button>
+            </div>
+
+            <div className="history-content">
+              {historyLoading ? (
+                <div className="loading-cell p-20">
+                  Refreshing history and financial data...
+                </div>
+              ) : (
+                <>
+                  {historyTab === "orders" && (
+                    <table className="history-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Total</th>
+                          <th>Paid</th>
+                          <th>Balance</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allTransactions.filter((t) => t.type === "order")
+                          .length > 0 ? (
+                          allTransactions
+                            .filter((t) => t.type === "order")
+                            .map((t) => (
+                              <tr key={t.id}>
+                                <td>
+                                  {new Date(
+                                    t.transaction_date,
+                                  ).toLocaleDateString()}
+                                </td>
+                                <td>
+                                  ₹{Number(t.total_amount).toLocaleString()}
+                                </td>
+                                <td>
+                                  ₹{Number(t.paid_amount || 0).toLocaleString()}
+                                </td>
+                                <td className="text-rose-600">
+                                  ₹
+                                  {(
+                                    Number(t.total_amount) -
+                                    Number(t.paid_amount || 0)
+                                  ).toLocaleString()}
+                                </td>
+                                <td>
+                                  <span
+                                    className={`status-pill ${t.status.toLowerCase().replace(" ", "-")}`}
+                                  >
+                                    {t.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="5"
+                              className="text-center p-8 text-gray-500"
+                            >
+                              No orders found
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {historyTab === "payments" && (
+                    <table className="history-table">
+                      <thead>
+                        <tr>
+                          <th>Date</th>
+                          <th>Amount</th>
+                          <th>Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allTransactions.filter((t) => t.type === "payment")
+                          .length > 0 ? (
+                          allTransactions
+                            .filter((t) => t.type === "payment")
+                            .map((t) => (
+                              <tr key={t.id}>
+                                <td>
+                                  {new Date(
+                                    t.transaction_date,
+                                  ).toLocaleDateString()}
+                                </td>
+                                <td className="text-emerald-600">
+                                  ₹{Number(t.total_amount).toLocaleString()}
+                                </td>
+                                <td className="text-gray-500 italic">
+                                  {t.notes || "No notes"}
+                                </td>
+                              </tr>
+                            ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="3"
+                              className="text-center p-8 text-gray-500"
+                            >
+                              No payments found
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  )}
+
+                  {historyTab === "dues" && (
+                    <div className="dues-view">
+                      <p className="p-4 bg-rose-50 text-rose-800 rounded-lg text-sm border border-rose-200">
+                        These are the individual outstanding amounts for current
+                        active orders in this shop.
+                      </p>
+                      <table className="history-table mt-4">
+                        <thead>
+                          <tr>
+                            <th>Order ID</th>
+                            <th>Date</th>
+                            <th>Pending Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {allTransactions
+                            .filter(
+                              (t) =>
+                                t.type === "order" &&
+                                Number(t.total_amount) -
+                                Number(t.paid_amount || 0) >
+                                0,
+                            )
+                            .map((t) => (
+                              <tr key={t.id}>
+                                <td className="font-mono text-xs">
+                                  #{t.id.slice(0, 8).toUpperCase()}
+                                </td>
+                                <td>
+                                  {new Date(
+                                    t.transaction_date,
+                                  ).toLocaleDateString()}
+                                </td>
+                                <td className="text-rose-600 font-bold">
+                                  ₹
+                                  {(
+                                    Number(t.total_amount) -
+                                    Number(t.paid_amount || 0)
+                                  ).toLocaleString()}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Shops;

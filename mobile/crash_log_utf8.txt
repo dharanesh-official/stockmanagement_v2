@@ -1,0 +1,203 @@
+﻿--------- beginning of main
+02-22 22:59:41.122  2036  2273 W System.err: Seeding context with ref: 190471085
+02-22 22:59:41.132  2036  2274 W System.err: Seeding context with ref: 213058864
+02-22 22:59:41.215  2036  2282 W System.err: Seeding context with ref: 30806735
+02-22 22:59:41.223  2036  2286 W System.err: Seeding context with ref: 203835976
+02-22 22:59:41.226  2036  2284 W System.err: Seeding context with ref: 197856491
+02-22 22:59:41.231  2036  2282 W System.err: Seeding context with ref: 164617734
+02-22 22:59:41.234  2036  2273 W System.err: Seeding context with ref: 217793628
+02-22 22:59:41.247  2036  2285 W System.err: Seeding context with ref: 44024033
+02-22 22:59:41.496  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.541  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.542  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.625  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.659  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.666  2036  2273 W System.err: Seeding context with ref: 75224210
+02-22 22:59:41.713  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.714  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.715  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:41.771  2036  2146 W System.err: val in interceptor: null
+02-22 22:59:56.030  2036  2285 W System.err: Seeding context with ref: 142518238
+02-22 22:59:56.069  2036  2146 W System.err: val in interceptor: null
+02-22 23:00:35.772  2036  2285 W System.err: Seeding context with ref: 122059916
+02-22 23:00:35.841  2036  2146 W System.err: val in interceptor: null
+02-22 23:04:42.463  3668  3668 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{3fc1751 V.E...... ......ID 0,0-1080,2424 #1}
+02-22 23:04:53.383  3668  3668 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:04:53.383  3668  3668 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:04:53.398  3668  3668 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:04:58.227  3668  3668 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{5951618 V.E...... ......ID 0,0-1080,2424 #15}
+02-22 23:09:34.465  2036  5129 W System.err: Seeding context with ref: 192116307
+02-22 23:09:34.468  2036  5128 W System.err: Seeding context with ref: 90758032
+02-22 23:09:34.468  2036  5127 W System.err: Seeding context with ref: 32214153
+02-22 23:09:34.471  2036  5129 W System.err: Seeding context with ref: 18007182
+02-22 23:09:34.472  2036  5128 W System.err: Seeding context with ref: 212345020
+02-22 23:09:34.472  2036  5127 W System.err: Seeding context with ref: 125475738
+02-22 23:09:34.472  2036  5128 W System.err: Seeding context with ref: 230251723
+02-22 23:09:34.473  2036  5130 W System.err: Seeding context with ref: 86721473
+02-22 23:09:34.474  2036  5135 W System.err: Seeding context with ref: 173463398
+02-22 23:09:34.474  2036  5133 W System.err: Seeding context with ref: 192871079
+02-22 23:09:34.476  2036  5134 W System.err: Seeding context with ref: 161074004
+02-22 23:09:34.481  2036  5129 W System.err: Seeding context with ref: 157768445
+02-22 23:09:34.481  2036  5135 W System.err: Seeding context with ref: 191431666
+02-22 23:09:34.482  2036  5128 W System.err: Seeding context with ref: 169253443
+02-22 23:09:34.484  2036  5134 W System.err: Seeding context with ref: 24266944
+02-22 23:09:34.485  2036  5127 W System.err: Seeding context with ref: 72591865
+02-22 23:09:34.486  2036  5137 W System.err: Seeding context with ref: 268343199
+02-22 23:09:34.486  2036  5127 W System.err: Seeding context with ref: 186379445
+02-22 23:09:34.487  2036  5129 W System.err: Seeding context with ref: 54464187
+02-22 23:09:34.487  2036  5133 W System.err: Seeding context with ref: 100736842
+02-22 23:09:34.489  2036  5130 W System.err: Seeding context with ref: 93532396
+02-22 23:09:34.496  2036  5129 W System.err: Seeding context with ref: 133722072
+02-22 23:09:34.496  2036  5128 W System.err: Seeding context with ref: 45737494
+02-22 23:09:34.497  2036  5127 W System.err: Seeding context with ref: 138795927
+02-22 23:09:34.497  2036  5135 W System.err: Seeding context with ref: 107367842
+02-22 23:09:34.498  2036  5137 W System.err: Seeding context with ref: 42113587
+02-22 23:09:34.498  2036  5134 W System.err: Seeding context with ref: 108397417
+02-22 23:09:34.500  2036  5139 W System.err: Seeding context with ref: 25141742
+02-22 23:09:34.502  2036  5130 W System.err: Seeding context with ref: 13102842
+02-22 23:09:34.503  2036  5133 W System.err: Seeding context with ref: 221949212
+02-22 23:09:34.505  2036  5138 W System.err: Seeding context with ref: 40004901
+02-22 23:09:34.513  2036  5140 W System.err: Seeding context with ref: 46311055
+02-22 23:09:34.514  2036  5141 W System.err: Seeding context with ref: 256711851
+02-22 23:09:34.514  2036  5129 W System.err: Seeding context with ref: 111572515
+02-22 23:09:34.514  2036  5134 W System.err: Seeding context with ref: 250685216
+02-22 23:09:34.514  2036  5133 W System.err: Seeding context with ref: 164855560
+02-22 23:09:34.514  2036  5137 W System.err: Seeding context with ref: 133281441
+02-22 23:09:34.514  2036  5127 W System.err: Seeding context with ref: 61178804
+02-22 23:09:34.515  2036  5138 W System.err: Seeding context with ref: 215096285
+02-22 23:09:34.515  2036  5135 W System.err: Seeding context with ref: 65102674
+02-22 23:09:34.518  2036  5130 W System.err: Seeding context with ref: 152436934
+02-22 23:09:34.518  2036  5128 W System.err: Seeding context with ref: 29284487
+02-22 23:09:34.522  2036  5139 W System.err: Seeding context with ref: 143549086
+02-22 23:09:34.569  2036  5142 W System.err: Seeding context with ref: 182473087
+02-22 23:09:34.571  2036  5128 W System.err: Seeding context with ref: 26318156
+02-22 23:09:34.685  2036  5142 W System.err: Seeding context with ref: 242879146
+02-22 23:09:34.686  2036  5139 W System.err: Seeding context with ref: 45254299
+02-22 23:09:34.686  2036  5137 W System.err: Seeding context with ref: 32029240
+02-22 23:09:34.686  2036  5133 W System.err: Seeding context with ref: 136612369
+02-22 23:09:34.687  2036  5129 W System.err: Seeding context with ref: 63317878
+02-22 23:09:34.688  2036  5127 W System.err: Seeding context with ref: 111735159
+02-22 23:09:34.688  2036  5127 W System.err: Seeding context with ref: 196523597
+02-22 23:09:34.689  2036  5128 W System.err: Seeding context with ref: 143344100
+02-22 23:09:34.690  2036  5139 W System.err: Seeding context with ref: 82134274
+02-22 23:09:34.690  2036  5127 W System.err: Seeding context with ref: 36777491
+02-22 23:09:34.692  2036  5127 W System.err: Seeding context with ref: 11311184
+02-22 23:09:34.693  2036  5139 W System.err: Seeding context with ref: 231041609
+02-22 23:09:34.697  2036  5127 W System.err: Seeding context with ref: 15118158
+02-22 23:09:34.697  2036  5127 W System.err: Seeding context with ref: 267819119
+02-22 23:09:34.699  2036  5127 W System.err: Seeding context with ref: 55241084
+02-22 23:09:34.700  2036  5139 W System.err: Seeding context with ref: 200368645
+02-22 23:09:34.705  2036  5139 W System.err: Seeding context with ref: 109212250
+02-22 23:09:34.705  2036  5127 W System.err: Seeding context with ref: 268323979
+02-22 23:09:34.706  2036  5129 W System.err: Seeding context with ref: 152772968
+02-22 23:09:34.707  2036  5127 W System.err: Seeding context with ref: 53156225
+02-22 23:09:34.707  2036  5139 W System.err: Seeding context with ref: 98916902
+02-22 23:09:34.709  2036  5129 W System.err: Seeding context with ref: 58926695
+02-22 23:09:34.713  2036  5127 W System.err: Seeding context with ref: 255126548
+02-22 23:09:34.713  2036  5139 W System.err: Seeding context with ref: 82758845
+02-22 23:09:34.713  2036  5133 W System.err: Seeding context with ref: 54325938
+02-22 23:09:34.713  2036  5128 W System.err: Seeding context with ref: 177324547
+02-22 23:09:34.716  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.716  2036  5137 W System.err: Seeding context with ref: 176076160
+02-22 23:09:34.717  2036  5127 W System.err: Seeding context with ref: 71333817
+02-22 23:09:34.719  2036  5129 W System.err: Seeding context with ref: 100894718
+02-22 23:09:34.723  2036  5127 W System.err: Seeding context with ref: 258243423
+02-22 23:09:34.725  2036  5129 W System.err: Seeding context with ref: 98150828
+02-22 23:09:34.726  2036  5139 W System.err: Seeding context with ref: 17573386
+02-22 23:09:34.727  2036  5137 W System.err: Seeding context with ref: 107468405
+02-22 23:09:34.729  2036  5129 W System.err: Seeding context with ref: 192900731
+02-22 23:09:34.730  2036  5133 W System.err: Seeding context with ref: 118338712
+02-22 23:09:34.746  2036  5128 W System.err: Seeding context with ref: 57435377
+02-22 23:09:34.746  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.752  2036  5127 W System.err: Seeding context with ref: 256809174
+02-22 23:09:34.756  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.756  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.771  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.775  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.777  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.777  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.778  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.782  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.784  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.788  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.789  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.792  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.794  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.794  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.797  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.798  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.802  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.803  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.806  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.815  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.816  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.817  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.818  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.820  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.823  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.826  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.828  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.831  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.838  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.838  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.839  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.840  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.841  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.842  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.843  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.843  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.843  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.844  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.844  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.844  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.846  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.849  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.850  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.909  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.910  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.911  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.911  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.911  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.912  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.913  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.914  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.914  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.914  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.915  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.921  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.926  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.928  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.933  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.933  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.934  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.935  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.936  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.936  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.937  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.937  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.938  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.939  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.939  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.940  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.940  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.941  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.941  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.941  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.942  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.943  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.944  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.944  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.944  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.945  2036  2146 W System.err: val in interceptor: null
+02-22 23:09:34.945  2036  2146 W System.err: val in interceptor: null
+02-22 23:30:30.776  6124  6124 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{25cf655 V.E...... ......ID 0,0-1080,2424 #1}
+02-22 23:30:38.584  6124  6124 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{86872a7 V.E...... ......ID 0,0-1080,2424 #15}
+02-22 23:30:41.558  6124  6124 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:30:41.558  6124  6124 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:30:41.567  6124  6124 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:38:55.955  6676  6676 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{c930679 V.E...... ......ID 0,0-1080,2424 #b}
+02-22 23:42:49.559  7069  7069 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{ff71ae9 V.E...... ......ID 0,0-1080,2424 #1}
+02-22 23:43:00.116  7069  7069 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:43:00.116  7069  7069 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:43:00.138  7069  7069 I ReactNative: [GESTURE HANDLER] Gesture handler is already enabled for a parent view
+02-22 23:43:16.340  7069  7069 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.runtime.ReactSurfaceView{4ad20f7 V.E...... ......ID 0,0-1080,2424 #15}

@@ -47,7 +47,7 @@ export default function App() {
                     placeholder="Password"
                     value={password}
                     onChangeText={setPassword}
-                    secureTextEntry
+                    secureTextEntry={true}
                     style={styles.input}
                 />
                 <Button title="Login" onPress={login} />

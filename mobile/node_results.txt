@@ -1,0 +1,4 @@
+Possible shorthand for disabled in ./src/screens/CreateOrderScreen.js
+Possible shorthand for refreshing in ./src/screens/DashboardHomeScreen.js
+Possible shorthand for refreshing in ./src/screens/FinanceScreen.js
+Possible shorthand for refreshing in ./src/screens/StockListScreen.js

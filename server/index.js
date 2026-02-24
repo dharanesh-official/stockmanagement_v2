@@ -34,6 +34,7 @@ app.use('/api/settings', require('./routes/settings'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/shops', require('./routes/shops'));
+app.use('/api/areas', require('./routes/areas'));
 
 // Start Server
 // Start Server only if not in production/serverless environment or if running directly
