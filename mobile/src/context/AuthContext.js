@@ -2,6 +2,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../services/api';
+import { normalizeAllBooleans } from '../utils/dataTransform';
 
 const AuthContext = createContext();
 
@@ -17,7 +18,18 @@ export const AuthProvider = ({ children }) => {
 
                 if (token && userData) {
                     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                    setUser(JSON.parse(userData));
+                    // Normalize any boolean-like fields that may be stored as strings
+                    try {
+                        const parsed = JSON.parse(userData);
+                        const normalized = normalizeAllBooleans(parsed);
+                        setUser(normalized);
+                        // persist normalized form so next launch is clean
+                        await AsyncStorage.setItem('user', JSON.stringify(normalized));
+                    } catch (e) {
+                        const normalized = normalizeAllBooleans(userData);
+                        setUser(normalized);
+                        await AsyncStorage.setItem('user', JSON.stringify(normalized));
+                    }
                 }
             } catch (e) {
                 console.error(e);
@@ -35,9 +47,11 @@ export const AuthProvider = ({ children }) => {
 
             api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             await AsyncStorage.setItem('token', token);
-            await AsyncStorage.setItem('user', JSON.stringify(user));
+            // Normalize user object before persisting
+            const normalizedUser = normalizeAllBooleans(user);
+            await AsyncStorage.setItem('user', JSON.stringify(normalizedUser));
 
-            setUser(user);
+            setUser(normalizedUser);
             return true;
         } catch (error) {
             console.error(error);

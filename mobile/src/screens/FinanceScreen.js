@@ -273,7 +273,7 @@ const FinanceScreen = () => {
                             value={paymentAmount}
                             onChangeText={setPaymentAmount}
                             placeholder="0.00"
-                            autoFocus
+                            autoFocus={true}
                         />
 
                         <Text style={styles.label}>Notes</Text>
@@ -329,7 +329,7 @@ const FinanceScreen = () => {
                                     value={orderPaymentAmount}
                                     onChangeText={setOrderPaymentAmount}
                                     placeholder="0.00"
-                                    autoFocus
+                                    autoFocus={true}
                                 />
 
                                 <TouchableOpacity

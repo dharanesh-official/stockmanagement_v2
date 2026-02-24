@@ -336,7 +336,7 @@ const EmployeesScreen = () => {
                                         value={formData.password}
                                         onChangeText={t => setFormData({ ...formData, password: t })}
                                         placeholder="Set password"
-                                        secureTextEntry
+                                        secureTextEntry={true}
                                     />
                                 </>
                             )}

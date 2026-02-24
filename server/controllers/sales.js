@@ -6,7 +6,7 @@ const getSales = async (req, res) => {
         const limit = req.query.limit ? parseInt(req.query.limit) : 100; // Default limit to 100 recent orders
 
         let query = `
-      SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name
+      SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name, s.location as shop_location
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       JOIN customers c ON t.customer_id = c.id
@@ -36,7 +36,7 @@ const getSaleById = async (req, res) => {
         const { role, id: userId } = req.user;
         let query = `
       SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, c.phone as customer_phone, c.address as customer_address, 
-             s.name as shop_name, s.address as shop_address, s.phone as shop_phone, s.salesman_id as shop_salesman_id
+             s.name as shop_name, s.address as shop_address, s.phone as shop_phone, s.salesman_id as shop_salesman_id, s.location as shop_location
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       JOIN customers c ON t.customer_id = c.id

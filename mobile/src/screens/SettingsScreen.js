@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, ScrollView, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Modal, TextInput, ScrollView, Switch, DevSettings } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { LogOut, User, ShieldCheck, Bell, Info, X, ChevronRight } from 'lucide-react-native';
@@ -131,8 +132,25 @@ const SettingsScreen = () => {
 
             <Text style={styles.version}>Version 1.0.0</Text>
 
+            {__DEV__ && (
+                <TouchableOpacity
+                    style={[styles.logoutBtn, { backgroundColor: '#e5e7eb', marginTop: 12 }]}
+                    onPress={async () => {
+                        try {
+                            await AsyncStorage.clear();
+                            Alert.alert('Debug', 'Storage cleared. Reloading app...');
+                            DevSettings.reload();
+                        } catch (e) {
+                            Alert.alert('Error', 'Failed to clear storage');
+                        }
+                    }}
+                >
+                    <Text style={{ color: '#111827', fontWeight: '600' }}>Clear Storage & Reload (dev)</Text>
+                </TouchableOpacity>
+            )}
+
             {/* Profile Modal */}
-            <Modal visible={profileModalVisible} animationType="slide" transparent>
+            <Modal visible={profileModalVisible} animationType="slide" transparent={true}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
@@ -152,6 +170,7 @@ const SettingsScreen = () => {
                             style={[styles.input, { backgroundColor: '#f3f4f6' }]}
                             value={profileData.email}
                             editable={false}
+                            selectTextOnFocus={false}
                         />
                         <TouchableOpacity style={styles.btn} onPress={handleUpdateProfile} disabled={loading}>
                             <Text style={styles.btnText}>{loading ? 'Updating...' : 'Update Profile'}</Text>
@@ -161,7 +180,7 @@ const SettingsScreen = () => {
             </Modal>
 
             {/* Password Modal */}
-            <Modal visible={passwordModalVisible} animationType="slide" transparent>
+            <Modal visible={passwordModalVisible} animationType="slide" transparent={true}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
@@ -173,21 +192,21 @@ const SettingsScreen = () => {
                         <Text style={styles.label}>Current Password</Text>
                         <TextInput
                             style={styles.input}
-                            secureTextEntry
+                            secureTextEntry={true}
                             value={passwordData.currentPassword}
                             onChangeText={t => setPasswordData({ ...passwordData, currentPassword: t })}
                         />
                         <Text style={styles.label}>New Password</Text>
                         <TextInput
                             style={styles.input}
-                            secureTextEntry
+                            secureTextEntry={true}
                             value={passwordData.newPassword}
                             onChangeText={t => setPasswordData({ ...passwordData, newPassword: t })}
                         />
                         <Text style={styles.label}>Confirm New Password</Text>
                         <TextInput
                             style={styles.input}
-                            secureTextEntry
+                            secureTextEntry={true}
                             value={passwordData.confirmPassword}
                             onChangeText={t => setPasswordData({ ...passwordData, confirmPassword: t })}
                         />
@@ -199,7 +218,7 @@ const SettingsScreen = () => {
             </Modal>
 
             {/* About Modal */}
-            <Modal visible={aboutModalVisible} animationType="fade" transparent>
+            <Modal visible={aboutModalVisible} animationType="fade" transparent={true}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>

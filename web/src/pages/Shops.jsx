@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Search, Trash2, Edit, Store, User, Phone, MapPin } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, Store, User, Phone, MapPin, Navigation } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css'; // Reusing common table/page styles
 import './Shops.css';
@@ -27,7 +27,8 @@ const Shops = () => {
         phone: '',
         email: '',
         customer_id: '',
-        salesman_id: ''
+        salesman_id: '',
+        location: ''
     });
 
     useEffect(() => {
@@ -125,7 +126,7 @@ const Shops = () => {
     };
 
     const resetForm = () => {
-        setFormData({ id: null, name: '', address: '', phone: '', email: '', customer_id: '', salesman_id: '' });
+        setFormData({ id: null, name: '', address: '', phone: '', email: '', customer_id: '', salesman_id: '', location: '' });
     };
 
     const openEditShop = (shop) => {
@@ -138,9 +139,20 @@ const Shops = () => {
             phone: rawPhone,
             email: shop.email || '',
             customer_id: shop.customer_id,
-            salesman_id: shop.salesman_id || ''
+            salesman_id: shop.salesman_id || '',
+            location: shop.location || ''
         });
         setShowModal(true);
+    };
+
+    const handleGetDirections = (location) => {
+        if (!location) return;
+        if (location.startsWith('http://') || location.startsWith('https://')) {
+            window.open(location, '_blank');
+        } else {
+            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+            window.open(url, '_blank');
+        }
     };
 
     const handleDeleteShop = async (id) => {
@@ -234,13 +246,24 @@ const Shops = () => {
                                     </div>
                                 </td>
                                 <td>
-                                    <div className="flex items-start gap-2 text-sm max-w-xs">
-                                        <MapPin size={14} className="text-emerald-500 mt-1 shrink-0" />
-                                        <span className="text-gray-600 leading-relaxed">{shop.address}</span>
+                                    <div className="flex flex-col gap-1 items-start text-sm max-w-xs">
+                                        <div className="flex gap-2">
+                                            <MapPin size={14} className="text-emerald-500 mt-1 shrink-0" />
+                                            <span className="text-gray-600 leading-relaxed">{shop.address}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td className="actions-cell">
                                     <div className="flex gap-1">
+                                        {shop.location && (
+                                            <button
+                                                className="icon-btn text-blue-500 hover:text-blue-700"
+                                                title="Get Directions"
+                                                onClick={(e) => { e.stopPropagation(); handleGetDirections(shop.location); }}
+                                            >
+                                                <Navigation size={18} />
+                                            </button>
+                                        )}
                                         {hasPermission('shops', 'edit') && (
                                             <button className="icon-btn" onClick={(e) => { e.stopPropagation(); openEditShop(shop); }}><Edit size={18} /></button>
                                         )}
@@ -337,6 +360,15 @@ const Shops = () => {
                                         required
                                         style={{ minHeight: '100px' }}
                                     ></textarea>
+                                </div>
+                                <div className="form-group">
+                                    <label>Location Link</label>
+                                    <input
+                                        type="url"
+                                        placeholder="E.g., https://maps.google.com/..."
+                                        value={formData.location}
+                                        onChange={e => setFormData({ ...formData, location: e.target.value })}
+                                    />
                                 </div>
                             </div>
                             <div className="modal-actions">

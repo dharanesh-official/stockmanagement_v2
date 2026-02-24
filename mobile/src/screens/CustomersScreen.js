@@ -8,6 +8,7 @@ import {
 import api from '../services/api';
 import { Search, Plus, Phone, Mail, MapPin, X, Lock, Unlock, Trash2, Edit } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
+import { normalizeAllBooleans } from '../utils/dataTransform';
 
 const CustomersScreen = () => {
     const { hasPermission } = useAuth();
@@ -33,7 +34,7 @@ const CustomersScreen = () => {
         if (customers.length === 0) setLoading(true);
         try {
             const res = await api.get('/customers');
-            const data = res.data || [];
+            const data = normalizeAllBooleans(res.data || []);
             setCustomers(data);
             setFilteredCustomers(data);
         } catch (err) {
@@ -146,11 +147,13 @@ const CustomersScreen = () => {
 
     const renderItem = ({ item }) => {
         if (!item) return null;
+        // Extra safety: ensure boolean values are actual booleans
+        const isLocked = item.is_locked === true || item.is_locked === 'true' || item.is_locked === 1 || item.is_locked === '1';
         return (
             <View style={styles.card}>
                 <View style={styles.headerRow}>
                     <Text style={styles.name}>{item.full_name || 'Unknown'}</Text>
-                    {item.is_locked ? <Lock size={16} color="#ef4444" /> : <Unlock size={16} color="#059669" />}
+                    {isLocked ? <Lock size={16} color="#ef4444" /> : <Unlock size={16} color="#059669" />}
                 </View>
 
                 <View style={styles.infoRow}>
@@ -175,9 +178,9 @@ const CustomersScreen = () => {
                         <TouchableOpacity
                             style={[styles.actionBtn, processing && { opacity: 0.5 }]}
                             disabled={processing}
-                            onPress={() => toggleLock(item.id, item.is_locked)}
+                            onPress={() => toggleLock(item.id, isLocked)}
                         >
-                            {item.is_locked ? <Text style={styles.unlockText}>Unlock</Text> : <Text style={styles.lockText}>Lock</Text>}
+                            {isLocked ? <Text style={styles.unlockText}>Unlock</Text> : <Text style={styles.lockText}>Lock</Text>}
                         </TouchableOpacity>
                     )}
                     {hasPermission('customers', 'delete') && (
@@ -221,7 +224,7 @@ const CustomersScreen = () => {
 
             {/* REMOVED PLUS ICON AS REQUESTED */}
 
-            <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
+            <Modal visible={modalVisible} transparent={true} animationType="slide" onRequestClose={() => setModalVisible(false)}>
                 {/* ... Keep Modal for Edit if needed, or remove if "remove module" means all write access.
                     User said "remove that plus icon alone", so Edit might still be allowed.
                     I'll keep the modal logic but it won't be triggered by FAB.
@@ -268,7 +271,7 @@ const CustomersScreen = () => {
                                 style={[styles.input, { height: 80 }]}
                                 value={formData.address}
                                 onChangeText={t => setFormData({ ...formData, address: t })}
-                                multiline
+                                multiline={true}
                             />
 
                             <TouchableOpacity

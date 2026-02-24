@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Search, Trash2, Edit, X, ShoppingCart, Store, User, Hash, Package, ClipboardCheck, FileText, ChevronDown, Filter, Loader2 } from 'lucide-react';
+import { Plus, Search, Trash2, Edit, X, ShoppingCart, Store, User, Hash, Package, ClipboardCheck, FileText, ChevronDown, Filter, Loader2, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css';
@@ -34,6 +34,16 @@ const SalesList = ({ user }) => {
             fetchSales();
         } catch (err) {
             alert('Failed to delete order');
+        }
+    };
+
+    const handleGetDirections = (location) => {
+        if (!location) return;
+        if (location.startsWith('http://') || location.startsWith('https://')) {
+            window.open(location, '_blank');
+        } else {
+            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+            window.open(url, '_blank');
         }
     };
 
@@ -218,6 +228,11 @@ const SalesList = ({ user }) => {
                                         </td>
                                         <td className="actions-cell">
                                             <div className="flex gap-1">
+                                                {sale.shop_location && (
+                                                    <button className="icon-btn text-blue-500 hover:text-blue-700" title="Get Directions" onClick={() => handleGetDirections(sale.shop_location)}>
+                                                        <Navigation size={18} />
+                                                    </button>
+                                                )}
                                                 <button className="icon-btn" title="View Invoice" onClick={() => navigate(`/dashboard/invoice/${sale.id}`)}>
                                                     <FileText size={18} />
                                                 </button>

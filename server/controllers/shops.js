@@ -27,7 +27,7 @@ const getShops = async (req, res) => {
 
 const createShop = async (req, res) => {
     try {
-        const { name, address, phone, email, customer_id, salesman_id } = req.body;
+        const { name, address, phone, email, customer_id, salesman_id, location } = req.body;
 
         // Determine the effective salesman_id
         let assignedSalesmanId = null;
@@ -38,8 +38,8 @@ const createShop = async (req, res) => {
         }
 
         const result = await pool.query(
-            'INSERT INTO shops (name, address, phone, email, customer_id, salesman_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [name, address, phone, email, customer_id, assignedSalesmanId]
+            'INSERT INTO shops (name, address, phone, email, customer_id, salesman_id, location) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [name, address, phone, email, customer_id, assignedSalesmanId, location]
         );
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -51,18 +51,18 @@ const createShop = async (req, res) => {
 const updateShop = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, address, phone, email, customer_id, salesman_id } = req.body;
+        const { name, address, phone, email, customer_id, salesman_id, location } = req.body;
 
-        let query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, updated_at = NOW()';
-        const params = [name, address, phone, email, customer_id, id];
+        let query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, updated_at = NOW()';
+        const params = [name, address, phone, email, customer_id, location, id];
 
         if (req.user.role === 'admin') {
             const assignedSalesmanId = salesman_id || req.user.id;
-            query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, salesman_id = $7, updated_at = NOW() WHERE id = $6 RETURNING *';
+            query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, salesman_id = $8, updated_at = NOW() WHERE id = $7 RETURNING *';
             params.push(assignedSalesmanId);
         } else {
             // Salesman can only update their own shop
-            query += ' WHERE id = $6 AND salesman_id = $7 RETURNING *';
+            query += ' WHERE id = $7 AND salesman_id = $8 RETURNING *';
             params.push(req.user.id);
         }
 

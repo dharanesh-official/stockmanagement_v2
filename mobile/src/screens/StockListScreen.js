@@ -264,7 +264,7 @@ const StockListScreen = () => {
                             />
 
                             <Text style={styles.label}>Category</Text>
-                            <ScrollView horizontal style={styles.catScroll} showsHorizontalScrollIndicator={false}>
+                            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.catScroll}>
                                 {categories.map(cat => (
                                     <TouchableOpacity
                                         key={cat.id}
@@ -343,7 +343,7 @@ const StockListScreen = () => {
                             value={adjustData.quantity}
                             onChangeText={t => setAdjustData({ ...adjustData, quantity: t })}
                             keyboardType="numeric"
-                            autoFocus
+                            autoFocus={true}
                         />
 
                         <TouchableOpacity

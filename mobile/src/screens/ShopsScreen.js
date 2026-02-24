@@ -180,7 +180,7 @@ const ShopsScreen = () => {
                             />
 
                             <Text style={styles.label}>Customer Owner</Text>
-                            <ScrollView horizontal style={styles.customerScroll} showsHorizontalScrollIndicator={false}>
+                            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={styles.customerScroll}>
                                 {customers.map(cust => (
                                     <TouchableOpacity
                                         key={cust.id}
@@ -207,7 +207,7 @@ const ShopsScreen = () => {
                                 value={formData.address}
                                 onChangeText={t => setFormData({ ...formData, address: t })}
                                 placeholder="Full address"
-                                multiline
+                                multiline={true}
                             />
 
                             <TouchableOpacity

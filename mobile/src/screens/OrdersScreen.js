@@ -166,7 +166,7 @@ const OrdersScreen = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.filterBar}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
                     {['All', 'Ordered', 'Dispatched', 'Delivered'].map(status => (
                         <TouchableOpacity
                             key={status}

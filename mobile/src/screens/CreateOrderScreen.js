@@ -479,7 +479,7 @@ const CreateOrderScreen = ({ navigation, route }) => {
                         </ScrollView>
 
                         {/* Status Modal */}
-                        <Modal visible={showStatusModal} transparent animationType="fade" onRequestClose={() => setShowStatusModal(false)}>
+                        <Modal visible={showStatusModal} transparent={true} animationType="fade" onRequestClose={() => setShowStatusModal(false)}>
                             <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowStatusModal(false)}>
                                 <View style={styles.modalContent}>
                                     <Text style={[styles.modalTitle, { marginBottom: 16 }]}>Select Status</Text>
@@ -515,7 +515,7 @@ const CreateOrderScreen = ({ navigation, route }) => {
             </View>
 
             {/* Qty Modal */}
-            <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
+            <Modal visible={modalVisible} transparent={true} animationType="fade" onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.row}>
@@ -528,7 +528,7 @@ const CreateOrderScreen = ({ navigation, route }) => {
                             value={qty}
                             onChangeText={setQty}
                             keyboardType="number-pad"
-                            autoFocus
+                            autoFocus={true}
                         />
                         <TouchableOpacity style={styles.btn} onPress={addToCart}>
                             <Text style={styles.btnText}>Add</Text>
