@@ -15,6 +15,19 @@ const getSettings = async (req, res) => {
     }
 };
 
+const getPublicSettings = async (req, res) => {
+    try {
+        const result = await pool.query('SELECT company_name, company_logo FROM company_settings WHERE id = 1');
+        if (result.rows.length === 0) {
+            return res.json({ company_name: 'Inventory Pro' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
 const updateSettings = async (req, res) => {
     const { 
         company_name, company_address, company_logo, gst_number, 
@@ -79,4 +92,4 @@ const getActivityLogs = async (req, res) => {
     }
 };
 
-module.exports = { getSettings, updateSettings, getActivityLogs };
+module.exports = { getSettings, updateSettings, getActivityLogs, getPublicSettings };

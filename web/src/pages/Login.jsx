@@ -17,7 +17,7 @@ const Login = () => {
     React.useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await api.get('/settings');
+                const res = await api.get('/settings/public');
                 if (res.data?.company_name) {
                     setCompanyName(res.data.company_name);
                     localStorage.setItem('company_name', res.data.company_name);
