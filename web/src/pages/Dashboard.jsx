@@ -12,6 +12,7 @@ import DashboardHome from './DashboardHome';
 import Shops from './Shops';
 import CreateOrder from './CreateOrder';
 import Invoice from './Invoice';
+import CustomerProfile from './CustomerProfile';
 import api from '../services/api'; // Or context
 import './Dashboard.css';
 
@@ -59,6 +60,7 @@ const Dashboard = () => {
                         <Route path="home" element={<DashboardHome user={user} />} />
                         <Route path="stock" element={<StockList user={user} />} />
                         <Route path="customers" element={<CustomerList user={user} />} />
+                        <Route path="customers/:id" element={<CustomerProfile user={user} />} />
                         <Route path="sales" element={<SalesList user={user} />} />
                         <Route path="finance" element={<Finance user={user} />} />
                         <Route path="employees" element={<Employees user={user} />} />

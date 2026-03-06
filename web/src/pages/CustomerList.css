@@ -1,0 +1,225 @@
+.customer-mgmt {
+    background-color: #f8fafc;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.anal-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    border: 1px solid #f1f5f9;
+}
+
+.anal-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+}
+
+.anal-icon.red { background: #fef2f2; color: #ef4444; }
+.anal-icon.blue { background: #eff6ff; color: #3b82f6; }
+.anal-icon.orange { background: #fff7ed; color: #f97316; }
+
+.anal-content label {
+    display: block;
+    font-size: 0.8rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.anal-content h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.cust-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.cust-cell .avatar {
+    width: 40px;
+    height: 40px;
+    background: #4f46e5;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.cust-cell .name {
+    display: block;
+    font-weight: 700;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+.cust-cell .name:hover {
+    color: #4f46e5;
+    text-decoration: underline;
+}
+
+.cust-cell .sub {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+.contact-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+}
+
+.contact-links a, .contact-links span {
+    color: #64748b;
+    cursor: pointer;
+}
+
+.contact-links a:hover, .contact-links span:hover {
+    color: #4f46e5;
+}
+
+.sep { color: #e2e8f0; font-size: 10px; }
+
+.status-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.type-tag {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+}
+
+.type-tag. wholesale { color: #8b5cf6; }
+.type-tag.retail { color: #0ea5e9; }
+
+.status-pill {
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.status-pill.active { background: #dcfce7; color: #166534; }
+.status-pill.inactive { background: #fee2e2; color: #991b1b; }
+.status-pill.blocked { background: #1e293b; color: white; }
+
+.loc-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.loc-cell .city { font-weight: 600; color: #475569; }
+.loc-cell .state { font-size: 0.75rem; color: #94a3b8; }
+
+.finance-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.finance-cell .balance { font-weight: 800; font-size: 1rem; }
+.finance-cell .orders-count { font-size: 0.75rem; color: #94a3b8; }
+
+.text-red { color: #ef4444; }
+.text-green { color: #10b981; }
+
+.date-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-cell span { color: #475569; font-weight: 500; }
+.date-cell .ago { font-size: 0.75rem; color: #94a3b8; }
+
+.money-btn:hover { color: #10b981; }
+
+.wide-modal {
+    max-width: 850px !important;
+    width: 95% !important;
+}
+
+.customer-rich-form {
+    padding: 1.5rem;
+}
+
+.form-sections {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 1rem;
+}
+
+.section {
+    margin-bottom: 2rem;
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.section-title {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
+
+.modal-actions-fixed {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 1rem;
+}
+
+.empty-state-large {
+    padding: 4rem;
+    text-align: center;
+    background: white;
+    border-radius: 12px;
+}
+
+.empty-state-large p {
+    color: #64748b;
+    margin: 1.5rem 0;
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
