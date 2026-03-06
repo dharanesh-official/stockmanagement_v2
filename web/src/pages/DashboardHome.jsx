@@ -32,6 +32,7 @@ import {
     Area
 } from 'recharts';
 import api from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './DashboardHome.css';
 
 const DashboardHome = () => {
@@ -55,16 +56,19 @@ const DashboardHome = () => {
 
     const fetchStats = React.useCallback(async () => {
         try {
-            setLoading(true);
+            // Only set loading if we don't have data yet
+            if (!(stats.recentTransactions || []).length) {
+                setLoading(true);
+            }
             const response = await api.get(`/dashboard/stats?period=${period}`);
             setStats(response.data);
             setLastUpdated(new Date());
-            setLoading(false);
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
+        } finally {
             setLoading(false);
         }
-    }, [period]);
+    }, [period, stats.recentTransactions]);
 
     useEffect(() => {
         fetchStats();
@@ -244,15 +248,15 @@ const DashboardHome = () => {
                         <div className="health-grid">
                             <div className="health-item">
                                 <div className="health-label"><div className="health-dot healthy"></div> Optimal Stock</div>
-                                <div className="health-value">{stats.stockHealth.healthy}</div>
+                                <div className="health-value">{(stats.stockHealth || {}).healthy || 0}</div>
                             </div>
                             <div className="health-item">
                                 <div className="health-label"><div className="health-dot low"></div> Low Threshold</div>
-                                <div className="health-value">{stats.stockHealth.low}</div>
+                                <div className="health-value">{(stats.stockHealth || {}).low || 0}</div>
                             </div>
                             <div className="health-item">
                                 <div className="health-label"><div className="health-dot out"></div> Depleted</div>
-                                <div className="health-value">{stats.stockHealth.out}</div>
+                                <div className="health-value">{(stats.stockHealth || {}).out || 0}</div>
                             </div>
                         </div>
                     </div>
