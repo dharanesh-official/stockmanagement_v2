@@ -385,6 +385,158 @@
     gap: 12px;
 }
 
+/* Status Pills */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.status-pill.active { background: #ecfdf5; color: #059669; }
+.status-pill.suspended { background: #fff7ed; color: #ea580c; }
+.status-pill.on.leave { background: #f0f9ff; color: #0284c7; }
+.status-pill.disabled { background: #fef2f2; color: #dc2626; }
+
+/* Shop Stat in Table */
+.shops-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Form Layout Improvements */
+.form-group-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    padding: 24px 32px;
+}
+
+/* Area Selection Grid */
+.areas-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.area-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+.area-checkbox:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.area-checkbox.checked {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #1e40af;
+    font-weight: 600;
+}
+
+.check-box {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #cbd5e1;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+.checked .check-box {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+/* Area Tags in Profile */
+.assigned-areas-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.area-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: #f1f5f9;
+    color: #475569;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+}
+
+/* Responsive Overrides */
+@media (max-width: 1000px) {
+    .form-sections-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Filters bar refinement */
+.filters-group {
+    display: flex;
+    gap: 16px;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    font-size: 0.85rem;
+    color: #1e293b;
+    font-weight: 600;
+    background: white;
+    min-width: 140px;
+}
+
 /* Custom Permission Styles */
 .modules-permissions-list {
     display: flex;
@@ -486,7 +638,6 @@
         opacity: 0;
         transform: translateY(-10px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);

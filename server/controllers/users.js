@@ -3,7 +3,16 @@ const bcrypt = require('bcryptjs');
 
 const getEmployees = async (req, res) => {
     try {
-        const result = await pool.query("SELECT id, full_name, email, phone, role, permissions, created_at FROM users WHERE role != 'admin' ORDER BY created_at DESC");
+        const query = `
+            SELECT 
+                u.id, u.full_name, u.email, u.phone, u.role, u.permissions, u.created_at,
+                u.employee_id, u.status, u.last_login, u.assigned_areas,
+                (SELECT COUNT(*) FROM shops WHERE salesman_id = u.id) as assigned_shops_count
+            FROM users u 
+            WHERE u.role != 'super_admin' 
+            ORDER BY u.created_at DESC
+        `;
+        const result = await pool.query(query);
         res.json(result.rows);
     } catch (error) {
         console.error(error.message);
@@ -12,15 +21,15 @@ const getEmployees = async (req, res) => {
 };
 
 const createEmployee = async (req, res) => {
-    const { full_name, email, password, role, permissions, phone } = req.body;
+    const { full_name, email, password, role, permissions, phone, employee_id, status, assigned_areas } = req.body;
     try {
         const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (userCheck.rows.length > 0) return res.status(400).send('User already exists');
 
         const hash = await bcrypt.hash(password, 10);
         const result = await pool.query(
-            "INSERT INTO users (full_name, email, password_hash, role, permissions, phone) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, full_name, email, phone, role, permissions",
-            [full_name, email, hash, role || 'salesman', permissions || '{}', phone]
+            "INSERT INTO users (full_name, email, password_hash, role, permissions, phone, employee_id, status, assigned_areas) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+            [full_name, email, hash, role || 'salesman', permissions || '{}', phone, employee_id, status || 'Active', assigned_areas || []]
         );
         res.json(result.rows[0]);
     } catch (error) {
@@ -31,12 +40,11 @@ const createEmployee = async (req, res) => {
 
 const updateEmployee = async (req, res) => {
     const { id } = req.params;
-    const { full_name, email, role, permissions, phone } = req.body;
+    const { full_name, email, role, permissions, phone, status, employee_id, assigned_areas } = req.body;
     try {
-        console.log(`Updating user ${id} with:`, { full_name, email, role, phone });
         const result = await pool.query(
-            "UPDATE users SET full_name = $1, email = $2, role = $3, permissions = $4, phone = $5 WHERE id = $6 RETURNING id, full_name, email, phone, role, permissions",
-            [full_name, email, role, permissions, phone, id]
+            "UPDATE users SET full_name = $1, email = $2, role = $3, permissions = $4, phone = $5, status = $6, employee_id = $7, assigned_areas = $8 WHERE id = $9 RETURNING *",
+            [full_name, email, role, permissions, phone, status, employee_id, assigned_areas, id]
         );
         if (result.rows.length === 0) return res.status(404).send('User not found');
         res.json(result.rows[0]);
@@ -88,19 +96,26 @@ const getEmployeeDetails = async (req, res) => {
         const { id } = req.params;
 
         // 1. Basic Info
-        const userRes = await pool.query("SELECT id, full_name, email, phone, role, permissions, created_at FROM users WHERE id = $1", [id]);
+        const userRes = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
         if (userRes.rows.length === 0) return res.status(404).send('User not found');
         const user = userRes.rows[0];
 
         // 2. Assigned Shops
         const shopsRes = await pool.query("SELECT id, name, address, phone FROM shops WHERE salesman_id = $1", [id]);
 
-        // 3. Sales Performance
+        // 3. Assigned Areas (names)
+        let areas = [];
+        if (user.assigned_areas && user.assigned_areas.length > 0) {
+            const areasRes = await pool.query("SELECT id, name FROM areas WHERE id = ANY($1)", [user.assigned_areas]);
+            areas = areasRes.rows;
+        }
+
+        // 4. Sales Performance
         const statsRes = await pool.query(`
             SELECT 
-                COUNT(CASE WHEN type = 'order' THEN 1 END) as total_orders,
-                COUNT(CASE WHEN type = 'sale' THEN 1 END) as total_sales,
-                SUM(CASE WHEN type IN ('sale', 'order') THEN total_amount ELSE 0 END) as total_revenue,
+                COUNT(CASE WHEN type IN ('order', 'sale') THEN 1 END) as total_orders,
+                SUM(CASE WHEN type IN ('sale', 'order') THEN total_amount ELSE 0 END) as total_sales_volume,
+                SUM(CASE WHEN type = 'payment' THEN total_amount ELSE 0 END) as total_collections,
                 (SELECT COUNT(DISTINCT customer_id) FROM shops WHERE salesman_id = $1) as total_customers
             FROM transactions 
             WHERE user_id = $1 OR shop_id IN (SELECT id FROM shops WHERE salesman_id = $1)
@@ -109,6 +124,7 @@ const getEmployeeDetails = async (req, res) => {
         res.json({
             ...user,
             shops: shopsRes.rows,
+            areas: areas,
             performance: statsRes.rows[0]
         });
     } catch (error) {

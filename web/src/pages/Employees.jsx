@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Trash2, Edit, ShieldCheck, Mail, User, Briefcase, ChevronDown, ChevronRight, Check, Settings2, Store, Phone } from 'lucide-react';
+import { Plus, Trash2, Edit, ShieldCheck, Mail, User, Briefcase, ChevronDown, ChevronRight, Check, Settings2, Store, Phone, TrendingUp, Map, MapPin } from 'lucide-react';
 import './StockList.css'; // Inheriting shared table styles
 import './Employees.css'; // Shared styles
 
@@ -16,7 +16,18 @@ const MODULES = [
 
 const ACTIONS = ['view', 'create', 'edit', 'delete'];
 const FINANCE_ACTIONS = ['dues', 'credit', 'history'];
-const SETTINGS_ACTIONS = []; // No sub-actions for settings, just master toggle
+const SETTINGS_ACTIONS = [];
+
+const ROLES = [
+    { id: 'super_admin', name: 'Super Admin', color: 'badge-purple' },
+    { id: 'admin', name: 'Admin', color: 'badge-green' },
+    { id: 'manager', name: 'Manager', color: 'badge-blue' },
+    { id: 'salesman', name: 'Salesman', color: 'badge-indigo' },
+    { id: 'warehouse_staff', name: 'Warehouse Staff', color: 'badge-gray' },
+    { id: 'custom', name: 'Custom Role', color: 'badge-gray' }
+];
+
+const STATUSES = ['Active', 'Suspended', 'On Leave', 'Disabled'];
 
 const SALESMAN_PERMISSIONS = {
     stock: { view: true, create: false, edit: false, delete: false },
@@ -72,13 +83,32 @@ const Employees = ({ user }) => {
         phone: '',
         password: '',
         role: 'salesman',
-        permissions: SALESMAN_PERMISSIONS
+        permissions: SALESMAN_PERMISSIONS,
+        employee_id: '',
+        status: 'Active',
+        assigned_areas: []
     });
 
+    // Filter states
+    const [roleFilter, setRoleFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [areaFilter, setAreaFilter] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+
     useEffect(() => {
-        if (user.role !== 'admin') return;
+        if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) return;
         fetchEmployees();
+        fetchAreas();
     }, [user.role]);
+
+    const fetchAreas = async () => {
+        try {
+            const res = await api.get('/areas');
+            setAreas(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const fetchEmployees = async () => {
         try {
@@ -93,16 +123,15 @@ const Employees = ({ user }) => {
 
     const openProfile = async (emp) => {
         try {
-            setSelectedEmployee(emp); // Set basic info immediately
-            setShowProfile(true); // Open modal immediately
-            setProfileLoading(true); // Start loading details
+            setSelectedEmployee(emp); 
+            setShowProfile(true);
+            setProfileLoading(true);
 
             const res = await api.get(`/users/${emp.id}`);
             setSelectedEmployee(res.data);
             setPerformance(res.data.performance);
             setAssignedShops(res.data.shops || []);
 
-            // Also fetch all shops for assignment modal
             const shopsRes = await api.get('/shops');
             setAllShops(shopsRes.data);
         } catch (err) {
@@ -112,6 +141,18 @@ const Employees = ({ user }) => {
             setProfileLoading(false);
         }
     };
+    
+    const filteredEmployees = employees.filter(emp => {
+        const matchesRole = roleFilter === 'all' || emp.role === roleFilter;
+        const matchesStatus = statusFilter === 'all' || emp.status === statusFilter;
+        const matchesArea = areaFilter === 'all' || (emp.assigned_areas && emp.assigned_areas.includes(parseInt(areaFilter)));
+        const matchesSearch = 
+            emp.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (emp.employee_id && emp.employee_id.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        return matchesRole && matchesStatus && matchesArea && matchesSearch;
+    });
 
     const handleUpdateShopAssignments = async () => {
         try {
@@ -168,7 +209,10 @@ const Employees = ({ user }) => {
             phone: '',
             password: '',
             role: 'salesman',
-            permissions: SALESMAN_PERMISSIONS
+            permissions: SALESMAN_PERMISSIONS,
+            employee_id: 'EMP' + (1000 + employees.length),
+            status: 'Active',
+            assigned_areas: []
         });
         setEditMode(false);
         setExpandedModule(null);
@@ -182,7 +226,10 @@ const Employees = ({ user }) => {
             phone: emp.phone || '',
             password: '',
             role: emp.role,
-            permissions: emp.permissions || (emp.role === 'admin' ? ADMIN_PERMISSIONS : SALESMAN_PERMISSIONS)
+            permissions: emp.permissions || (emp.role === 'admin' ? ADMIN_PERMISSIONS : SALESMAN_PERMISSIONS),
+            employee_id: emp.employee_id || '',
+            status: emp.status || 'Active',
+            assigned_areas: emp.assigned_areas || []
         });
         setEditMode(true);
         setShowModal(true);
@@ -227,71 +274,118 @@ const Employees = ({ user }) => {
         <div className="stock-page">
             <div className="page-header">
                 <div>
-                    <h1>Employee Management</h1>
-                    <p className="subtitle">Choose between standard roles or create a custom access profile.</p>
+                    <h1>Personnel Ecosystem</h1>
+                    <p className="subtitle">Manage access, roles, and performance for your entire workforce.</p>
                 </div>
-                <button className="btn btn-primary" onClick={openCreateModal}>
-                    <Plus size={18} /> Add Employee
-                </button>
+                <div className="header-actions">
+                    <button className="btn btn-primary" onClick={openCreateModal}>
+                        <Plus size={18} /> Add Employee
+                    </button>
+                </div>
+            </div>
+
+            <div className="controls-bar">
+                <div className="search-box">
+                    <User size={18} color="#9ca3af" />
+                    <input
+                        type="text"
+                        placeholder="Search by ID, Name or Email..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+                <div className="filters-group">
+                    <div className="filter-item">
+                        <label className="filter-label">Role</label>
+                        <select className="filter-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                            <option value="all">All Roles</option>
+                            {ROLES.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="filter-item">
+                        <label className="filter-label">Status</label>
+                        <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                            <option value="all">All Status</option>
+                            {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                    </div>
+                    <div className="filter-item">
+                        <label className="filter-label">Area</label>
+                        <select className="filter-select" value={areaFilter} onChange={(e) => setAreaFilter(e.target.value)}>
+                            <option value="all">All Areas</option>
+                            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div className="table-container employees-list">
                 <table className="stock-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Contact</th>
-                            <th>Role Category</th>
-                            <th>Joined</th>
+                            <th>E-ID</th>
+                            <th>Employee Name</th>
+                            <th>Role & Level</th>
+                            <th>Shop Load</th>
+                            <th>Account Status</th>
+                            <th>Recent Activity</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="5" className="loading-cell">
+                                <td colSpan="7" className="loading-cell">
                                     <div className="loading-container">
                                         <div className="spinner"></div>
-                                        <span>Loading personnel database...</span>
+                                        <span>Synchronizing workforce data...</span>
                                     </div>
                                 </td>
                             </tr>
-                        ) : employees.length === 0 ? (
-                            <tr><td colSpan="5" className="loading-cell">No employees found. Add one to get started.</td></tr>
-                        ) : employees.map(emp => (
+                        ) : filteredEmployees.length === 0 ? (
+                            <tr><td colSpan="7" className="loading-cell">No matching personnel found.</td></tr>
+                        ) : filteredEmployees.map(emp => (
                             <tr key={emp.id} onClick={() => openProfile(emp)} className="clickable-row">
+                                <td className="font-mono text-xs text-blue-600 font-bold">{emp.employee_id || 'N/A'}</td>
                                 <td>
                                     <div className="user-cell">
                                         <div className="user-avatar">
                                             <User size={16} />
                                         </div>
-                                        <span className="font-medium text-gray-900">
-                                            {emp.full_name}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-gray-900">{emp.full_name}</span>
+                                            <span className="text-xs text-gray-400">{emp.email}</span>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div className="flex flex-col gap-1">
-                                        <div className="email-cell text-gray-500"><Mail size={14} /> {emp.email}</div>
-                                        {emp.phone && <div className="email-cell text-gray-400"><Phone size={14} /> {emp.phone}</div>}
+                                    <span className={`badge ${ROLES.find(r => r.id === emp.role)?.color || 'badge-gray'}`}>
+                                        {emp.role.replace('_', ' ').toUpperCase()}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div className="shops-stat">
+                                        <Store size={14} />
+                                        <span>{emp.assigned_shops_count || 0} Shops</span>
                                     </div>
                                 </td>
                                 <td>
-                                    <div className="flex flex-col gap-1">
-                                        <span className={`badge ${emp.role === 'admin' ? 'badge-green' : emp.role === 'custom' ? 'badge-gray' : 'badge-blue'}`}>
-                                            {emp.role === 'admin' ? <ShieldCheck size={12} /> : emp.role === 'custom' ? <Settings2 size={12} /> : <Briefcase size={12} />}
-                                            {emp.role.toUpperCase()}
-                                        </span>
-                                    </div>
+                                    <span className={`status-pill ${emp.status?.toLowerCase() || 'active'}`}>
+                                        {emp.status || 'Active'}
+                                    </span>
                                 </td>
-                                <td className="text-gray-400 text-sm">{new Date(emp.created_at).toLocaleDateString()}</td>
+                                <td className="text-gray-400 text-xs">
+                                    {emp.last_login ? new Date(emp.last_login).toLocaleString() : 'Never logged in'}
+                                </td>
                                 <td className="actions-cell">
-                                    <button className="icon-btn" onClick={(e) => { e.stopPropagation(); openEditModal(emp); }}>
-                                        <Edit size={18} />
-                                    </button>
-                                    <button className="icon-btn delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(emp.id); }}>
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className="flex gap-1">
+                                        <button className="icon-btn" onClick={(e) => { e.stopPropagation(); openEditModal(emp); }}>
+                                            <Edit size={16} />
+                                        </button>
+                                        <button className="icon-btn delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(emp.id); }}>
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -311,6 +405,26 @@ const Employees = ({ user }) => {
                                 <div className="form-sections-grid">
                                     <div className="info-section">
                                         <h3 className="section-title">Identity & Role</h3>
+                                        <div className="form-group-row">
+                                            <div className="form-group">
+                                                <label>Employee ID</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.employee_id}
+                                                    onChange={e => setFormData({ ...formData, employee_id: e.target.value })}
+                                                    placeholder="E.g. EMP1001"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Account Status</label>
+                                                <select
+                                                    value={formData.status}
+                                                    onChange={e => setFormData({ ...formData, status: e.target.value })}
+                                                >
+                                                    {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
                                         <div className="form-group">
                                             <label>Full Name</label>
                                             <input
@@ -321,52 +435,74 @@ const Employees = ({ user }) => {
                                                 placeholder="Enter full name"
                                             />
                                         </div>
-                                        <div className="form-group">
-                                            <label>Email Address</label>
-                                            <input
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                                required
-                                                placeholder="email@company.com"
-                                            />
+                                        <div className="form-group-row">
+                                            <div className="form-group">
+                                                <label>Email Address</label>
+                                                <input
+                                                    type="email"
+                                                    value={formData.email}
+                                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                                    required
+                                                    placeholder="email@company.com"
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Phone Number</label>
+                                                <input
+                                                    type="tel"
+                                                    value={formData.phone}
+                                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                                    placeholder="+91 9876543210"
+                                                />
+                                            </div>
                                         </div>
                                         <div className="form-group">
-                                            <label>Phone Number</label>
-                                            <input
-                                                type="tel"
-                                                value={formData.phone}
-                                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                                placeholder="+91 9876543210"
-                                            />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>Role</label>
+                                            <label>Role Category</label>
                                             <select
                                                 value={formData.role}
                                                 onChange={e => handleRoleChange(e.target.value)}
                                             >
-                                                <option value="salesman">Salesman</option>
-                                                <option value="admin">Admin</option>
-                                                <option value="custom">Custom</option>
+                                                {ROLES.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                                             </select>
                                         </div>
-                                        {!editMode && (
+                                        {(!editMode || formData.password) && (
                                             <div className="form-group">
-                                                <label>Access Password</label>
+                                                <label>{editMode ? 'Reset Password' : 'Access Password'}</label>
                                                 <input
                                                     type="password"
                                                     value={formData.password}
                                                     onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                                    required
-                                                    placeholder="Initialize password"
+                                                    required={!editMode}
+                                                    placeholder={editMode ? 'Leave blank to keep current' : 'Initialize password'}
                                                 />
                                             </div>
                                         )}
                                     </div>
 
                                     <div className="permissions-section">
-                                        <h3 className="section-title">Access Configuration</h3>
+                                        <h3 className="section-title">Regional Assignment & Access</h3>
+                                        <div className="form-group">
+                                            <label>Assigned Areas (Multiple)</label>
+                                            <div className="areas-selection-grid">
+                                                {areas.map(area => (
+                                                    <div 
+                                                        key={area.id} 
+                                                        className={`area-checkbox ${formData.assigned_areas.includes(area.id) ? 'checked' : ''}`}
+                                                        onClick={() => {
+                                                            const newAreas = formData.assigned_areas.includes(area.id)
+                                                                ? formData.assigned_areas.filter(id => id !== area.id)
+                                                                : [...formData.assigned_areas, area.id];
+                                                            setFormData({ ...formData, assigned_areas: newAreas });
+                                                        }}
+                                                    >
+                                                        <div className="check-box">
+                                                            {formData.assigned_areas.includes(area.id) && <Check size={12} />}
+                                                        </div>
+                                                        <span>{area.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                         {formData.role !== 'custom' ? (
                                             <div className="role-preview-card">
                                                 <p className="text-sm text-gray-500 mb-2">
@@ -476,50 +612,80 @@ const Employees = ({ user }) => {
                                                 <User size={40} />
                                             </div>
                                             <div className="profile-main-info">
-                                                <h3>{selectedEmployee.full_name}</h3>
+                                                <div className="flex items-center gap-2">
+                                                    <h3>{selectedEmployee.full_name}</h3>
+                                                    <span className="text-xs font-mono bg-blue-50 text-blue-600 px-2 py-0.5 rounded">
+                                                        {selectedEmployee.employee_id}
+                                                    </span>
+                                                </div>
                                                 <p className="text-gray-500 flex items-center gap-2"><Mail size={14} /> {selectedEmployee.email}</p>
                                                 {selectedEmployee.phone && <p className="text-gray-500 flex items-center gap-2"><Phone size={14} /> {selectedEmployee.phone}</p>}
-                                                <span className={`badge mt-2 ${selectedEmployee.role === 'admin' ? 'badge-green' : 'badge-blue'}`}>
-                                                    {selectedEmployee.role.toUpperCase()}
+                                                <span className={`badge mt-2 ${ROLES.find(r => r.id === selectedEmployee.role)?.color || 'badge-gray'}`}>
+                                                    {selectedEmployee.role.replace('_', ' ').toUpperCase()}
                                                 </span>
                                             </div>
                                         </div>
                                         <div className="profile-work-info">
                                             <div className="info-stat">
-                                                <span className="info-label">Joined On</span>
-                                                <span className="info-val">{new Date(selectedEmployee.created_at).toLocaleDateString()}</span>
+                                                <span className="info-label">Account Status</span>
+                                                <span className={`status-pill ${selectedEmployee.status?.toLowerCase() || 'active'}`}>{selectedEmployee.status || 'Active'}</span>
                                             </div>
                                             <div className="info-stat">
-                                                <span className="info-label">Account Status</span>
-                                                <span className="info-val text-green-600 font-bold">Active</span>
+                                                <span className="info-label">Last Activity</span>
+                                                <span className="info-val">{selectedEmployee.last_login ? new Date(selectedEmployee.last_login).toLocaleString() : 'Never'}</span>
+                                            </div>
+                                            <button className="btn btn-secondary btn-sm mt-4 w-full" onClick={() => {
+                                                setShowProfile(false);
+                                                openEditModal(selectedEmployee);
+                                                setFormData(prev => ({ ...prev, password: 'CHANGEME' })); // Visual indicator
+                                            }}>
+                                                <Settings2 size={14} /> Reset Password
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="profile-sections-row">
+                                        <div className="profile-section-main">
+                                            <h3 className="section-title"><TrendingUp size={16} /> Performance Metrics</h3>
+                                            {performance ? (
+                                                <div className="performance-stats-grid">
+                                                    <div className="p-stat-card">
+                                                        <span className="p-stat-label">Sales Volume</span>
+                                                        <span className="p-stat-value">₹{Number(performance.total_sales_volume || 0).toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="p-stat-card">
+                                                        <span className="p-stat-label">Orders Created</span>
+                                                        <span className="p-stat-value">{performance.total_orders}</span>
+                                                    </div>
+                                                    <div className="p-stat-card">
+                                                        <span className="p-stat-label">Collections</span>
+                                                        <span className="p-stat-value text-emerald-600">₹{Number(performance.total_collections || 0).toLocaleString()}</span>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-400 italic">No activity data found.</p>
+                                            )}
+
+                                            <h3 className="section-title"><Map size={16} /> Regional Coverage ({selectedEmployee.areas?.length || 0})</h3>
+                                            <div className="assigned-areas-list">
+                                                {selectedEmployee.areas?.length > 0 ? (
+                                                    selectedEmployee.areas.map(area => (
+                                                        <div key={area.id} className="area-tag">
+                                                            <MapPin size={12} />
+                                                            {area.name}
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="text-xs text-gray-400 italic">No areas assigned.</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
-                                    <h3 className="section-title"><Briefcase size={16} /> Sales Performance</h3>
-                                    {performance ? (
-                                        <div className="performance-stats-grid">
-                                            <div className="p-stat-card">
-                                                <span className="p-stat-label">Total Revenue</span>
-                                                <span className="p-stat-value">₹{Number(performance.total_revenue || 0).toLocaleString()}</span>
-                                            </div>
-                                            <div className="p-stat-card">
-                                                <span className="p-stat-label">Total Orders</span>
-                                                <span className="p-stat-value">{performance.total_orders}</span>
-                                            </div>
-                                            <div className="p-stat-card">
-                                                <span className="p-stat-label">Active Customers</span>
-                                                <span className="p-stat-value">{performance.total_customers}</span>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <p className="text-gray-400 italic">Calculating performance data...</p>
-                                    )}
-
                                     <div className="section-header-row">
-                                        <h3 className="section-title"><Check size={16} /> Assigned Shops ({assignedShops.length})</h3>
+                                        <h3 className="section-title"><Store size={16} /> Managed Shops ({assignedShops.length})</h3>
                                         <button className="btn btn-secondary btn-sm" onClick={() => setShowAssignmentModal(true)}>
-                                            Manage Assignments
+                                            Modify Assignments
                                         </button>
                                     </div>
                                     <div className="assigned-shops-list">
@@ -536,9 +702,9 @@ const Employees = ({ user }) => {
                                         ) : (
                                             <div className="empty-shops-state">
                                                 <Store size={32} />
-                                                <span>No shops assigned to this employee yet.</span>
+                                                <span>No shops assigned to this employee.</span>
                                                 <button className="btn btn-primary btn-sm mt-2" onClick={() => setShowAssignmentModal(true)}>
-                                                    Assign Now
+                                                    Configure Now
                                                 </button>
                                             </div>
                                         )}

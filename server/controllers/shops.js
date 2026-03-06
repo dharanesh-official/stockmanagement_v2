@@ -106,4 +106,70 @@ const deleteShop = async (req, res) => {
     }
 };
 
-module.exports = { getShops, createShop, updateShop, deleteShop };
+const getShopFinance = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { startDate, endDate } = req.query;
+
+        let query = `
+            SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name
+            FROM transactions t
+            JOIN users u ON t.user_id = u.id
+            JOIN customers c ON t.customer_id = c.id
+            JOIN shops s ON t.shop_id = s.id
+            WHERE t.shop_id = $1
+        `;
+        const params = [id];
+
+        if (startDate && endDate) {
+            query += ' AND t.transaction_date BETWEEN $2 AND $3';
+            params.push(startDate, endDate);
+        }
+
+        query += ' ORDER BY t.transaction_date DESC';
+
+        const result = await pool.query(query, params);
+
+        // Also get totals
+        const totalsQuery = `
+            SELECT 
+                SUM(CASE WHEN type IN ('order', 'sale') THEN total_amount ELSE 0 END) as total_sales,
+                SUM(CASE WHEN type = 'payment' THEN total_amount ELSE 0 END) as total_payments,
+                SUM(CASE WHEN type = 'credit_note' THEN total_amount ELSE 0 END) as total_credits
+            FROM transactions
+            WHERE shop_id = $1
+        `;
+        const totalsParams = [id];
+        if (startDate && endDate) {
+            totalsQuery.replace('WHERE shop_id = $1', 'WHERE shop_id = $1 AND transaction_date BETWEEN $2 AND $3'); // Oops, simpler just re-write or use a wrapper
+        }
+        
+        // Better totals query with proper clause
+        let finalTotalsQuery = `
+            SELECT 
+                SUM(CASE WHEN type IN ('order', 'sale') THEN total_amount ELSE 0 END) as total_sales,
+                SUM(CASE WHEN type = 'payment' THEN total_amount ELSE 0 END) as total_payments,
+                SUM(CASE WHEN type = 'credit_note' THEN total_amount ELSE 0 END) as total_credits
+            FROM transactions
+            WHERE shop_id = $1
+        `;
+        const totalParams = [id];
+        if (startDate && endDate) {
+            finalTotalsQuery += ' AND transaction_date BETWEEN $2 AND $3';
+            totalParams.push(startDate, endDate);
+        }
+
+        const totalsResult = await pool.query(finalTotalsQuery, totalParams);
+
+        res.json({
+            history: result.rows,
+            summary: totalsResult.rows[0]
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+module.exports = { getShops, createShop, updateShop, deleteShop, getShopFinance };
+

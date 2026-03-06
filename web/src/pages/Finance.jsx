@@ -15,7 +15,10 @@ import {
     TrendingUp,
     FileText,
     StickyNote,
-    Store
+    Store,
+    Calendar,
+    ArrowRight,
+    Layout
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Finance.css';
@@ -39,6 +42,16 @@ const Finance = ({ user }) => {
     const [paymentData, setPaymentData] = useState({
         amount: '',
         notes: ''
+    });
+
+    // Shop-wise Data State
+    const [selectedShopForFinance, setSelectedShopForFinance] = useState(null);
+    const [shopFinanceHistory, setShopFinanceHistory] = useState([]);
+    const [shopFinanceSummary, setShopFinanceSummary] = useState(null);
+    const [shopFinanceLoading, setShopFinanceLoading] = useState(false);
+    const [dateRange, setDateRange] = useState({
+        start: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0]
     });
 
     // Credit Note Modal State (Order Specific)
@@ -138,9 +151,33 @@ const Finance = ({ user }) => {
     };
 
     const canSeeTab = (tabId) => {
-        if (user.role === 'admin') return true;
+        if (user.role === 'admin' || user.role === 'super_admin') return true;
         return user.permissions?.finance?.[tabId] === true;
     };
+
+    const fetchShopFinanceHistory = async (shopId) => {
+        setShopFinanceLoading(true);
+        try {
+            const res = await api.get(`/shops/${shopId}/finance`, {
+                params: {
+                    startDate: dateRange.start,
+                    endDate: dateRange.end
+                }
+            });
+            setShopFinanceHistory(res.data.history);
+            setShopFinanceSummary(res.data.summary);
+        } catch (err) {
+            console.error('Failed to fetch shop finance:', err);
+        } finally {
+            setShopFinanceLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedShopForFinance) {
+            fetchShopFinanceHistory(selectedShopForFinance.id);
+        }
+    }, [dateRange, selectedShopForFinance]);
 
     useEffect(() => {
         if (user.role !== 'admin') {
@@ -291,6 +328,17 @@ const Finance = ({ user }) => {
                             onClick={() => setActiveTab('history')}
                         >
                             <History size={18} /> Payment History
+                        </button>
+                    )}
+                    {canSeeTab('shops') && (
+                        <button
+                            className={`tab ${activeTab === 'shops' ? 'active' : ''}`}
+                            onClick={() => {
+                                setActiveTab('shops');
+                                setSelectedShopForFinance(null);
+                            }}
+                        >
+                            <Layout size={18} /> Shop-wise Data
                         </button>
                     )}
 
@@ -449,6 +497,131 @@ const Finance = ({ user }) => {
                                     ))}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {activeTab === 'shops' && (
+                        <div className="shop-finance-view">
+                            {!selectedShopForFinance ? (
+                                <div className="shops-grid">
+                                    {(search ? shops.filter(s => s.name.toLowerCase().includes(search.toLowerCase())) : shops).map(shop => (
+                                        <div key={shop.id} className="shop-finance-card" onClick={() => setSelectedShopForFinance(shop)}>
+                                            <div className="card-header">
+                                                <div className="shop-icon"><Store size={20} /></div>
+                                                <div className="shop-meta">
+                                                    <h4>{shop.name}</h4>
+                                                    <span className="area">{shop.area_name}</span>
+                                                </div>
+                                                <ArrowRight size={18} className="arrow" />
+                                            </div>
+                                            <div className="card-body">
+                                                <div className="mini-stat">
+                                                    <span>Salesman</span>
+                                                    <strong>{shop.salesman_name || 'Unassigned'}</strong>
+                                                </div>
+                                                <div className="mini-stat">
+                                                    <span>Contact</span>
+                                                    <strong>{shop.phone}</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {shops.length === 0 && <div className="empty-state">No shops found.</div>}
+                                </div>
+                            ) : (
+                                <div className="shop-detail-view">
+                                    <div className="detail-header">
+                                        <div className="flex items-center gap-4">
+                                            <button className="btn-back" onClick={() => setSelectedShopForFinance(null)}>
+                                                &larr; Back
+                                            </button>
+                                            <div className="shop-title">
+                                                <h2>{selectedShopForFinance.name}</h2>
+                                                <p>{selectedShopForFinance.address}</p>
+                                            </div>
+                                        </div>
+                                        <div className="date-filter">
+                                            <div className="date-input">
+                                                <Calendar size={14} />
+                                                <input 
+                                                    type="date" 
+                                                    value={dateRange.start} 
+                                                    onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                                                />
+                                            </div>
+                                            <span className="sep">-</span>
+                                            <div className="date-input">
+                                                <Calendar size={14} />
+                                                <input 
+                                                    type="date" 
+                                                    value={dateRange.end} 
+                                                    onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="shop-summary-bar">
+                                        <div className="sum-item">
+                                            <label>Total Sales</label>
+                                            <span className="val primary">₹{Number(shopFinanceSummary?.total_sales || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="sum-item">
+                                            <label>Total Collected</label>
+                                            <span className="val success">₹{Number(shopFinanceSummary?.total_payments || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="sum-item">
+                                            <label>Credits Issued</label>
+                                            <span className="val warning">₹{Number(shopFinanceSummary?.total_credits || 0).toLocaleString()}</span>
+                                        </div>
+                                        <div className="sum-item highlight">
+                                            <label>Net Balance (Est.)</label>
+                                            <span className="val danger">
+                                                ₹{(Number(shopFinanceSummary?.total_sales || 0) - Number(shopFinanceSummary?.total_payments || 0) - Number(shopFinanceSummary?.total_credits || 0)).toLocaleString()}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {shopFinanceLoading ? (
+                                        <div className="loading-mini">Synchronizing shop history...</div>
+                                    ) : (
+                                        <div className="table-container history-table">
+                                            <table className="finance-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>DATE</th>
+                                                        <th>CUSTOMER</th>
+                                                        <th>TYPE</th>
+                                                        <th>SALESMAN</th>
+                                                        <th className="text-right">AMOUNT</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {shopFinanceHistory.length === 0 ? (
+                                                        <tr><td colSpan="5" className="empty-cell">No transactions found for this period.</td></tr>
+                                                    ) : shopFinanceHistory.map(h => (
+                                                        <tr key={h.id}>
+                                                            <td className="date-cell">
+                                                                {new Date(h.transaction_date).toLocaleDateString('en-GB')}
+                                                            </td>
+                                                            <td className="font-bold">{h.customer_name}</td>
+                                                            <td>
+                                                                <span className={`type-pill ${h.type}`}>
+                                                                    {h.type.replace('_', ' ').toUpperCase()}
+                                                                </span>
+                                                            </td>
+                                                            <td className="text-gray-500">{h.salesman_name}</td>
+                                                            <td className={`text-right font-black amount-cell ${h.type}`}>
+                                                                {h.type === 'payment' ? '+' : h.type === 'credit_note' ? '-' : ''}₹{Number(h.total_amount).toLocaleString()}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
