@@ -12,6 +12,7 @@ import {
   Navigation,
   Map,
   ArrowLeft,
+  X,
 } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import "./StockList.css"; // Reusing common table/page styles
