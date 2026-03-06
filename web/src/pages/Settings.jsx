@@ -3,7 +3,7 @@ import api from '../services/api';
 import { 
     User, Lock, Save, AlertCircle, CheckCircle, Building, 
     MapPin, Globe, FileText, CreditCard, Bell, 
-    Database, Link2, Palette, Shield, Activity, AlertTriangle, UserCircle, Settings as SettingsIcon
+    Database, Link2, Palette, Shield, Activity, AlertTriangle, UserCircle
 } from 'lucide-react';
 import './StockList.css'; 
 import './Settings.css'; 
@@ -332,60 +332,12 @@ const Settings = ({ user }) => {
                         </div>
                     </>
                 );
-            case 'notification':
-                return (
-                    <>
-                        <h2 className="settings-section-title">Notification Settings</h2>
-                        <p className="settings-section-desc">Manage system-to-user communications.</p>
-                        <div className="activity-list">
-                            <div className="toggle-row">
-                                <div className="toggle-info">
-                                    <h4>Email Notifications</h4>
-                                    <p>Send daily sales summaries via email.</p>
-                                </div>
-                                <div className="badge-payment" style={{background: '#ecfdf5', color: '#059669'}}>ACTIVE</div>
-                            </div>
-                            <div className="toggle-row">
-                                <div className="toggle-info">
-                                    <h4>Critical Stock Alerts</h4>
-                                    <p>Notify when products reach low-level thresholds.</p>
-                                </div>
-                                <div className="badge-payment" style={{background: '#ecfdf5', color: '#059669'}}>ACTIVE</div>
-                            </div>
-                        </div>
-                    </>
-                );
-            case 'integrations':
-                return (
-                    <div className="placeholder-view">
-                        <Link2 size={48} color="#cbd5e1" style={{ marginBottom: 16 }} />
-                        <h3 style={{ fontSize: '1.2rem', color: '#475569', marginBottom: 8 }}>External Data Connectors</h3>
-                        <p>Configure API bridges for QuickBooks, Tally, and WhatsApp integration.</p>
-                    </div>
-                );
-            case 'branding':
-                return (
-                    <>
-                        <h2 className="settings-section-title">Brand Identity</h2>
-                        <p className="settings-section-desc">Customize platform appearance.</p>
-                        <div className="settings-form-grid">
-                            <div className="form-group">
-                                <label>Primary Accent Color</label>
-                                <input type="color" value="#059669" style={{height: '50px'}} />
-                            </div>
-                            <div className="form-group">
-                                <label>Theme Mode</label>
-                                <select disabled><option>Light Professional (Standard)</option></select>
-                            </div>
-                        </div>
-                    </>
-                );
             default:
                 return (
                     <div className="placeholder-view">
-                        <SettingsIcon size={48} color="#cbd5e1" style={{ marginBottom: 16 }} />
-                        <h3 style={{ fontSize: '1.2rem', color: '#475569', marginBottom: 8 }}>Module Under Development</h3>
-                        <p>The "{TABS.find(t => t.id === activeTab)?.label}" configuration panel is being actively implemented.</p>
+                        <Setting size={48} color="#cbd5e1" style={{marginBottom: 16}} />
+                        <h3 style={{fontSize: '1.2rem', color: '#475569', marginBottom: 8}}>Component Under Development</h3>
+                        <p>The "{TABS.find(t => t.id === activeTab)?.label}" configuration panel is actively being implemented.</p>
                     </div>
                 );
         }
@@ -428,7 +380,7 @@ const Settings = ({ user }) => {
                         {renderTabContent()}
 
                         {/* Hide save button on purely informational tabs */}
-                        {!['activity_log', 'danger', 'integrations'].includes(activeTab) && activeTab !== 'system' && activeTab !== 'data' && activeTab !== 'account' && activeTab !== 'payment' && (
+                        {!['activity_log', 'danger'].includes(activeTab) && activeTab !== 'system' && activeTab !== 'data' && activeTab !== 'integrations' && activeTab !== 'branding' && activeTab !== 'account' && activeTab !== 'notification' && activeTab !== 'payment' && (
                             <div className="settings-actions">
                                 <button type="submit" className="btn-save-settings">
                                     <Save size={18} /> Save Settings
