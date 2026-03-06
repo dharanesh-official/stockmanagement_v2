@@ -3,7 +3,8 @@ import api from '../services/api';
 import { 
     User, Lock, Save, AlertCircle, CheckCircle, Building, 
     MapPin, Globe, FileText, CreditCard, Bell, 
-    Database, Link2, Palette, Shield, Activity, AlertTriangle, UserCircle
+    Database, Link2, Palette, Shield, Activity, AlertTriangle, UserCircle, Settings as SettingsIcon,
+    Smartphone, Mail, Globe2, CreditCard as CardIcon, Laptop, Cloud, Share2, Printer
 } from 'lucide-react';
 import './StockList.css'; 
 import './Settings.css'; 
@@ -75,7 +76,19 @@ const Settings = ({ user }) => {
     };
 
     const handleCompanyChange = (e) => {
-        setCompanyForm({ ...companyForm, [e.target.name]: e.target.value });
+        const { name, value, type, checked } = e.target;
+        if (name.startsWith('json_')) {
+            const key = name.replace('json_', '');
+            setCompanyForm({ 
+                ...companyForm, 
+                settings_json: { 
+                    ...companyForm.settings_json, 
+                    [key]: type === 'checkbox' ? checked : value 
+                } 
+            });
+        } else {
+            setCompanyForm({ ...companyForm, [name]: type === 'checkbox' ? checked : value });
+        }
     };
 
     const saveUserSettings = async () => {
@@ -332,12 +345,201 @@ const Settings = ({ user }) => {
                         </div>
                     </>
                 );
+            case 'payment':
+                return (
+                    <>
+                        <h2 className="settings-section-title">Payment Gateways</h2>
+                        <p className="settings-section-desc">Configure billing and transaction processors.</p>
+                        <div className="settings-form-grid">
+                            <div className="full-width">
+                                <div className="toggle-row">
+                                    <div className="toggle-info">
+                                        <h4>Enable UPI Payments</h4>
+                                        <p>Allow customers to pay via QR codes on invoices.</p>
+                                    </div>
+                                    <input type="checkbox" name="json_enable_upi" checked={companyForm.settings_json?.enable_upi || false} onChange={handleCompanyChange} />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>UPI ID (VPA)</label>
+                                <input type="text" name="json_upi_id" value={companyForm.settings_json?.upi_id || ''} onChange={handleCompanyChange} placeholder="company@upi" />
+                            </div>
+                            <div className="form-group">
+                                <label>Bank Account Number</label>
+                                <input type="text" name="json_bank_account" value={companyForm.settings_json?.bank_account || ''} onChange={handleCompanyChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>IFSC Code</label>
+                                <input type="text" name="json_ifsc" value={companyForm.settings_json?.ifsc || ''} onChange={handleCompanyChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Payment Terms (Days)</label>
+                                <input type="number" name="json_payment_terms" value={companyForm.settings_json?.payment_terms || 30} onChange={handleCompanyChange} />
+                            </div>
+                        </div>
+                    </>
+                );
+            case 'notification':
+                return (
+                    <>
+                        <h2 className="settings-section-title">Notifications</h2>
+                        <p className="settings-section-desc">Manage system alerts and automated messaging.</p>
+                        <div className="activity-list">
+                            <div className="toggle-row">
+                                <div className="toggle-info">
+                                    <h4>Email Alerts</h4>
+                                    <p>Send transaction receipts and low stock alerts via email.</p>
+                                </div>
+                                <input type="checkbox" name="json_notify_email" checked={companyForm.settings_json?.notify_email || false} onChange={handleCompanyChange} />
+                            </div>
+                            <div className="toggle-row">
+                                <div className="toggle-info">
+                                    <h4>WhatsApp Integration</h4>
+                                    <p>Send order confirmations directly to customer WhatsApp.</p>
+                                </div>
+                                <input type="checkbox" name="json_notify_whatsapp" checked={companyForm.settings_json?.notify_whatsapp || false} onChange={handleCompanyChange} />
+                            </div>
+                            <div className="toggle-row">
+                                <div className="toggle-info">
+                                    <h4>Browser Push Notifications</h4>
+                                    <p>Real-time updates for sales and warehouse activity.</p>
+                                </div>
+                                <input type="checkbox" name="json_notify_push" checked={companyForm.settings_json?.notify_push || false} onChange={handleCompanyChange} />
+                            </div>
+                        </div>
+                    </>
+                );
+            case 'system':
+                return (
+                    <>
+                        <h2 className="settings-section-title">System Configuration</h2>
+                        <p className="settings-section-desc">Advanced technical and performance controls.</p>
+                        <div className="settings-form-grid">
+                            <div className="full-width">
+                                <div className="toggle-row">
+                                    <div className="toggle-info">
+                                        <h4>Maintenance Mode</h4>
+                                        <p>Disable client access for scheduled system updates.</p>
+                                    </div>
+                                    <input type="checkbox" name="json_maint_mode" checked={companyForm.settings_json?.maint_mode || false} onChange={handleCompanyChange} />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Session Timeout (Minutes)</label>
+                                <input type="number" name="json_session_timeout" value={companyForm.settings_json?.session_timeout || 60} onChange={handleCompanyChange} />
+                            </div>
+                            <div className="form-group">
+                                <label>Auto-Backup Frequency</label>
+                                <select name="json_backup_freq" value={companyForm.settings_json?.backup_freq || 'daily'} onChange={handleCompanyChange}>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                        </div>
+                    </>
+                );
+            case 'data':
+                return (
+                    <>
+                        <h2 className="settings-section-title">Data Management</h2>
+                        <p className="settings-section-desc">Export, import, and archiving tools.</p>
+                        <div className="activity-list">
+                            <div className="activity-item">
+                                <div className="activity-icon" style={{color: '#059669'}}><Share2 size={18}/></div>
+                                <div className="activity-meta">
+                                    <div className="activity-action">Full Database Export</div>
+                                    <div className="activity-user">Download all organizational data in SQL/CSV format.</div>
+                                </div>
+                                <button type="button" className="btn-save-settings" style={{padding: '8px 16px', fontSize: '12px'}}>Export Now</button>
+                            </div>
+                            <div className="activity-item">
+                                <div className="activity-icon" style={{color: '#0284c7'}}><Cloud size={18}/></div>
+                                <div className="activity-meta">
+                                    <div className="activity-action">Cloud Sync Identity</div>
+                                    <div className="activity-user">Manage distributed warehouse synchronization.</div>
+                                </div>
+                                <button type="button" className="btn-save-settings" style={{padding: '8px 16px', fontSize: '12px', background: '#64748b'}}>Configure</button>
+                            </div>
+                        </div>
+                    </>
+                );
+            case 'integrations':
+                return (
+                    <>
+                        <h2 className="settings-section-title">External Integrations</h2>
+                        <p className="settings-section-desc">Bridge with third-party business applications.</p>
+                        <div className="settings-form-grid">
+                            <div className="form-group flex items-center justify-between full-width p-4 bg-gray-50 rounded-lg">
+                                <div>
+                                    <h4 style={{fontWeight: 700, margin: 0}}>Zapier Connector</h4>
+                                    <p style={{fontSize: '0.8rem', color: '#64748b', margin: 0}}>Streamline workflows through Zapier automation.</p>
+                                </div>
+                                <span className="badge-payment" style={{background: '#f1f5f9', color: '#64748b'}}>READY TO SETUP</span>
+                            </div>
+                            <div className="form-group">
+                                <label>API Key for Custom Hooks</label>
+                                <input type="password" value="************************" disabled />
+                            </div>
+                            <div className="form-group">
+                                <label>Webhook URL</label>
+                                <input type="text" name="json_webhook_url" value={companyForm.settings_json?.webhook_url || ''} onChange={handleCompanyChange} placeholder="https://endpoint..." />
+                            </div>
+                        </div>
+                    </>
+                );
+            case 'branding':
+                return (
+                    <>
+                        <h2 className="settings-section-title">White-Label Branding</h2>
+                        <p className="settings-section-desc">Customize themes and portal aesthetics.</p>
+                        <div className="settings-form-grid">
+                            <div className="form-group">
+                                <label>Primary Theme Color</label>
+                                <input type="color" name="json_theme_color" value={companyForm.settings_json?.theme_color || '#059669'} onChange={handleCompanyChange} style={{height: '42px'}} />
+                            </div>
+                            <div className="form-group">
+                                <label>Sidebar Mode</label>
+                                <select name="json_sidebar_mode" value={companyForm.settings_json?.sidebar_mode || 'expanded'} onChange={handleCompanyChange}>
+                                    <option value="expanded">Always Visible</option>
+                                    <option value="collapsed">Compact View</option>
+                                </select>
+                            </div>
+                            <div className="full-width">
+                                <div className="toggle-row">
+                                    <div className="toggle-info">
+                                        <h4>Show Powered By</h4>
+                                        <p>Toggle system credits in footer.</p>
+                                    </div>
+                                    <input type="checkbox" name="json_show_credits" checked={companyForm.settings_json?.show_credits !== false} onChange={handleCompanyChange} />
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                );
+            case 'account':
+                return (
+                    <>
+                        <h2 className="settings-section-title">Account Management</h2>
+                        <p className="settings-section-desc">Subscription and organizational tier control.</p>
+                        <div className="activity-list">
+                            <div className="activity-item">
+                                <div className="activity-icon"><Shield size={18}/></div>
+                                <div className="activity-meta">
+                                    <div className="activity-action">Enterprise Tier</div>
+                                    <div className="activity-user">Unlimited users, stores, and transactions.</div>
+                                </div>
+                                <div style={{fontWeight: 'bold', color: '#059669'}}>LIFETIME LICENSE</div>
+                            </div>
+                        </div>
+                    </>
+                );
             default:
                 return (
                     <div className="placeholder-view">
-                        <Setting size={48} color="#cbd5e1" style={{marginBottom: 16}} />
-                        <h3 style={{fontSize: '1.2rem', color: '#475569', marginBottom: 8}}>Component Under Development</h3>
-                        <p>The "{TABS.find(t => t.id === activeTab)?.label}" configuration panel is actively being implemented.</p>
+                        <SettingsIcon size={48} color="#cbd5e1" style={{marginBottom: 16}} />
+                        <h3 style={{fontSize: '1.2rem', color: '#475569', marginBottom: 8}}>Module Loading...</h3>
+                        <p>If this persists, the requested configuration panel is unavailable in this version.</p>
                     </div>
                 );
         }
