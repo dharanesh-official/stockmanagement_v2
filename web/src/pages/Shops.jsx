@@ -368,7 +368,7 @@ const Shops = () => {
           </select>
         </div>
       </div>
-
+      {!selectedArea ? (
         <div className="area-grid">
           {areas.map((area) => (
             <div

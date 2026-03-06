@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { 
     User, Lock, Save, AlertCircle, CheckCircle, Building, 
-    MapPin, Globe, FileText, CreditCard, Bell, Setting,
+    MapPin, Globe, FileText, CreditCard, Bell, 
     Database, Link2, Palette, Shield, Activity, AlertTriangle, UserCircle
 } from 'lucide-react';
 import './StockList.css'; 
