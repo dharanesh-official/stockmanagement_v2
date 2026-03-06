@@ -246,8 +246,8 @@ const Shops = () => {
   const filteredShops = shops.filter((shop) => {
     const matchesArea = selectedArea ? shop.area_id === selectedArea.id : true;
     const matchesSearch =
-      shop.name.toLowerCase().includes(search.toLowerCase()) ||
-      shop.phone.includes(search);
+      (shop.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (shop.phone || "").includes(search);
     return matchesArea && matchesSearch;
   });
 
@@ -869,9 +869,9 @@ const Shops = () => {
                                 </td>
                                 <td>
                                   <span
-                                    className={`status-pill ${t.status.toLowerCase().replace(" ", "-")}`}
+                                    className={`status-pill ${((t.status) || "unknown").toLowerCase().replace(" ", "-")}`}
                                   >
-                                    {t.status}
+                                    {t.status || "Unknown"}
                                   </span>
                                 </td>
                               </tr>
