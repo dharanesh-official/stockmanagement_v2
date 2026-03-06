@@ -5,7 +5,7 @@ import {
     TouchableOpacity, ScrollView, Modal, Share
 } from 'react-native';
 import api from '../services/api';
-import { Search, Plus, Filter, FileText, Trash2, Edit, CheckCircle, Truck, Eye, Share2, X } from 'lucide-react-native';
+import { Search, Plus, Filter, FileText, Trash2, Edit, CheckCircle, Truck, Eye, Share2, X, Store, User } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
 const OrdersScreen = ({ navigation }) => {
@@ -104,14 +104,17 @@ const OrdersScreen = ({ navigation }) => {
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <View>
+                    <Text style={styles.orderId}>{item.invoice_number || `ORD-${item.id}`}</Text>
                     <Text style={styles.date}>{new Date(item.transaction_date).toLocaleDateString()}</Text>
-                    <Text style={styles.customer}>{item.customer_name}</Text>
                 </View>
                 <Text style={styles.amount}>₹{Number(item.total_amount).toLocaleString()}</Text>
             </View>
 
             <View style={styles.detailsRow}>
-                <Text style={styles.shop}>{item.shop_name || 'Direct Sale'}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {item.order_type === 'Shop Order' ? <Store size={14} color="#6b7280" /> : <User size={14} color="#6b7280" />}
+                    <Text style={styles.shop}>{item.shop_name || item.customer_name || 'Direct Sale'}</Text>
+                </View>
                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
                     <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>{item.status}</Text>
                 </View>
@@ -187,7 +190,13 @@ const OrdersScreen = ({ navigation }) => {
                     keyExtractor={item => item.id.toString()}
                     renderItem={renderItem}
                     contentContainerStyle={styles.list}
-                    ListEmptyComponent={<Text style={styles.emptyText}>No orders found</Text>}
+                    ListEmptyComponent={
+                        <View style={styles.emptyContainer}>
+                            <FileText size={48} color="#e5e7eb" style={{ marginBottom: 12 }} />
+                            <Text style={styles.emptyTitle}>No Orders Found</Text>
+                            <Text style={styles.emptyText}>Adjust filters or verify connection.</Text>
+                        </View>
+                    }
                 />
             )}
 
@@ -245,20 +254,25 @@ const styles = StyleSheet.create({
         alignItems: 'flex-start',
         marginBottom: 8,
     },
+    orderId: {
+        fontSize: 16,
+        fontWeight: '900',
+        color: '#111827',
+        marginBottom: 2,
+    },
     date: {
         fontSize: 12,
         color: '#6b7280',
-        marginBottom: 2,
     },
     customer: {
-        fontSize: 16,
+        fontSize: 14,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#374151',
     },
     amount: {
         fontSize: 18,
         fontWeight: '900',
-        color: '#111827',
+        color: '#059669',
     },
     detailsRow: {
         flexDirection: 'row',
@@ -313,10 +327,20 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
     },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 60,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#374151',
+        marginBottom: 4,
+    },
     emptyText: {
-        textAlign: 'center',
-        marginTop: 40,
         color: '#9ca3af',
+        fontSize: 14,
     },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalContent: { backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 },

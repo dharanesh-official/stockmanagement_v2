@@ -36,8 +36,16 @@ const CreateOrderScreen = ({ navigation, route }) => {
     const [notes, setNotes] = useState('');
     const [status, setStatus] = useState('Ordered');
     const [showStatusModal, setShowStatusModal] = useState(false);
+    const [orderType, setOrderType] = useState('Shop Order');
+    const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
+    
+    // Financials
+    const [gstAmount, setGstAmount] = useState('0');
+    const [discountAmount, setDiscountAmount] = useState('0');
+    const [shippingCharge, setShippingCharge] = useState('0');
 
     const STATUS_OPTIONS = ['Ordered', 'Dispatched', 'Delivered', 'Completed', 'Cancelled'];
+    const TYPE_OPTIONS = ['Shop Order', 'Direct Sale'];
 
     useEffect(() => {
         loadData();
@@ -93,6 +101,10 @@ const CreateOrderScreen = ({ navigation, route }) => {
             setPaidAmount(sale.paid_amount ? String(sale.paid_amount) : '');
             setNotes(sale.notes || '');
             setStatus(sale.status || 'Ordered');
+            setOrderType(sale.order_type || 'Shop Order');
+            setGstAmount(sale.gst_amount ? String(sale.gst_amount) : '0');
+            setDiscountAmount(sale.discount_amount ? String(sale.discount_amount) : '0');
+            setShippingCharge(sale.shipping_charge ? String(sale.shipping_charge) : '0');
 
             // Jump to Review
             setStep(3);
@@ -169,8 +181,16 @@ const CreateOrderScreen = ({ navigation, route }) => {
         }).filter(item => parseInt(item.qty) > 0)); // Remove if 0
     };
 
-    const calculateTotal = () => {
+    const calculateSubtotal = () => {
         return cart.reduce((sum, item) => sum + (Number(item.price) * item.qty), 0);
+    };
+
+    const calculateFinalTotal = () => {
+        const sub = calculateSubtotal();
+        const gst = parseFloat(gstAmount) || 0;
+        const ship = parseFloat(shippingCharge) || 0;
+        const disc = parseFloat(discountAmount) || 0;
+        return sub + gst + ship - disc;
     };
 
     const handleSubmit = async () => {
@@ -186,7 +206,8 @@ const CreateOrderScreen = ({ navigation, route }) => {
 
         setSubmitting(true);
 
-        const total = calculateTotal();
+        const subtotal = calculateSubtotal();
+        const finalTotal = calculateFinalTotal();
         const paid = parseFloat(paidAmount) || 0;
 
         // Status Logic:
@@ -196,21 +217,22 @@ const CreateOrderScreen = ({ navigation, route }) => {
 
         const payload = {
             shop_id: selectedShop.id,
-            customer_id: selectedShop.customer_id, // backend might need this or not
+            customer_id: selectedShop.customer_id, 
             items: cart.map(i => ({
                 stock_id: i.id,
                 quantity: i.qty,
                 price: i.price,
-                // store item_name if needed
             })),
-            total_amount: total,
+            amount: subtotal,
+            total_amount: finalTotal,
             paid_amount: paid,
             notes: notes,
             type: 'order',
-            paid_amount: paid,
-            notes: notes,
-            type: 'order',
-            status: finalStatus
+            status: finalStatus,
+            order_type: orderType,
+            gst_amount: parseFloat(gstAmount) || 0,
+            discount_amount: parseFloat(discountAmount) || 0,
+            shipping_charge: parseFloat(shippingCharge) || 0
         };
 
         try {
@@ -409,33 +431,50 @@ const CreateOrderScreen = ({ navigation, route }) => {
                             ))}
                             <View style={styles.divider} />
 
-                            {/* Summary Card */}
                             <View style={styles.summaryCard}>
                                 <View style={styles.summaryRow}>
-                                    <Text style={styles.totalText}>Total Amount</Text>
-                                    <Text style={[styles.totalText, { color: '#000000' }]}>₹{calculateTotal()}</Text>
+                                    <Text style={styles.totalText}>Subtotal</Text>
+                                    <Text style={[styles.totalText, { color: '#6b7280', fontSize: 16 }]}>₹{calculateSubtotal()}</Text>
+                                </View>
+                                
+                                <View style={styles.row}>
+                                    <View style={{ flex: 1, marginRight: 5 }}>
+                                        <Text style={styles.label}>GST (+)</Text>
+                                        <TextInput style={styles.input} value={gstAmount} onChangeText={setGstAmount} keyboardType="numeric" placeholder="0" />
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 5 }}>
+                                        <Text style={styles.label}>Shipping (+)</Text>
+                                        <TextInput style={styles.input} value={shippingCharge} onChangeText={setShippingCharge} keyboardType="numeric" placeholder="0" />
+                                    </View>
                                 </View>
 
-                                <Text style={[styles.label, { marginTop: 10 }]}>Paid Amount (₹)</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={paidAmount}
-                                    onChangeText={setPaidAmount}
-                                    keyboardType="numeric"
-                                    placeholder="0"
-                                    placeholderTextColor="#9ca3af"
-                                />
+                                <View style={styles.row}>
+                                    <View style={{ flex: 1, marginRight: 5 }}>
+                                        <Text style={styles.label}>Discount (-)</Text>
+                                        <TextInput style={styles.input} value={discountAmount} onChangeText={setDiscountAmount} keyboardType="numeric" placeholder="0" />
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 5 }}>
+                                        <Text style={styles.label}>Paid Amount</Text>
+                                        <TextInput style={styles.input} value={paidAmount} onChangeText={setPaidAmount} keyboardType="numeric" placeholder="0" />
+                                    </View>
+                                </View>
+
+                                <View style={[styles.divider, { marginVertical: 8 }]} />
+                                <View style={styles.summaryRow}>
+                                    <Text style={styles.totalText}>Final Total</Text>
+                                    <Text style={[styles.totalText, { color: '#000000' }]}>₹{calculateFinalTotal()}</Text>
+                                </View>
 
                                 <View style={[styles.summaryRow, { marginTop: 10 }]}>
                                     {(() => {
-                                        const tot = calculateTotal();
+                                        const tot = calculateFinalTotal();
                                         const pd = parseFloat(paidAmount) || 0;
                                         const diff = tot - pd;
                                         const isChange = diff < 0;
                                         return (
                                             <>
                                                 <Text style={[styles.totalText, { color: isChange ? '#059669' : '#ef4444' }]}>
-                                                    {isChange ? 'Change/Return:' : 'Due Amount:'}
+                                                    {isChange ? 'Change/Return:' : 'Balance Due:'}
                                                 </Text>
                                                 <Text style={[styles.totalText, { color: isChange ? '#059669' : '#ef4444' }]}>
                                                     ₹{Math.abs(diff)}
@@ -444,6 +483,13 @@ const CreateOrderScreen = ({ navigation, route }) => {
                                         );
                                     })()}
                                 </View>
+                            </View>
+
+                            <View style={{ marginBottom: 15 }}>
+                                <Text style={styles.label}>Order Type</Text>
+                                <TouchableOpacity style={styles.input} onPress={() => setShowOrderTypeModal(true)}>
+                                    <Text style={{ color: '#000' }}>{orderType}</Text>
+                                </TouchableOpacity>
                             </View>
 
                             <TextInput
@@ -490,6 +536,26 @@ const CreateOrderScreen = ({ navigation, route }) => {
                                             onPress={() => { setStatus(opt); setShowStatusModal(false); }}
                                         >
                                             <Text style={{ fontSize: 16, color: status === opt ? '#059669' : '#1f2937', fontWeight: status === opt ? 'bold' : 'normal' }}>
+                                                {opt}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </TouchableOpacity>
+                        </Modal>
+
+                        {/* Order Type Modal */}
+                        <Modal visible={showOrderTypeModal} transparent={true} animationType="fade" onRequestClose={() => setShowOrderTypeModal(false)}>
+                            <TouchableOpacity style={styles.modalOverlay} onPress={() => setShowOrderTypeModal(false)}>
+                                <View style={styles.modalContent}>
+                                    <Text style={[styles.modalTitle, { marginBottom: 16 }]}>Select Order Type</Text>
+                                    {TYPE_OPTIONS.map(opt => (
+                                        <TouchableOpacity
+                                            key={opt}
+                                            style={{ padding: 16, borderBottomWidth: 1, borderColor: '#f3f4f6' }}
+                                            onPress={() => { setOrderType(opt); setShowOrderTypeModal(false); }}
+                                        >
+                                            <Text style={{ fontSize: 16, color: orderType === opt ? '#059669' : '#1f2937', fontWeight: orderType === opt ? 'bold' : 'normal' }}>
                                                 {opt}
                                             </Text>
                                         </TouchableOpacity>

@@ -76,7 +76,7 @@ const SalesScreen = ({ navigation }) => {
                 <View style={styles.cardHeader}>
                     <View style={styles.row}>
                         <FileText size={16} color="#4b5563" />
-                        <Text style={styles.orderId}>Order #{item.id}</Text>
+                        <Text style={styles.orderId}>{item.invoice_number || `ORD-${item.id}`}</Text>
                     </View>
                     <View style={[styles.badge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
                         <Text style={[styles.badgeText, { color: getStatusColor(item.status) }]}>
