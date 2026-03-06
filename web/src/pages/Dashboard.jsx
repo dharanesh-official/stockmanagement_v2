@@ -21,15 +21,25 @@ const Dashboard = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (!storedUser) {
+        try {
+            const storedUser = localStorage.getItem('user');
+            if (!storedUser || storedUser === 'null' || storedUser === 'undefined') {
+                navigate('/login');
+                return;
+            }
+            const parsedUser = JSON.parse(storedUser);
+            if (!parsedUser) {
+                navigate('/login');
+                return;
+            }
+            setUser(parsedUser);
+        } catch (error) {
+            console.error("Session error:", error);
             navigate('/login');
-            return;
         }
-        setUser(JSON.parse(storedUser));
     }, [navigate]);
 
-    if (!user) return null;
+    if (!user) return <div className="loading-container">Validating session...</div>;
 
     return (
         <div className="dashboard-container">
