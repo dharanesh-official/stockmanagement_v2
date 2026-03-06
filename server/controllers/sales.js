@@ -3,11 +3,11 @@ const pool = require('../db');
 const getSales = async (req, res) => {
     try {
         const { role, id } = req.user;
-        const limit = req.query.limit ? parseInt(req.query.limit) : 100; // Default limit to 100 recent orders
+        const limit = req.query.limit ? parseInt(req.query.limit) : 100;
 
         let query = `
       SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name, s.location as shop_location,
-             (t.total_amount - t.paid_amount) as due_amount,
+             (t.total_amount + t.gst_amount + t.shipping_charge - t.discount_amount - t.paid_amount) as due_amount,
              EXTRACT(DAY FROM (NOW() - t.due_date)) as days_overdue
       FROM transactions t
       JOIN users u ON t.user_id = u.id
@@ -61,53 +61,75 @@ const getSaleById = async (req, res) => {
     }
 };
 
+const generateInvoiceNumber = async (client) => {
+    const year = new Date().getFullYear();
+    const result = await client.query(
+        "SELECT COUNT(*) FROM transactions WHERE type IN ('order', 'sale') AND invoice_number LIKE $1",
+        [`ORD-${year}-%`]
+    );
+    const count = parseInt(result.rows[0].count) + 1;
+    return `ORD-${year}-${count.toString().padStart(4, '0')}`;
+};
+
 const createSale = async (req, res) => {
     const client = await pool.connect();
     try {
-        const { customer_id, shop_id, type, items, notes, due_date, payment_method, applied_invoice_id } = req.body;
+        const { 
+            customer_id, shop_id, type, items, notes, due_date, 
+            payment_method, applied_invoice_id, order_type, 
+            gst_amount = 0, discount_amount = 0, shipping_charge = 0 
+        } = req.body;
         const user_id = req.user.id;
 
         await client.query('BEGIN');
 
-        // 1. Fetch Customer Info for Balance and Credit Limit Check
+        const invoice_number = await generateInvoiceNumber(client);
+
+        // Fetch Customer Info
         const custRes = await client.query('SELECT balance, credit_limit FROM customers WHERE id = $1', [customer_id]);
         if (custRes.rows.length === 0) throw new Error('Customer not found');
         const customer = custRes.rows[0];
 
-        let total_amount = req.body.amount || 0;
+        let subtotal = req.body.amount || 0;
         if (items && items.length > 0) {
-            total_amount = 0;
+            subtotal = 0;
             for (const item of items) {
-                total_amount += item.quantity * item.price;
+                subtotal += item.quantity * item.price;
             }
         }
 
+        const total_payable = Number(subtotal) + Number(gst_amount) + Number(shipping_charge) - Number(discount_amount);
         const paid_amount = Number(req.body.paid_amount) || 0;
 
-        // 2. Credit Limit Check for Orders/Sales
+        // Credit Limit Check
         if (type === 'order' || type === 'sale') {
-            const netAdjustment = total_amount - paid_amount;
+            const netAdjustment = total_payable - paid_amount;
             const projectedBalance = Number(customer.balance) + netAdjustment;
             const limit = Number(customer.credit_limit);
 
             if (limit > 0 && projectedBalance > limit) {
-                throw new Error(`Credit limit exceeded. Current: ₹${customer.balance}, New Total: ₹${projectedBalance.toFixed(2)}, Limit: ₹${limit}`);
+                throw new Error(`Credit limit exceeded. New Balance: ₹${projectedBalance.toFixed(2)}, Limit: ₹${limit}`);
             }
         }
 
         let status = type === 'order' ? 'Ordered' : 'completed';
 
-        if (type === 'order') {
-            status = 'Ordered';
-        }
-
         const transactionRes = await client.query(
-            'INSERT INTO transactions (user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount, due_date, payment_method, applied_invoice_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
-            [user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount, due_date || null, payment_method || null, applied_invoice_id || null]
+            `INSERT INTO transactions (
+                user_id, customer_id, shop_id, type, total_amount, notes, status, 
+                paid_amount, due_date, payment_method, applied_invoice_id, 
+                invoice_number, order_type, gst_amount, discount_amount, shipping_charge
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
+            RETURNING id`,
+            [
+                user_id, customer_id, shop_id, type, subtotal, notes, status, 
+                paid_amount, due_date || null, payment_method, applied_invoice_id, 
+                invoice_number, order_type || 'Direct Sale', gst_amount, discount_amount, shipping_charge
+            ]
         );
         const transaction_id = transactionRes.rows[0].id;
 
-        // Create Transaction Items and Update Stock
+        // Transaction Items & Stock
         if (items && items.length > 0) {
             for (const item of items) {
                 await client.query(
@@ -115,60 +137,43 @@ const createSale = async (req, res) => {
                     [transaction_id, item.stock_id, item.quantity, item.price, item.quantity * item.price]
                 );
 
-                // Inventory Logic
                 if (type === 'sale' || type === 'order') {
-                    // Check stock first (for safety, though frontend should prevent)
-                    const stockRes = await client.query('SELECT quantity FROM stock WHERE id = $1', [item.stock_id]);
-                    if (stockRes.rows.length === 0 || stockRes.rows[0].quantity < item.quantity) {
-                        throw new Error(`Insufficient stock for item ID: ${item.stock_id}`);
-                    }
-
                     await client.query(
                         'UPDATE stock SET quantity = quantity - $1 WHERE id = $2',
-                        [item.quantity, item.stock_id]
-                    );
-                } else if (type === 'credit_note') {
-                    await client.query(
-                        'UPDATE stock SET quantity = quantity + $1 WHERE id = $2',
                         [item.quantity, item.stock_id]
                     );
                 }
             }
         }
 
-        // Update Customer Balance
-        if (type === 'sale' || type === 'order') {
-            const balanceAdjustment = total_amount - paid_amount;
+        // Parent-Child Payment Logic
+        if (paid_amount > 0) {
             await client.query(
-                'UPDATE customers SET balance = balance + $1 WHERE id = $2',
-                [balanceAdjustment, customer_id]
-            );
-
-            // Record initial payment in transaction history if exists
-            if (paid_amount > 0) {
-                await client.query(
-                    'INSERT INTO transactions (user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount, payment_method) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-                    [user_id, customer_id, shop_id, 'payment', paid_amount, `Initial payment for Order #${transaction_id.slice(0, 8).toUpperCase()}`, 'completed', paid_amount, payment_method || 'Cash']
-                );
-            }
-        } else if (type === 'credit_note') {
-            await client.query(
-                'UPDATE customers SET balance = balance - $1 WHERE id = $2',
-                [total_amount, customer_id]
-            );
-        } else if (type === 'payment') {
-            await client.query(
-                'UPDATE customers SET balance = balance - $1 WHERE id = $2',
-                [total_amount, customer_id]
+                `INSERT INTO transactions (
+                    user_id, customer_id, shop_id, type, total_amount, notes, status, 
+                    paid_amount, payment_method, parent_id
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+                [
+                    user_id, customer_id, shop_id, 'payment', paid_amount, 
+                    `Initial payment for Order ${invoice_number}`, 'completed', 
+                    paid_amount, payment_method || 'Cash', transaction_id
+                ]
             );
         }
 
+        // Update Customer
+        const balanceAdjustment = (type === 'sale' || type === 'order') ? (total_payable - paid_amount) : 0;
+        await client.query(
+            'UPDATE customers SET balance = balance + $1, last_purchase_date = NOW() WHERE id = $2',
+            [balanceAdjustment, customer_id]
+        );
+
         await client.query('COMMIT');
-        res.json({ message: 'Transaction created successfully', transaction_id });
+        res.json({ message: 'Transaction created successfully', transaction_id, invoice_number });
     } catch (error) {
         await client.query('ROLLBACK');
         console.error(error.message);
-        res.status(500).send('Server Error');
+        res.status(500).json({ error: error.message });
     } finally {
         client.release();
     }
@@ -301,4 +306,57 @@ const getOrderPayments = async (req, res) => {
     }
 };
 
-module.exports = { getSales, createSale, updateSale, deleteSale, getSaleItems, getSaleById, updateOrderPayment, getOrderPayments };
+const getSalesAnalytics = async (req, res) => {
+    try {
+        const { role, id } = req.user;
+        let baseQuery = "FROM transactions WHERE type IN ('sale', 'order')";
+        const params = [];
+
+        if (role !== 'admin') {
+            baseQuery += " AND user_id = $1";
+            params.push(id);
+        }
+
+        const metricsQuery = `
+            SELECT 
+                COUNT(*) as total_orders,
+                SUM(total_amount + gst_amount + shipping_charge - discount_amount) as total_revenue,
+                SUM(paid_amount) as total_collected,
+                SUM(total_amount + gst_amount + shipping_charge - discount_amount - paid_amount) as total_pending
+            ${baseQuery}
+        `;
+
+        const typeQuery = `
+            SELECT order_type, COUNT(*) as count 
+            ${baseQuery}
+            GROUP BY order_type
+        `;
+
+        const statusQuery = `
+            SELECT status, COUNT(*) as count 
+            ${baseQuery}
+            GROUP BY status
+        `;
+
+        const [metrics, types, statuses] = await Promise.all([
+            pool.query(metricsQuery, params),
+            pool.query(typeQuery, params),
+            pool.query(statusQuery, params)
+        ]);
+
+        res.json({
+            metrics: metrics.rows[0],
+            types: types.rows,
+            statuses: statuses.rows
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+module.exports = { 
+    getSales, createSale, updateSale, deleteSale, 
+    getSaleItems, getSaleById, updateOrderPayment, 
+    getOrderPayments, getSalesAnalytics 
+};

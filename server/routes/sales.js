@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getSales, createSale, updateSale, deleteSale, getSaleItems, getSaleById, updateOrderPayment, getOrderPayments } = require('../controllers/sales');
+const { getSales, createSale, updateSale, deleteSale, getSaleItems, getSaleById, updateOrderPayment, getOrderPayments, getSalesAnalytics } = require('../controllers/sales');
 const { verifyToken } = require('../middleware/auth');
 
 router.get('/', verifyToken, getSales);
+router.get('/analytics', verifyToken, getSalesAnalytics);
 router.get('/:id', verifyToken, getSaleById);
 router.get('/items/:id', verifyToken, getSaleItems);
 router.post('/', verifyToken, createSale);

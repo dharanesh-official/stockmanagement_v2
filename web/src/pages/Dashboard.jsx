@@ -12,6 +12,7 @@ import DashboardHome from './DashboardHome';
 import Shops from './Shops';
 import CreateOrder from './CreateOrder';
 import Invoice from './Invoice';
+import OrderDetails from './OrderDetails';
 import CustomerProfile from './CustomerProfile';
 import CustomerLedger from './CustomerLedger';
 import api from '../services/api'; // Or context
@@ -64,6 +65,7 @@ const Dashboard = () => {
                         <Route path="customers/:id" element={<CustomerProfile user={user} />} />
                         <Route path="customers/:id/ledger" element={<CustomerLedger user={user} />} />
                         <Route path="sales" element={<SalesList user={user} />} />
+                        <Route path="sales/:id" element={<OrderDetails user={user} />} />
                         <Route path="finance" element={<Finance user={user} />} />
                         <Route path="employees" element={<Employees user={user} />} />
                         <Route path="settings" element={<Settings user={user} />} />
