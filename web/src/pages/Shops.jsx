@@ -869,7 +869,7 @@ const Shops = () => {
                                 </td>
                                 <td>
                                   <span
-                                    className={`status-pill ${((t.status) || "unknown").toLowerCase().replace(" ", "-")}`}
+                                    className={`status-pill ${(String(t.status || "unknown")).toLowerCase().replace(" ", "-")}`}
                                   >
                                     {t.status || "Unknown"}
                                   </span>
@@ -959,7 +959,7 @@ const Shops = () => {
                             .map((t) => (
                               <tr key={t.id}>
                                 <td className="font-mono text-xs">
-                                  #{t.id.slice(0, 8).toUpperCase()}
+                                  #{String(t.id).slice(0, 8).toUpperCase()}
                                 </td>
                                 <td>
                                   {new Date(

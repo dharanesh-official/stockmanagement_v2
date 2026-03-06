@@ -103,7 +103,7 @@ const DashboardHome = () => {
         }
     ];
 
-    if (loading && !stats.recentTransactions.length) {
+    if (loading && !(stats.recentTransactions || []).length) {
         return <div className="loading-container">Loading Dashboard...</div>;
     }
 
