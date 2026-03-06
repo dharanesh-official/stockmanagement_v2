@@ -28,6 +28,7 @@ import './Finance.css';
 const Finance = ({ user }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [dues, setDues] = useState([]);
     const [unpaidTransactions, setUnpaidTransactions] = useState([]);
     const [creditNotes, setCreditNotes] = useState([]);
     const [paymentHistory, setPaymentHistory] = useState([]);
