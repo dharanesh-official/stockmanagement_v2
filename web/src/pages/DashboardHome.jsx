@@ -55,7 +55,7 @@ const DashboardHome = () => {
     const statCards = [
         {
             title: 'Total Sales',
-            value: `₹${stats.totalSales.toLocaleString()}`,
+            value: `₹${(stats.totalSales || 0).toLocaleString()}`,
             icon: <IndianRupee size={20} />,
             trend: '+12.5%',
             isPositive: true,
@@ -128,7 +128,7 @@ const DashboardHome = () => {
                     <h3>Recent Sales Performance</h3>
                     <div className="chart-wrapper">
                         <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={stats.recentTransactions.slice().reverse()}>
+                            <AreaChart data={(stats.recentTransactions || []).slice().reverse()}>
                                 <defs>
                                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
@@ -161,7 +161,7 @@ const DashboardHome = () => {
                         <button className="btn-view-all">View All</button>
                     </div>
                     <div className="transactions-list">
-                        {stats.recentTransactions.map((tx) => (
+                        {(stats.recentTransactions || []).map((tx) => (
                             <div key={tx.id} className="transaction-item">
                                 <div className="tx-icon">
                                     <ShoppingBag size={20} />
@@ -172,7 +172,7 @@ const DashboardHome = () => {
                                 </div>
                                 <div className="tx-amount">
                                     <p className={tx.type === 'sale' ? 'amount-positive' : 'amount-neutral'}>
-                                        {tx.type === 'sale' ? '+' : ''}₹{parseFloat(tx.total_amount).toLocaleString()}
+                                        {tx.type === 'sale' ? '+' : ''}₹{parseFloat(tx.total_amount || 0).toLocaleString()}
                                     </p>
                                     <p className="tx-type">{tx.type}</p>
                                 </div>

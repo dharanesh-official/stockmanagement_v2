@@ -15,13 +15,6 @@ const Settings = ({ user }) => {
     const [msg, setMsg] = useState({ type: '', text: '' });
     const [companyData, setCompanyData] = useState({ company_name: '', company_address: '' });
 
-    useEffect(() => {
-        if (user) {
-            setFormData(prev => ({ ...prev, full_name: user.full_name || '', email: user.email || '' }));
-            if (user.role === 'admin') fetchCompanySettings();
-        }
-    }, [user]);
-
     const fetchCompanySettings = async () => {
         try {
             const res = await api.get('/settings');
@@ -30,6 +23,13 @@ const Settings = ({ user }) => {
             console.error(err);
         }
     };
+
+    useEffect(() => {
+        if (user) {
+            setFormData(prev => ({ ...prev, full_name: user.full_name || '', email: user.email || '' }));
+            if (user.role === 'admin') fetchCompanySettings();
+        }
+    }, [user]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
