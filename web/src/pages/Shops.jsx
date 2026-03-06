@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import {
   Plus,
@@ -13,12 +14,14 @@ import {
   Map,
   ArrowLeft,
   X,
+  CreditCard
 } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import "./StockList.css"; // Reusing common table/page styles
 import "./Shops.css";
 
 const Shops = () => {
+  const navigate = useNavigate();
   const [shops, setShops] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -484,6 +487,16 @@ const Shops = () => {
                             <Navigation size={18} />
                           </button>
                         )}
+                        <button
+                          className="icon-btn text-emerald-600 hover:text-emerald-800"
+                          title="View Finance"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/dashboard/finance', { state: { shopId: shop.id } });
+                          }}
+                        >
+                          <CreditCard size={18} />
+                        </button>
                         {hasPermission("shops", "edit") && (
                           <button
                             className="icon-btn"

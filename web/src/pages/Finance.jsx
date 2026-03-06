@@ -14,7 +14,8 @@ import {
     X,
     TrendingUp,
     FileText,
-    StickyNote
+    StickyNote,
+    Store
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Finance.css';
@@ -25,10 +26,12 @@ const Finance = ({ user }) => {
     const [dues, setDues] = useState([]);
     const [history, setHistory] = useState([]);
     const [orders, setOrders] = useState([]);
+    const [shops, setShops] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [activeTab, setActiveTab] = useState('dues');
     const [filterCustomerId, setFilterCustomerId] = useState(location.state?.customerId || null);
+    const [filterShopId, setFilterShopId] = useState(location.state?.shopId || null);
 
     // Payment Modal State (General Dues)
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -52,15 +55,21 @@ const Finance = ({ user }) => {
         try {
             // Added timestamp to prevent caching
             const timestamp = Date.now();
-            const [custRes, saleRes] = await Promise.all([
+            const [custRes, saleRes, shopRes] = await Promise.all([
                 api.get(`/customers?t=${timestamp}`),
-                api.get(`/sales?t=${timestamp}`)
+                api.get(`/sales?t=${timestamp}`),
+                api.get(`/shops?t=${timestamp}`)
             ]);
 
             // For Dues Tab - Total Outstanding calculation
             const allCustomers = custRes.data;
+            setShops(shopRes.data);
+            
+            // If filtering by shop, we might still want to see the specific customer's balance
+            // Dues logic: if shop filter is active, we should only show customers associated with that shop's transactions?
+            // Actually, balance is per customer. Let's just keep dues as customers but filterable.
+            
             const sortedDues = allCustomers
-                .filter(c => Number(c.balance) > 0.01) // Filter tiny dust balances
                 .sort((a, b) => Number(b.balance) - Number(a.balance));
 
             setDues(sortedDues);
@@ -165,22 +174,33 @@ const Finance = ({ user }) => {
     const filteredDues = dues.filter(c => {
         const matchesSearch = c.full_name.toLowerCase().includes(search.toLowerCase());
         const matchesId = filterCustomerId ? c.id === filterCustomerId : true;
-        return matchesSearch && matchesId;
+        
+        // Shop filter for dues is tricky since balance is customer-wide. 
+        // We'll show customers who have transactions at this shop if shop filter is on.
+        const matchesShop = filterShopId ? orders.some(o => o.customer_id === c.id && o.shop_id === filterShopId) : true;
+        
+        // Only show 0 balance if explicitly filtered
+        const hasBalance = Number(c.balance) > 0.01;
+        const isExplicitlyFiltered = filterCustomerId === c.id;
+
+        return matchesSearch && matchesId && matchesShop && (hasBalance || isExplicitlyFiltered);
     });
 
     const filteredHistory = history.filter(h => {
         const matchesSearch = h.customer_name.toLowerCase().includes(search.toLowerCase()) ||
                               h.shop_name?.toLowerCase().includes(search.toLowerCase());
-        const matchesId = filterCustomerId ? h.customer_id === filterCustomerId : true;
-        return matchesSearch && matchesId;
+        const matchesCustomer = filterCustomerId ? h.customer_id === filterCustomerId : true;
+        const matchesShop = filterShopId ? h.shop_id === filterShopId : true;
+        return matchesSearch && matchesCustomer && matchesShop;
     });
 
     const filteredOrders = orders.filter(o => {
         const matchesSearch = o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
                               o.shop_name?.toLowerCase().includes(search.toLowerCase()) ||
                               o.id.includes(search);
-        const matchesId = filterCustomerId ? o.customer_id === filterCustomerId : true;
-        return matchesSearch && matchesId;
+        const matchesCustomer = filterCustomerId ? o.customer_id === filterCustomerId : true;
+        const matchesShop = filterShopId ? o.shop_id === filterShopId : true;
+        return matchesSearch && matchesCustomer && matchesShop;
     });
 
     if (loading) return <div className="loading-state">Synchronizing financial records...</div>;
@@ -188,17 +208,45 @@ const Finance = ({ user }) => {
     return (
         <div className="finance-page">
             <header className="page-header">
-                <div className="flex items-center gap-4">
-                    <div>
-                        <h1>Finance Hub</h1>
-                        <p className="subtitle">Unified management of dues, payments, and credit notes.</p>
-                    </div>
-                    {filterCustomerId && (
-                        <div className="filter-badge">
-                            <span>Filtering by Specific Customer</span>
-                            <button className="clear-filter" onClick={() => setFilterCustomerId(null)}>Clear Filter</button>
+                <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-6">
+                        <div>
+                            <h1>Finance Hub</h1>
+                            <p className="subtitle">Unified management of dues, payments, and credit notes.</p>
                         </div>
-                    )}
+                        <div className="filter-badge-group">
+                            {filterCustomerId && (
+                                <div className="filter-badge customer">
+                                    <User size={12} />
+                                    <span>{dues.find(d => d.id === filterCustomerId)?.full_name || 'Specific Customer'}</span>
+                                    <button className="clear-filter" onClick={() => setFilterCustomerId(null)}>&times;</button>
+                                </div>
+                            )}
+                            {filterShopId && (
+                                <div className="filter-badge shop">
+                                    <Store size={12} />
+                                    <span>{shops.find(s => s.id === filterShopId)?.name || 'Specific Shop'}</span>
+                                    <button className="clear-filter" onClick={() => setFilterShopId(null)}>&times;</button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="header-filters">
+                        <div className="shop-select-wrapper">
+                            <Store size={16} className="select-icon" />
+                            <select 
+                                value={filterShopId || ''} 
+                                onChange={(e) => setFilterShopId(e.target.value || null)}
+                                className="shop-filter-select"
+                            >
+                                <option value="">All Shops (Shop-wise)</option>
+                                {shops.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </header>
 

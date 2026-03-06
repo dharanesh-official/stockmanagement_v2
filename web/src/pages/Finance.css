@@ -59,35 +59,76 @@
     letter-spacing: -0.02em;
 }
 
+.filter-badge-group {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
 .filter-badge {
     background: #f1f5f9;
-    padding: 0.5rem 1rem;
-    border-radius: 99px;
+    padding: 0.4rem 0.75rem;
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 0.8125rem;
+    gap: 0.5rem;
+    font-size: 0.75rem;
     font-weight: 700;
     color: #475569;
     border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    white-space: nowrap;
 }
+
+.filter-badge.customer { border-left: 4px solid #3b82f6; }
+.filter-badge.shop { border-left: 4px solid #8b5cf6; }
 
 .clear-filter {
     background: #fee2e2;
     color: #ef4444;
     border: none;
-    padding: 0.25rem 0.625rem;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 800;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.2s;
+    line-height: 1;
 }
 
 .clear-filter:hover {
     background: #ef4444;
     color: white;
+}
+
+.shop-select-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.select-icon {
+    color: #94a3b8;
+    margin-right: -0.5rem;
+}
+
+.shop-filter-select {
+    border: none;
+    outline: none;
+    padding: 0.625rem 1rem;
+    background: none;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #475569;
+    cursor: pointer;
+    min-width: 200px;
 }
 
 .finance-container {
