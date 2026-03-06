@@ -900,7 +900,7 @@ const Shops = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {allTransactions.filter((t) => t.type === "payment")
+                        {(allTransactions || []).filter((t) => t.type === "payment")
                           .length > 0 ? (
                           allTransactions
                             .filter((t) => t.type === "payment")
