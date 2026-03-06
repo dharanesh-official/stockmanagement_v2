@@ -14,7 +14,13 @@ import {
   Map,
   ArrowLeft,
   X,
-  CreditCard
+  CreditCard,
+  Filter,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  Clock,
+  Briefcase
 } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import "./StockList.css"; // Reusing common table/page styles
@@ -30,6 +36,7 @@ const Shops = () => {
   const [employees, setEmployees] = useState([]);
   const [areas, setAreas] = useState([]);
   const [selectedArea, setSelectedArea] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const [showAreaModal, setShowAreaModal] = useState(false);
   const [newAreaName, setNewAreaName] = useState("");
@@ -53,6 +60,15 @@ const Shops = () => {
     salesman_id: "",
     location: "",
     area_id: "",
+    shop_code: "",
+    shop_type: "Retail",
+    gst_number: "",
+    city: "",
+    state: "",
+    pincode: "",
+    credit_limit: 0,
+    notes: "",
+    status: "Active",
   });
 
   useEffect(() => {
@@ -170,6 +186,15 @@ const Shops = () => {
       salesman_id: "",
       location: "",
       area_id: selectedArea ? selectedArea.id : "",
+      shop_code: "",
+      shop_type: "Retail",
+      gst_number: "",
+      city: "",
+      state: "",
+      pincode: "",
+      credit_limit: 0,
+      notes: "",
+      status: "Active",
     });
   };
 
@@ -222,6 +247,15 @@ const Shops = () => {
       salesman_id: shop.salesman_id || "",
       location: shop.location || "",
       area_id: shop.area_id || "",
+      shop_code: shop.shop_code || "",
+      shop_type: shop.shop_type || "Retail",
+      gst_number: shop.gst_number || "",
+      city: shop.city || "",
+      state: shop.state || "",
+      pincode: shop.pincode || "",
+      credit_limit: shop.credit_limit || 0,
+      notes: shop.notes || "",
+      status: shop.status || "Active",
     });
     setShowModal(true);
   };
@@ -248,10 +282,13 @@ const Shops = () => {
 
   const filteredShops = shops.filter((shop) => {
     const matchesArea = selectedArea ? shop.area_id === selectedArea.id : true;
+    const matchesStatus = statusFilter === "All" ? true : shop.status === statusFilter;
+    const query = search.toLowerCase();
     const matchesSearch =
-      (shop.name || "").toLowerCase().includes(search.toLowerCase()) ||
+      (shop.name || "").toLowerCase().includes(query) ||
+      (shop.shop_code || "").toLowerCase().includes(query) ||
       (shop.phone || "").includes(search);
-    return matchesArea && matchesSearch;
+    return matchesArea && matchesSearch && matchesStatus;
   });
 
   const getAreaShopCount = (areaId) => {
@@ -309,92 +346,67 @@ const Shops = () => {
       </div>
 
       <div className="controls-bar">
-        <div className="search-box">
-          <Search size={18} color="#9ca3af" />
-          <input
-            type="text"
-            placeholder="Search by Shop Name or Phone..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="search-filters">
+          <div className="search-box">
+            <Search size={18} color="#9ca3af" />
+            <input
+              type="text"
+              placeholder="Search by Shop Name, Code or Phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <select 
+            className="select-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="All">All Status</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+            <option value="Temporarily Closed">Temporarily Closed</option>
+          </select>
         </div>
       </div>
 
-      {!selectedArea ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-            gap: "16px",
-            padding: "0 16px 16px",
-          }}
-        >
+        <div className="area-grid">
           {areas.map((area) => (
             <div
               key={area.id}
+              className="area-card"
               onClick={() => setSelectedArea(area)}
-              style={{
-                backgroundColor: "white",
-                padding: "20px",
-                borderRadius: "12px",
-                cursor: "pointer",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
-                border: "1px solid #f3f4f6",
-                transition: "all 0.2s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = "translateY(-2px)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.transform = "translateY(0)")
-              }
             >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
-                <div
-                  style={{
-                    backgroundColor: "#ecfdf5",
-                    padding: "12px",
-                    borderRadius: "12px",
-                  }}
-                >
+              <div className="area-card-header">
+                <div className="area-icon-wrap">
                   <Map size={24} color="#059669" />
                 </div>
                 <div>
-                  <h3
-                    style={{
-                      margin: 0,
-                      fontSize: "18px",
-                      fontWeight: "bold",
-                      color: "#111827",
-                    }}
-                  >
-                    {area.name}
-                  </h3>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "14px",
-                      color: "#6b7280",
-                      marginTop: "4px",
-                    }}
-                  >
-                    {getAreaShopCount(area.id)} Shops
-                  </p>
+                  <h3 className="area-title">{area.name}</h3>
+                  <p className="area-meta">{area.total_shops} Registered Shops</p>
+                </div>
+              </div>
+              <div className="area-metrics-grid">
+                <div className="metric-item">
+                  <span className="metric-label">Total Sales</span>
+                  <span className="metric-value positive">₹{Number(area.total_sales || 0).toLocaleString()}</span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Dues</span>
+                  <span className="metric-value negative">₹{Number(area.pending_payments || 0).toLocaleString()}</span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Low Stock</span>
+                  <span className="metric-value warning">{area.low_stock_shops || 0} Shops</span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Orders</span>
+                  <span className="metric-value">{area.total_shops > 0 ? 'Managed' : 'Empty'}</span>
                 </div>
               </div>
             </div>
           ))}
           {areas.length === 0 && (
-            <div
-              style={{
-                gridColumn: "1 / -1",
-                textAlign: "center",
-                padding: "40px",
-                color: "#6b7280",
-              }}
-            >
+            <div className="placeholder-view">
               No areas found. Add an area to get started.
             </div>
           )}
@@ -405,11 +417,10 @@ const Shops = () => {
             <thead>
               <tr>
                 <th>S.No</th>
-                <th>SHOP NAME</th>
-                <th>CUSTOMER</th>
-                {user?.role === "admin" && <th>SALESMAN</th>}
-                <th>CONTACT</th>
-                <th>ADDRESS</th>
+                <th>SHOP DETAILS</th>
+                <th>STATUS</th>
+                <th>FINANCIALS</th>
+                <th>ACTIVITY</th>
                 <th>ACTIONS</th>
               </tr>
             </thead>
@@ -429,49 +440,50 @@ const Shops = () => {
                   >
                     <td className="sno-cell">{index + 1}</td>
                     <td className="product-cell">
-                      <div className="flex flex-col">
-                        <span className="product-name font-medium text-gray-900">
+                      <div className="flex flex-col gap-1">
+                        <span className="product-name font-bold text-gray-900">
                           {shop.name}
                         </span>
-                        {shop.email && (
-                          <span className="text-xs text-gray-500">
-                            {shop.email}
+                        <div className="flex items-center gap-2">
+                           <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-600">ID: {shop.shop_code || shop.id}</span>
+                           <span className="text-xs text-blue-600 font-semibold">{shop.shop_type}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                          <User size={10} /> {shop.customer_name}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${shop.status.toLowerCase().replace(/ /g, '-')}`}>
+                        {shop.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex justify-between items-center text-xs gap-4">
+                          <span className="text-gray-500">Orders:</span>
+                          <span className="font-bold">{shop.total_orders || 0}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs gap-4">
+                          <span className="text-gray-500">Balance:</span>
+                          <span className={`font-bold ${Number(shop.outstanding_balance) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                            ₹{Number(shop.outstanding_balance || 0).toLocaleString()}
                           </span>
+                        </div>
+                        {Number(shop.credit_limit) > 0 && (
+                           <div className="text-[10px] text-gray-400">Limit: ₹{Number(shop.credit_limit).toLocaleString()}</div>
                         )}
                       </div>
                     </td>
                     <td>
-                      <span className="badge badge-blue">
-                        <User size={12} className="inline mr-1" />
-                        {shop.customer_name}
-                      </span>
-                    </td>
-                    {user?.role === "admin" && (
-                      <td>
-                        <span className="badge badge-purple">
-                          <User size={12} className="inline mr-1" />
-                          {shop.salesman_name || "Unassigned"}
-                        </span>
-                      </td>
-                    )}
-                    <td>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Phone size={14} className="text-gray-400" />
-                        {shop.phone}
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex flex-col gap-1 items-start text-sm max-w-xs">
-                        <div className="flex gap-2">
-                          <MapPin
-                            size={14}
-                            className="text-emerald-500 mt-1 shrink-0"
-                          />
-                          <span className="text-gray-600 leading-relaxed">
-                            {shop.address}
-                          </span>
-                        </div>
-                      </div>
+                       <div className="flex flex-col gap-1 text-[11px]">
+                          <div className="flex items-center gap-1 text-gray-600">
+                             <Clock size={10} /> Last: {shop.last_order_date ? new Date(shop.last_order_date).toLocaleDateString() : 'Never'}
+                          </div>
+                          <div className="flex items-center gap-1 text-gray-400">
+                             <Briefcase size={10} /> By: {shop.salesman_name || 'Admin'}
+                          </div>
+                       </div>
                     </td>
                     <td className="actions-cell">
                       <div className="flex gap-1">
@@ -526,8 +538,8 @@ const Shops = () => {
               )}
               {!loading && filteredShops.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="text-center p-8 text-gray-500">
-                    No shops found in this area.
+                  <td colSpan="6" className="text-center p-8 text-gray-500">
+                    No shops found match criteria.
                   </td>
                 </tr>
               )}
@@ -612,134 +624,175 @@ const Shops = () => {
               <h2>{formData.id ? "Edit Shop" : "Add New Shop"}</h2>
             </div>
             <form onSubmit={handleCreateOrUpdateShop} className="shop-form">
-              <div className="managed-form">
-                <div className="form-group">
-                  <label>Shop Name</label>
-                  <input
-                    type="text"
-                    placeholder="Enter shop name"
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Area</label>
-                  <select
-                    value={formData.area_id || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, area_id: e.target.value })
-                    }
-                    required
-                  >
-                    <option value="">Select Area</option>
-                    {areas.map((area) => (
-                      <option key={area.id} value={area.id}>
-                        {area.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Customer</label>
-                  <select
-                    value={formData.customer_id}
-                    onChange={(e) =>
-                      setFormData({ ...formData, customer_id: e.target.value })
-                    }
-                    required
-                  >
-                    <option value="">Select Customer</option>
-                    {customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.full_name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {user?.role === "admin" && (
+                <div className="form-grid-2">
+                  <div className="form-group full-width">
+                    <label>Shop Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter business name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+
                   <div className="form-group">
-                    <label>Assign Salesman</label>
+                    <label>Shop Code / ID</label>
+                    <input
+                      type="text"
+                      placeholder="SH-001"
+                      value={formData.shop_code}
+                      onChange={(e) => setFormData({ ...formData, shop_code: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Shop Type</label>
                     <select
-                      value={formData.salesman_id}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          salesman_id: e.target.value,
-                        })
-                      }
+                      value={formData.shop_type}
+                      onChange={(e) => setFormData({ ...formData, shop_type: e.target.value })}
                     >
-                      <option value="">Assign to Me (Default)</option>
-                      {employees.map((emp) => (
-                        <option key={emp.id} value={emp.id}>
-                          {emp.full_name}
-                        </option>
+                      <option value="Retail">Retail</option>
+                      <option value="Distributor">Distributor</option>
+                      <option value="Wholesale">Wholesale</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Area</label>
+                    <select
+                      value={formData.area_id || ""}
+                      onChange={(e) => setFormData({ ...formData, area_id: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Area</option>
+                      {areas.map((area) => (
+                        <option key={area.id} value={area.id}>{area.name}</option>
                       ))}
                     </select>
                   </div>
-                )}
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <div className="flex items-center">
-                    <div className="phone-prefix">+91</div>
+
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                      <option value="Temporarily Closed">Temporarily Closed</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Customer</label>
+                    <select
+                      value={formData.customer_id}
+                      onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                      required
+                    >
+                      <option value="">Select Primary Customer</option>
+                      {customers.map((c) => (
+                        <option key={c.id} value={c.id}>{c.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Salesman</label>
+                    <select
+                      value={formData.salesman_id}
+                      onChange={(e) => setFormData({ ...formData, salesman_id: e.target.value })}
+                      disabled={user?.role !== 'admin'}
+                    >
+                      <option value="">{user?.role === 'admin' ? 'Assign Later' : user?.full_name}</option>
+                      {employees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>{emp.full_name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>GST Number</label>
                     <input
                       type="text"
-                      className="phone-input"
-                      placeholder="98765 43210"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          phone: e.target.value
-                            .replace(/[^0-9]/g, "")
-                            .slice(0, 10),
-                        })
-                      }
-                      required
-                      style={{ flex: 1 }}
+                      placeholder="Optional GSTIN"
+                      value={formData.gst_number || ''}
+                      onChange={(e) => setFormData({ ...formData, gst_number: e.target.value })}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">
-                    Enter exactly 10 digits
-                  </p>
+
+                  <div className="form-group">
+                    <label>Credit Limit (₹)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      value={formData.credit_limit}
+                      onChange={(e) => setFormData({ ...formData, credit_limit: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Phone Number</label>
+                    <div className="flex items-center">
+                      <div className="phone-prefix">+91</div>
+                      <input
+                        type="text"
+                        className="phone-input"
+                        placeholder="9876543210"
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/[^0-9]/g, "").slice(0, 10)})}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>State</label>
+                    <input type="text" value={formData.state || ''} onChange={e => setFormData({...formData, state: e.target.value})} />
+                  </div>
+
+                  <div className="form-group">
+                    <label>City</label>
+                    <input type="text" value={formData.city || ''} onChange={e => setFormData({...formData, city: e.target.value})} />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Pincode</label>
+                    <input type="text" value={formData.pincode || ''} onChange={e => setFormData({...formData, pincode: e.target.value})} />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Physical Address</label>
+                    <textarea
+                      placeholder="Door No, Street Name..."
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      required
+                      style={{ minHeight: "80px" }}
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Maps / Location Link</label>
+                    <input
+                      type="url"
+                      placeholder="Paste Google Maps URL"
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Internal Notes</label>
+                    <textarea
+                      placeholder="Preferred delivery time, etc."
+                      value={formData.notes || ''}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      style={{ minHeight: "60px" }}
+                    />
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Email (Optional)</label>
-                  <input
-                    type="email"
-                    placeholder="shop@example.com"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Address</label>
-                  <textarea
-                    placeholder="Full shop address"
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                    required
-                    style={{ minHeight: "100px" }}
-                  ></textarea>
-                </div>
-                <div className="form-group">
-                  <label>Location Link</label>
-                  <input
-                    type="url"
-                    placeholder="E.g., https://maps.google.com/..."
-                    value={formData.location}
-                    onChange={(e) =>
-                      setFormData({ ...formData, location: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
               <div className="modal-actions">
                 <button
                   type="button"

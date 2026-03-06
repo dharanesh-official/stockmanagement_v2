@@ -1,4 +1,6 @@
 const pool = require('../db');
+const { logActivity } = require('../utils/logger');
+const { sendNotification } = require('../utils/notifications');
 
 const getAllStocks = async (req, res) => {
     try {
@@ -40,6 +42,9 @@ const addStock = async (req, res) => {
             'INSERT INTO stock (item_name, sku, quantity, price, description, category_id, min_stock_level, supplier) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
             [item_name, sku, quantity, price, description, category_id, min_stock_level || 10, supplier || 'Unknown']
         );
+        
+        await logActivity(req.user.id, 'Added Product', { stockId: newStock.rows[0].id, name: item_name }, req.ip);
+        
         res.json(newStock.rows[0]);
     } catch (error) {
         console.error(error.message);
@@ -56,6 +61,9 @@ const updateStock = async (req, res) => {
             [item_name, sku, quantity, price, description, category_id, min_stock_level, supplier, id]
         );
         if (result.rows.length === 0) return res.status(404).send('Stock not found');
+        
+        await logActivity(req.user.id, 'Updated Product', { stockId: id, name: item_name }, req.ip);
+        
         res.json(result.rows[0]);
     } catch (error) {
         console.error(error.message);
@@ -85,6 +93,14 @@ const adjustStock = async (req, res) => {
         );
 
         await client.query('COMMIT');
+        
+        await logActivity(req.user?.id, 'Adjusted Stock', { stockId: id, adjustment, reason }, req.ip);
+        
+        // Notification check
+        if (result.rows[0].quantity <= result.rows[0].min_stock_level) {
+            await sendNotification(null, 'Low Stock Alert', `Item "${result.rows[0].item_name}" is low on stock (${result.rows[0].quantity} remaining).`, 'low_stock');
+        }
+        
         res.json(result.rows[0]);
     } catch (error) {
         await client.query('ROLLBACK');
@@ -153,6 +169,8 @@ const deleteStock = async (req, res) => {
             return res.status(404).send('Product not found');
         }
 
+        await logActivity(req.user.id, 'Deleted Product', { stockId: id }, req.ip);
+        
         res.json({ message: 'Product deleted successfully' });
     } catch (error) {
         console.error(error.message);

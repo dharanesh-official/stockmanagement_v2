@@ -1,4 +1,6 @@
 const pool = require('../db');
+const { logActivity } = require('../utils/logger');
+const { sendNotification } = require('../utils/notifications');
 
 const getSales = async (req, res) => {
     try {
@@ -169,6 +171,27 @@ const createSale = async (req, res) => {
         );
 
         await client.query('COMMIT');
+        
+        await logActivity(user_id, 'Created Order', { orderId: transaction_id, invoice_number, total: total_payable }, req.ip);
+        
+        // Notifications
+        if (total_payable > 50000) {
+            await sendNotification(null, 'Big Order Alert', `Order ${invoice_number} for ₹${total_payable.toLocaleString()} was placed.`, 'big_order');
+        }
+
+        // Check for low stock items after sale
+        if (items && items.length > 0) {
+            for (const item of items) {
+                const stockCheck = await pool.query('SELECT item_name, quantity, min_stock_level FROM stock WHERE id = $1', [item.stock_id]);
+                if (stockCheck.rows.length > 0) {
+                    const s = stockCheck.rows[0];
+                    if (s.quantity <= s.min_stock_level) {
+                        await sendNotification(null, 'Low Stock Alert', `Item "${s.item_name}" is low on stock (${s.quantity} remaining).`, 'low_stock');
+                    }
+                }
+            }
+        }
+        
         res.json({ message: 'Transaction created successfully', transaction_id, invoice_number });
     } catch (error) {
         await client.query('ROLLBACK');
@@ -197,6 +220,9 @@ const deleteSale = async (req, res) => {
 
         const result = await pool.query(query, params);
         if (result.rowCount === 0) return res.status(404).send('Transaction not found or access denied');
+        
+        await logActivity(userId, 'Deleted Order', { orderId: id }, req.ip);
+        
         res.json({ message: 'Transaction deleted successfully' });
     } catch (error) {
         console.error(error.message);
@@ -224,6 +250,9 @@ const updateSale = async (req, res) => {
 
         const result = await pool.query(query, params);
         if (result.rows.length === 0) return res.status(404).send('Transaction not found or access denied');
+        
+        await logActivity(userId, 'Updated Order Status', { orderId: id, status }, req.ip);
+        
         res.json(result.rows[0]);
     } catch (error) {
         console.error(error.message);

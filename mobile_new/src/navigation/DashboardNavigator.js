@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Home, Package, Users, ShoppingCart, DollarSign, Briefcase, Settings, ShoppingBag, LogOut, FileText } from 'lucide-react-native';
+import { Home, Package, Users, ShoppingCart, DollarSign, Briefcase, Settings, ShoppingBag, LogOut, FileText, Truck, Bell, Shield, Activity, RotateCcw, BarChart3, Tag, Move } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
 // Screens
@@ -16,6 +16,14 @@ import SettingsScreen from '../screens/SettingsScreen';
 import CreateOrderScreen from '../screens/CreateOrderScreen';
 import OrdersScreen from '../screens/OrdersScreen';
 import InvoiceScreen from '../screens/InvoiceScreen';
+import SuppliersScreen from '../screens/SuppliersScreen';
+import PurchasesScreen from '../screens/PurchasesScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import AuditLogsScreen from '../screens/AuditLogsScreen';
+import ReturnsScreen from '../screens/ReturnsScreen';
+import AnalyticsScreen from '../screens/AnalyticsScreen';
+import PricingRulesScreen from '../screens/PricingRulesScreen';
+import InventoryTransferScreen from '../screens/InventoryTransferScreen';
 
 const DashboardMenu = ({ navigation }) => {
     const { logout } = useAuth();
@@ -46,6 +54,14 @@ const DashboardMenu = ({ navigation }) => {
                 <MenuItem title="Finance" icon={DollarSign} target="Finance" />
                 <MenuItem title="Employees" icon={Briefcase} target="Employees" />
                 <MenuItem title="Shops" icon={ShoppingBag} target="Shops" />
+                <MenuItem title="Suppliers" icon={Truck} target="Suppliers" />
+                <MenuItem title="Purchases" icon={ShoppingCart} target="Purchases" />
+                <MenuItem title="Returns" icon={RotateCcw} target="Returns" />
+                <MenuItem title="Pricing" icon={Tag} target="Pricing" />
+                <MenuItem title="Movement" icon={Move} target="Transfers" />
+                <MenuItem title="Analytics" icon={BarChart3} target="Analytics" />
+                <MenuItem title="Alerts" icon={Bell} target="Notifications" />
+                <MenuItem title="Logs" icon={Activity} target="AuditLogs" />
                 <MenuItem title="Settings" icon={Settings} target="Settings" />
             </View>
 
@@ -84,6 +100,14 @@ const DashboardNavigator = () => {
             <Stack.Screen name="Orders" component={OrdersScreen} />
             <Stack.Screen name="Invoice" component={InvoiceScreen} options={{ title: 'Invoice' }} />
             <Stack.Screen name="CreateOrder" component={CreateOrderScreen} options={{ title: 'New Order' }} />
+            <Stack.Screen name="Suppliers" component={SuppliersScreen} />
+            <Stack.Screen name="Purchases" component={PurchasesScreen} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Alerts' }} />
+            <Stack.Screen name="AuditLogs" component={AuditLogsScreen} options={{ title: 'Audit Logs' }} />
+            <Stack.Screen name="Returns" component={ReturnsScreen} />
+            <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+            <Stack.Screen name="Pricing" component={PricingRulesScreen} />
+            <Stack.Screen name="Transfers" component={InventoryTransferScreen} />
         </Stack.Navigator>
     );
 };

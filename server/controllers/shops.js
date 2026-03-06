@@ -1,9 +1,16 @@
 const pool = require('../db');
+const { logActivity } = require('../utils/logger');
 
 const getShops = async (req, res) => {
     try {
         let query = `
-            SELECT s.*, c.full_name as customer_name, u.full_name as salesman_name, a.name as area_name
+            SELECT s.*, 
+                   c.full_name as customer_name, 
+                   u.full_name as salesman_name, 
+                   a.name as area_name,
+                   (SELECT COUNT(*) FROM transactions t WHERE t.shop_id = s.id AND t.type IN ('order', 'sale')) as total_orders,
+                   (SELECT MAX(transaction_date) FROM transactions t WHERE t.shop_id = s.id AND t.type IN ('order', 'sale')) as last_order_date,
+                   COALESCE((SELECT SUM(CASE WHEN t.type IN ('order', 'sale') THEN t.total_amount ELSE 0 END) - SUM(CASE WHEN t.type IN ('payment', 'credit_note') THEN t.total_amount ELSE 0 END) FROM transactions t WHERE t.shop_id = s.id), 0) as outstanding_balance
             FROM shops s
             LEFT JOIN customers c ON s.customer_id = c.id
             LEFT JOIN users u ON s.salesman_id = u.id
@@ -28,24 +35,30 @@ const getShops = async (req, res) => {
 
 const createShop = async (req, res) => {
     try {
-        const { name, address, phone, email, customer_id, salesman_id, location, area_id } = req.body;
+        const { 
+            name, address, phone, email, customer_id, salesman_id, location, area_id,
+            shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
+        } = req.body;
 
         if (!area_id) {
             return res.status(400).send('Area selection is mandatory');
         }
 
-        // Determine the effective salesman_id
-        let assignedSalesmanId = null;
-        if (req.user.role === 'admin') {
-            assignedSalesmanId = salesman_id || req.user.id; // Assign to self if not specified, or leave null? Requirement implies assigning.
-        } else {
-            assignedSalesmanId = req.user.id; // Salesman always assigns to self
-        }
+        let assignedSalesmanId = req.user.role === 'admin' ? (salesman_id || req.user.id) : req.user.id;
 
         const result = await pool.query(
-            'INSERT INTO shops (name, address, phone, email, customer_id, salesman_id, location, area_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-            [name, address, phone, email, customer_id, assignedSalesmanId, location, area_id || null]
+            `INSERT INTO shops (
+                name, address, phone, email, customer_id, salesman_id, location, area_id,
+                shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
+            [
+                name, address, phone, email, customer_id, assignedSalesmanId, location, area_id || null,
+                shop_code, shop_type || 'Retail', gst_number, city, state, pincode, credit_limit || 0, notes, status || 'Active'
+            ]
         );
+        
+        await logActivity(req.user.id, 'Created Shop', { shopId: result.rows[0].id, name }, req.ip);
+        
         res.status(201).json(result.rows[0]);
     } catch (error) {
         console.error(error.message);
@@ -56,28 +69,42 @@ const createShop = async (req, res) => {
 const updateShop = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, address, phone, email, customer_id, salesman_id, location, area_id } = req.body;
+        const { 
+            name, address, phone, email, customer_id, salesman_id, location, area_id,
+            shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
+        } = req.body;
 
         if (!area_id) {
             return res.status(400).send('Area selection is mandatory');
         }
 
-        let query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, area_id = $7, updated_at = NOW()';
-        const params = [name, address, phone, email, customer_id, location, area_id || null, id];
+        let query = `
+            UPDATE shops 
+            SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, area_id = $7,
+                shop_code = $8, shop_type = $9, gst_number = $10, city = $11, state = $12, pincode = $13, 
+                credit_limit = $14, notes = $15, status = $16, updated_at = NOW()
+        `;
+        const params = [
+            name, address, phone, email, customer_id, location, area_id || null,
+            shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
+        ];
+
+        let paramCount = params.length;
 
         if (req.user.role === 'admin') {
             const assignedSalesmanId = salesman_id || req.user.id;
-            query = 'UPDATE shops SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, area_id = $7, salesman_id = $9, updated_at = NOW() WHERE id = $8 RETURNING *';
-            params.push(assignedSalesmanId);
+            query += ` , salesman_id = $${paramCount + 1} WHERE id = $${paramCount + 2} RETURNING *`;
+            params.push(assignedSalesmanId, id);
         } else {
-            // Salesman can only update their own shop
-            query += ' WHERE id = $8 AND salesman_id = $9 RETURNING *';
-            params.push(req.user.id);
+            query += ` WHERE id = $${paramCount + 1} AND salesman_id = $${paramCount + 2} RETURNING *`;
+            params.push(id, req.user.id);
         }
 
         const result = await pool.query(query, params);
-
         if (result.rows.length === 0) return res.status(404).send('Shop not found or access denied');
+        
+        await logActivity(req.user.id, 'Updated Shop', { shopId: id, name }, req.ip);
+        
         res.json(result.rows[0]);
     } catch (error) {
         console.error(error.message);
@@ -99,6 +126,8 @@ const deleteShop = async (req, res) => {
         const result = await pool.query(query, params);
         if (result.rowCount === 0) return res.status(404).send('Shop not found or access denied');
 
+        await logActivity(req.user.id, 'Deleted Shop', { shopId: id }, req.ip);
+        
         res.json({ message: 'Shop deleted successfully' });
     } catch (error) {
         console.error(error.message);

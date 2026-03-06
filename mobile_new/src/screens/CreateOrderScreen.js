@@ -260,9 +260,17 @@ const CreateOrderScreen = ({ navigation, route }) => {
         >
             <View style={styles.row}>
                 <Store size={18} color="#059669" />
-                <Text style={styles.cardTitle}>{item.name}</Text>
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>{item.name}</Text>
+                    <Text style={styles.subText}>{item.customer_name} • {item.address}</Text>
+                </View>
+                <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={[styles.balanceSmall, { color: Number(item.balance) > 0 ? '#ef4444' : '#059669' }]}>
+                        Due: ₹{Number(item.balance || 0).toLocaleString()}
+                    </Text>
+                    {item.credit_limit > 0 && <Text style={styles.limitSmall}>Limit: ₹{Number(item.credit_limit).toLocaleString()}</Text>}
+                </View>
             </View>
-            <Text style={styles.subText}>{item.customer_name} • {item.address}</Text>
         </TouchableOpacity>
     );
 
@@ -654,6 +662,8 @@ const styles = StyleSheet.create({
     summaryRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
     totalText: { fontSize: 18, fontWeight: 'bold' },
     divider: { height: 1, backgroundColor: '#e5e7eb', marginVertical: 12 },
+    balanceSmall: { fontSize: 13, fontWeight: 'bold' },
+    limitSmall: { fontSize: 10, color: '#94a3b8', marginTop: 2 },
     cartItem: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
     total: { fontSize: 20, fontWeight: 'bold', textAlign: 'right', marginTop: 10, color: '#059669' }
 });

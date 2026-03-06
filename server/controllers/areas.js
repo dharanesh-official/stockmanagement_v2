@@ -2,7 +2,20 @@ const pool = require('../db');
 
 const getAreas = async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM areas ORDER BY name ASC');
+        const query = `
+            SELECT 
+                a.id, a.name, a.created_at,
+                COUNT(DISTINCT s.id) as total_shops,
+                COALESCE(SUM(CASE WHEN t.type IN ('order', 'sale') THEN t.total_amount ELSE 0 END), 0) as total_sales,
+                COALESCE(SUM(CASE WHEN t.type IN ('order', 'sale') THEN t.total_amount ELSE 0 END) - SUM(CASE WHEN t.type IN ('payment', 'credit_note') THEN t.total_amount ELSE 0 END), 0) as pending_payments,
+                0 as low_stock_shops
+            FROM areas a
+            LEFT JOIN shops s ON a.id = s.area_id
+            LEFT JOIN transactions t ON s.id = t.shop_id
+            GROUP BY a.id, a.name, a.created_at
+            ORDER BY a.name ASC
+        `;
+        const result = await pool.query(query);
         res.json(result.rows);
     } catch (error) {
         console.error(error.message);

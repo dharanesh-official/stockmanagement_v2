@@ -35,6 +35,19 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/shops', require('./routes/shops'));
 app.use('/api/areas', require('./routes/areas'));
+app.use('/api/suppliers', require('./routes/suppliers'));
+app.use('/api/purchases', require('./routes/purchases'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/returns', require('./routes/returns'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/pricing', require('./routes/pricing'));
+app.use('/api/transfers', require('./routes/transfers'));
+
+
+
+
+
+
 
 // Start Server
 // Start Server only if not in production/serverless environment or if running directly
