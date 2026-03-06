@@ -16,17 +16,19 @@ import {
     FileText,
     StickyNote
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './Finance.css';
 
 const Finance = ({ user }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [dues, setDues] = useState([]);
     const [history, setHistory] = useState([]);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [activeTab, setActiveTab] = useState('dues');
+    const [filterCustomerId, setFilterCustomerId] = useState(location.state?.customerId || null);
 
     // Payment Modal State (General Dues)
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -160,29 +162,43 @@ const Finance = ({ user }) => {
         })
         .reduce((sum, h) => sum + Number(h.total_amount), 0);
 
-    const filteredDues = dues.filter(c =>
-        c.full_name.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredDues = dues.filter(c => {
+        const matchesSearch = c.full_name.toLowerCase().includes(search.toLowerCase());
+        const matchesId = filterCustomerId ? c.id === filterCustomerId : true;
+        return matchesSearch && matchesId;
+    });
 
-    const filteredHistory = history.filter(h =>
-        h.customer_name.toLowerCase().includes(search.toLowerCase()) ||
-        h.shop_name?.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredHistory = history.filter(h => {
+        const matchesSearch = h.customer_name.toLowerCase().includes(search.toLowerCase()) ||
+                              h.shop_name?.toLowerCase().includes(search.toLowerCase());
+        const matchesId = filterCustomerId ? h.customer_id === filterCustomerId : true;
+        return matchesSearch && matchesId;
+    });
 
-    const filteredOrders = orders.filter(o =>
-        o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
-        o.shop_name?.toLowerCase().includes(search.toLowerCase()) ||
-        o.id.includes(search)
-    );
+    const filteredOrders = orders.filter(o => {
+        const matchesSearch = o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
+                              o.shop_name?.toLowerCase().includes(search.toLowerCase()) ||
+                              o.id.includes(search);
+        const matchesId = filterCustomerId ? o.customer_id === filterCustomerId : true;
+        return matchesSearch && matchesId;
+    });
 
     if (loading) return <div className="loading-state">Synchronizing financial records...</div>;
 
     return (
         <div className="finance-page">
             <header className="page-header">
-                <div>
-                    <h1>Finance Hub</h1>
-                    <p className="subtitle">Unified management of dues, payments, and credit notes.</p>
+                <div className="flex items-center gap-4">
+                    <div>
+                        <h1>Finance Hub</h1>
+                        <p className="subtitle">Unified management of dues, payments, and credit notes.</p>
+                    </div>
+                    {filterCustomerId && (
+                        <div className="filter-badge">
+                            <span>Filtering by Specific Customer</span>
+                            <button className="clear-filter" onClick={() => setFilterCustomerId(null)}>Clear Filter</button>
+                        </div>
+                    )}
                 </div>
             </header>
 

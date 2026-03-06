@@ -214,22 +214,31 @@ const CustomerList = () => {
                     />
                 </div>
                 <div className="filters-group">
-                    <select value={filterType} onChange={e => setFilterType(e.target.value)} className="filter-select">
-                        <option value="All">All Types</option>
-                        <option value="Retail">Retail</option>
-                        <option value="Wholesale">Wholesale</option>
-                    </select>
-                    <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="filter-select">
-                        <option value="All">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Blocked">Blocked</option>
-                    </select>
-                    <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="filter-select">
-                        <option value="name">Sort by Name</option>
-                        <option value="last_purchase">Last Purchase</option>
-                        <option value="balance">Highest Balance</option>
-                    </select>
+                    <div className="filter-item">
+                        <label className="filter-label">Customer Type</label>
+                        <select value={filterType} onChange={e => setFilterType(e.target.value)} className="filter-select">
+                            <option value="All">All Types</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Wholesale">Wholesale</option>
+                        </select>
+                    </div>
+                    <div className="filter-item">
+                        <label className="filter-label">Relation Status</label>
+                        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="filter-select">
+                            <option value="All">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                            <option value="Blocked">Blocked</option>
+                        </select>
+                    </div>
+                    <div className="filter-item">
+                        <label className="filter-label">Priority Sort</label>
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="filter-select">
+                            <option value="name">Sort by Name</option>
+                            <option value="last_purchase">Last Purchase</option>
+                            <option value="balance">Highest Balance</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
