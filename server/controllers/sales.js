@@ -6,7 +6,9 @@ const getSales = async (req, res) => {
         const limit = req.query.limit ? parseInt(req.query.limit) : 100; // Default limit to 100 recent orders
 
         let query = `
-      SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name, s.location as shop_location
+      SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name, s.location as shop_location,
+             (t.total_amount - t.paid_amount) as due_amount,
+             EXTRACT(DAY FROM (NOW() - t.due_date)) as days_overdue
       FROM transactions t
       JOIN users u ON t.user_id = u.id
       JOIN customers c ON t.customer_id = c.id
@@ -62,10 +64,15 @@ const getSaleById = async (req, res) => {
 const createSale = async (req, res) => {
     const client = await pool.connect();
     try {
-        const { customer_id, shop_id, type, items, notes } = req.body;
+        const { customer_id, shop_id, type, items, notes, due_date, payment_method, applied_invoice_id } = req.body;
         const user_id = req.user.id;
 
         await client.query('BEGIN');
+
+        // 1. Fetch Customer Info for Balance and Credit Limit Check
+        const custRes = await client.query('SELECT balance, credit_limit FROM customers WHERE id = $1', [customer_id]);
+        if (custRes.rows.length === 0) throw new Error('Customer not found');
+        const customer = custRes.rows[0];
 
         let total_amount = req.body.amount || 0;
         if (items && items.length > 0) {
@@ -76,17 +83,27 @@ const createSale = async (req, res) => {
         }
 
         const paid_amount = Number(req.body.paid_amount) || 0;
+
+        // 2. Credit Limit Check for Orders/Sales
+        if (type === 'order' || type === 'sale') {
+            const netAdjustment = total_amount - paid_amount;
+            const projectedBalance = Number(customer.balance) + netAdjustment;
+            const limit = Number(customer.credit_limit);
+
+            if (limit > 0 && projectedBalance > limit) {
+                throw new Error(`Credit limit exceeded. Current: ₹${customer.balance}, New Total: ₹${projectedBalance.toFixed(2)}, Limit: ₹${limit}`);
+            }
+        }
+
         let status = type === 'order' ? 'Ordered' : 'completed';
 
         if (type === 'order') {
-            // Default to Ordered, payments update status elsewhere if needed but let's stick to user request flow
-            // User requested: Ordered -> Dispatched -> Delivered
             status = 'Ordered';
         }
 
         const transactionRes = await client.query(
-            'INSERT INTO transactions (user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id',
-            [user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount]
+            'INSERT INTO transactions (user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount, due_date, payment_method, applied_invoice_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id',
+            [user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount, due_date || null, payment_method || null, applied_invoice_id || null]
         );
         const transaction_id = transactionRes.rows[0].id;
 
@@ -130,8 +147,8 @@ const createSale = async (req, res) => {
             // Record initial payment in transaction history if exists
             if (paid_amount > 0) {
                 await client.query(
-                    'INSERT INTO transactions (user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                    [user_id, customer_id, shop_id, 'payment', paid_amount, `Initial payment for Order #${transaction_id.slice(0, 8).toUpperCase()}`, 'completed', paid_amount]
+                    'INSERT INTO transactions (user_id, customer_id, shop_id, type, total_amount, notes, status, paid_amount, payment_method) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+                    [user_id, customer_id, shop_id, 'payment', paid_amount, `Initial payment for Order #${transaction_id.slice(0, 8).toUpperCase()}`, 'completed', paid_amount, payment_method || 'Cash']
                 );
             }
         } else if (type === 'credit_note') {

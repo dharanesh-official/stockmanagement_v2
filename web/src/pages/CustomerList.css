@@ -314,3 +314,29 @@
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+.finance-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 140px;
+}
+
+.finance-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.finance-row.remaining {
+    border-top: 1px solid #f1f5f9;
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    font-weight: 800;
+}
+
+.text-red { color: #ef4444 !important; }
+.text-green { color: #10b981 !important; }
+.text-blue { color: #3b82f6 !important; }

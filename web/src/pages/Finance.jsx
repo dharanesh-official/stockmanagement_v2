@@ -18,7 +18,9 @@ import {
     Store,
     Calendar,
     ArrowRight,
-    Layout
+    Layout,
+    Download,
+    ShieldAlert
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Finance.css';
@@ -26,9 +28,9 @@ import './Finance.css';
 const Finance = ({ user }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [dues, setDues] = useState([]);
-    const [history, setHistory] = useState([]);
-    const [orders, setOrders] = useState([]);
+    const [unpaidTransactions, setUnpaidTransactions] = useState([]);
+    const [creditNotes, setCreditNotes] = useState([]);
+    const [paymentHistory, setPaymentHistory] = useState([]);
     const [shops, setShops] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -54,10 +56,17 @@ const Finance = ({ user }) => {
         end: new Date().toISOString().split('T')[0]
     });
 
+    // Credit Limit Modal State
+    const [showCreditModal, setShowCreditModal] = useState(false);
+    const [creditData, setCreditData] = useState({
+        limit: 0
+    });
+
     // Credit Note Modal State (Order Specific)
     const [paymentModal, setPaymentModal] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [paymentAmount, setPaymentAmount] = useState('');
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('Cash');
 
     useEffect(() => {
         fetchAllData();
@@ -82,18 +91,23 @@ const Finance = ({ user }) => {
             // Dues logic: if shop filter is active, we should only show customers associated with that shop's transactions?
             // Actually, balance is per customer. Let's just keep dues as customers but filterable.
             
-            const sortedDues = allCustomers
-                .sort((a, b) => Number(b.balance) - Number(a.balance));
+            // Update State
+            setDues(allCustomers);
+            setShops(shopRes.data);
+            
+            const allTransactions = saleRes.data;
 
-            setDues(sortedDues);
+            // For Dues Tab - Unpaid Invoices
+            const unpaid = allTransactions.filter(t => (t.type === 'order' || t.type === 'sale') && (Number(t.total_amount) - Number(t.paid_amount) > 0.01));
+            setUnpaidTransactions(unpaid);
 
             // For History Tab
-            const paymentsOnly = saleRes.data.filter(t => t.type === 'payment');
-            setHistory(paymentsOnly);
+            const payments = allTransactions.filter(t => t.type === 'payment');
+            setPaymentHistory(payments);
 
             // For Credit Note Tab
-            const orderList = saleRes.data.filter(t => t.type === 'order');
-            setOrders(orderList);
+            const credits = allTransactions.filter(t => t.type === 'credit_note');
+            setCreditNotes(credits);
 
         } catch (err) {
             console.error('Finance sync error:', err);
@@ -109,7 +123,8 @@ const Finance = ({ user }) => {
                 customer_id: selectedCustomer.id,
                 type: 'payment',
                 amount: parseFloat(paymentData.amount),
-                notes: paymentData.notes
+                notes: paymentData.notes,
+                payment_method: selectedPaymentMethod
             });
             setShowPaymentModal(false);
             setPaymentData({ amount: '', notes: '' });
@@ -126,16 +141,43 @@ const Finance = ({ user }) => {
         if (!paymentAmount || isNaN(paymentAmount)) return;
 
         try {
+            await api.post('/sales', {
+                customer_id: selectedOrder.customer_id,
+                shop_id: selectedOrder.shop_id,
+                type: 'payment',
+                amount: parseFloat(paymentAmount),
+                notes: `Ref Order #${selectedOrder.id.slice(0, 8).toUpperCase()}`,
+                payment_method: selectedPaymentMethod,
+                applied_invoice_id: selectedOrder.id
+            });
+
+            // Additionally update the order status
             await api.put(`/sales/payment/${selectedOrder.id}`, {
                 amountPaid: parseFloat(paymentAmount)
             });
+
             setPaymentModal(false);
             setPaymentAmount('');
             setSelectedOrder(null);
             fetchAllData();
-            alert('Order payment updated successfully');
+            alert('Payment recorded successfully!');
         } catch (err) {
             alert('Failed to update payment');
+        }
+    };
+
+    const handleUpdateCreditLimit = async (e) => {
+        e.preventDefault();
+        try {
+            await api.put(`/customers/${selectedCustomer.id}`, {
+                credit_limit: parseFloat(creditData.limit)
+            });
+            setShowCreditModal(false);
+            setSelectedCustomer(null);
+            fetchAllData();
+            alert('Credit limit updated successfully!');
+        } catch (err) {
+            alert('Failed to update credit limit');
         }
     };
 
@@ -198,32 +240,21 @@ const Finance = ({ user }) => {
     const totalOutstanding = dues.reduce((sum, c) => sum + Number(c.balance), 0);
 
     // Calculate Today's Collection
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayCollection = history
-        .filter(h => {
-            const hDate = new Date(h.transaction_date);
-            hDate.setHours(0, 0, 0, 0);
-            return hDate.getTime() === today.getTime();
-        })
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayCollection = paymentHistory
+        .filter(h => h.transaction_date.slice(0, 10) === todayStr)
         .reduce((sum, h) => sum + Number(h.total_amount), 0);
 
-    const filteredDues = dues.filter(c => {
-        const matchesSearch = c.full_name.toLowerCase().includes(search.toLowerCase());
-        const matchesId = filterCustomerId ? c.id === filterCustomerId : true;
-        
-        // Shop filter for dues is tricky since balance is customer-wide. 
-        // We'll show customers who have transactions at this shop if shop filter is on.
-        const matchesShop = filterShopId ? orders.some(o => o.customer_id === c.id && o.shop_id === filterShopId) : true;
-        
-        // Only show 0 balance if explicitly filtered
-        const hasBalance = Number(c.balance) > 0.01;
-        const isExplicitlyFiltered = filterCustomerId === c.id;
-
-        return matchesSearch && matchesId && matchesShop && (hasBalance || isExplicitlyFiltered);
+    const filteredUnpaid = unpaidTransactions.filter(t => {
+        const matchesSearch = t.customer_name.toLowerCase().includes(search.toLowerCase()) ||
+                              t.shop_name?.toLowerCase().includes(search.toLowerCase()) ||
+                              t.id.includes(search);
+        const matchesCustomer = filterCustomerId ? t.customer_id === filterCustomerId : true;
+        const matchesShop = filterShopId ? t.shop_id === filterShopId : true;
+        return matchesSearch && matchesCustomer && matchesShop;
     });
 
-    const filteredHistory = history.filter(h => {
+    const filteredHistory = paymentHistory.filter(h => {
         const matchesSearch = h.customer_name.toLowerCase().includes(search.toLowerCase()) ||
                               h.shop_name?.toLowerCase().includes(search.toLowerCase());
         const matchesCustomer = filterCustomerId ? h.customer_id === filterCustomerId : true;
@@ -231,7 +262,7 @@ const Finance = ({ user }) => {
         return matchesSearch && matchesCustomer && matchesShop;
     });
 
-    const filteredOrders = orders.filter(o => {
+    const filteredCreditNotes = creditNotes.filter(o => {
         const matchesSearch = o.customer_name.toLowerCase().includes(search.toLowerCase()) ||
                               o.shop_name?.toLowerCase().includes(search.toLowerCase()) ||
                               o.id.includes(search);
@@ -239,6 +270,20 @@ const Finance = ({ user }) => {
         const matchesShop = filterShopId ? o.shop_id === filterShopId : true;
         return matchesSearch && matchesCustomer && matchesShop;
     });
+
+    const exportToCSV = (data, filename) => {
+        if (!data || data.length === 0) return;
+        const headers = Object.keys(data[0]).join(',');
+        const rows = data.map(item => Object.values(item).map(val => `"${val}"`).join(','));
+        const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows.join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${filename}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     if (loading) return <div className="loading-state">Synchronizing financial records...</div>;
 
@@ -304,6 +349,23 @@ const Finance = ({ user }) => {
                 </div>
             </div>
 
+            {/* Smart Alerts Section */}
+            <div className="finance-alerts">
+                {unpaidTransactions.filter(t => Number(t.days_overdue) > 7).length > 0 && (
+                    <div className="alert-banner danger">
+                        <ShieldAlert size={18} />
+                        <span><strong>{unpaidTransactions.filter(t => Number(t.days_overdue) > 7).length}</strong> high-priority invoices are overdue. Please follow up.</span>
+                        <button onClick={() => { setActiveTab('dues'); setSearch(''); }}>View Dues</button>
+                    </div>
+                )}
+                {dues.filter(c => Number(c.balance) > Number(c.credit_limit || 0) && Number(c.credit_limit) > 0).length > 0 && (
+                    <div className="alert-banner warning">
+                        <ShieldAlert size={18} />
+                        <span><strong>{dues.filter(c => Number(c.balance) > Number(c.credit_limit || 0) && Number(c.credit_limit) > 0).length}</strong> customers have exceeded their credit limit.</span>
+                    </div>
+                )}
+            </div>
+
             <div className="finance-container">
                 <div className="finance-tabs">
                     {canSeeTab('dues') && (
@@ -356,99 +418,82 @@ const Finance = ({ user }) => {
                 <div className="tab-content">
                     {activeTab === 'dues' && (
                         <div className="table-container">
+                            <div className="table-header-row">
+                                <span className="title">Pending Collection (Unpaid Invoices)</span>
+                                <button className="btn-export" onClick={() => exportToCSV(filteredUnpaid, 'Unpaid_Invoices')}>
+                                    <Download size={14} /> Export CSV
+                                </button>
+                            </div>
                             <table className="finance-table">
                                 <thead>
                                     <tr>
-                                        <th>CUSTOMER</th>
-                                        <th>CONTACT DETAILS</th>
-                                        <th>REASON</th>
-                                        <th className="text-right">DUE AMOUNT</th>
-                                        <th className="text-center">ACTION</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredDues.length === 0 ? (
-                                        <tr><td colSpan="5" className="empty-cell">No outstanding bills found.</td></tr>
-                                    ) : filteredDues.map(c => (
-                                        <tr key={c.id}>
-                                            <td className="customer-cell">
-                                                <div className="avatar">{c.full_name[0]}</div>
-                                                <div className="info">
-                                                    <span className="name">{c.full_name}</span>
-                                                    <span className="id">CUST-{c.id.slice(0, 5).toUpperCase()}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="contact-info">
-                                                    <span>{c.phone}</span>
-                                                    <span className="email">{c.email}</span>
-                                                </div>
-                                            </td>
-                                            <td><div className="badge badge-date"><Clock size={12} /> Pending Collection</div></td>
-                                            <td className="text-right font-bold text-red-600">
-                                                ₹{Number(c.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="text-center">
-                                                <button
-                                                    className="btn-pay"
-                                                    onClick={() => {
-                                                        setSelectedCustomer(c);
-                                                        setShowPaymentModal(true);
-                                                    }}
-                                                >
-                                                    <CreditCard size={14} /> Record Payment
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-
-                    {activeTab === 'credit' && (
-                        <div className="table-container">
-                            <table className="finance-table credit-table">
-                                <thead>
-                                    <tr>
-                                        <th>ORDER ID</th>
+                                        <th>INVOICE ID</th>
                                         <th>SHOP / CUSTOMER</th>
-                                        <th>TOTAL</th>
-                                        <th>PAID</th>
-                                        <th>DUE</th>
-                                        <th>STATUS</th>
+                                        <th>SALESMAN</th>
+                                        <th>ORDER DATE</th>
+                                        <th>DUE DATE</th>
+                                        <th className="text-right">DUE AMOUNT</th>
+                                        <th className="text-center">STATUS</th>
                                         <th className="text-center">ACTION</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredOrders.length === 0 ? (
-                                        <tr><td colSpan="7" className="empty-cell">No credit notes found.</td></tr>
-                                    ) : filteredOrders.map(order => {
-                                        const styles = getStatusStyles(order.status);
-                                        const balance = Number(order.total_amount) - Number(order.paid_amount);
+                                    {filteredUnpaid.length === 0 ? (
+                                        <tr><td colSpan="8" className="empty-cell">No outstanding bills found.</td></tr>
+                                    ) : filteredUnpaid.map(t => {
+                                        const overdue = Number(t.days_overdue);
+                                        let overdueColor = 'green';
+                                        let statusText = 'Normal';
+                                        
+                                        if (overdue > 7) { overdueColor = 'red'; statusText = 'Overdue'; }
+                                        else if (overdue > 0) { overdueColor = 'yellow'; statusText = 'Due Soon'; }
+                                        
                                         return (
-                                            <tr key={order.id}>
-                                                <td className="id-cell">ORD-{order.id.slice(0, 8).toUpperCase()}</td>
+                                            <tr key={t.id}>
+                                                <td className="id-cell">INV-{t.id.slice(0, 8).toUpperCase()}</td>
                                                 <td>
                                                     <div className="info">
-                                                        <span className="name">{order.shop_name}</span>
-                                                        <span className="shop">{order.customer_name}</span>
+                                                        <span className="name">{t.shop_name || 'Direct Sale'}</span>
+                                                        <span className="shop">{t.customer_name}</span>
                                                     </div>
                                                 </td>
-                                                <td className="font-bold">₹{Number(order.total_amount).toLocaleString('en-IN')}</td>
-                                                <td className="text-emerald-600 font-bold">₹{Number(order.paid_amount).toLocaleString('en-IN')}</td>
-                                                <td className="text-red-600 font-black">₹{balance.toLocaleString('en-IN')}</td>
-                                                <td>
-                                                    <span className="status-chip" style={{ backgroundColor: styles.bg, color: styles.color }}>
-                                                        {styles.icon} {order.status}
-                                                    </span>
+                                                <td className="text-blue-600 font-semibold">{t.salesman_name}</td>
+                                                <td className="text-gray-500 font-medium">{new Date(t.transaction_date).toLocaleDateString('en-GB')}</td>
+                                                <td className="text-gray-500 font-medium">{t.due_date ? new Date(t.due_date).toLocaleDateString('en-GB') : '-'}</td>
+                                                <td className="text-right font-black text-red-600">
+                                                    ₹{Number(t.total_amount - t.paid_amount).toLocaleString('en-IN')}
+                                                </td>
+                                                <td className="text-center">
+                                                    <div className={`overdue-pill ${overdueColor}`}>
+                                                        {statusText} {overdue > 0 && `(${overdue}d)`}
+                                                    </div>
                                                 </td>
                                                 <td className="text-center">
                                                     <div className="flex gap-2 justify-center">
-                                                        <button className="btn-pay-sm" onClick={() => { setSelectedOrder(order); setPaymentModal(true); }}>
+                                                        <button
+                                                            className="btn-pay-sm"
+                                                            onClick={() => {
+                                                                setSelectedOrder(t);
+                                                                setPaymentModal(true);
+                                                            }}
+                                                        >
                                                             <CreditCard size={14} /> Pay
                                                         </button>
-                                                        <button className="icon-btn-sm" onClick={() => navigate(`/dashboard/invoice/${order.id}`)}>
+                                                        <button 
+                                                            className="btn-limit-sm" 
+                                                            title="Credit Limit" 
+                                                            onClick={() => {
+                                                                setSelectedCustomer({ id: t.customer_id, full_name: t.customer_name });
+                                                                setShowCreditModal(true);
+                                                            }}
+                                                        >
+                                                            <ShieldAlert size={14} />
+                                                        </button>
+                                                        <button 
+                                                            className="icon-btn-sm" 
+                                                            title="Customer Ledger" 
+                                                            onClick={() => navigate(`/dashboard/customers/${t.customer_id}/ledger`)}
+                                                        >
                                                             <FileText size={14} />
                                                         </button>
                                                     </div>
@@ -461,21 +506,80 @@ const Finance = ({ user }) => {
                         </div>
                     )}
 
+                    {activeTab === 'credit' && (
+                        <div className="table-container">
+                            <div className="table-header-row">
+                                <span className="title">Credit Notes Issued</span>
+                                <button className="btn-export" onClick={() => exportToCSV(filteredCreditNotes, 'Credit_Notes')}>
+                                    <Download size={14} /> Export CSV
+                                </button>
+                            </div>
+                            <table className="finance-table credit-table">
+                                <thead>
+                                    <tr>
+                                        <th>CN-ID</th>
+                                        <th>SHOP / CUSTOMER</th>
+                                        <th className="text-right">AMOUNT</th>
+                                        <th>REASON</th>
+                                        <th>DATE</th>
+                                        <th>LINKED INV</th>
+                                        <th className="text-center">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredCreditNotes.length === 0 ? (
+                                        <tr><td colSpan="7" className="empty-cell">No credit notes found.</td></tr>
+                                    ) : filteredCreditNotes.map(cn => {
+                                        return (
+                                            <tr key={cn.id}>
+                                                <td className="id-cell">CN-{cn.id.slice(0, 8).toUpperCase()}</td>
+                                                <td>
+                                                    <div className="info">
+                                                        <span className="name">{cn.shop_name}</span>
+                                                        <span className="shop">{cn.customer_name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="text-right font-bold text-amber-600">₹{Number(cn.total_amount).toLocaleString('en-IN')}</td>
+                                                <td className="notes-cell">{cn.notes || 'Return/Adjustment'}</td>
+                                                <td className="text-gray-500">{new Date(cn.transaction_date).toLocaleDateString('en-GB')}</td>
+                                                <td className="font-semibold text-blue-500">
+                                                    {cn.applied_invoice_id ? `INV-${cn.applied_invoice_id.slice(0, 8).toUpperCase()}` : '-'}
+                                                </td>
+                                                <td className="text-center">
+                                                    <button className="icon-btn-sm" onClick={() => navigate(`/dashboard/invoice/${cn.id}`)}>
+                                                        <FileText size={14} />
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
                     {activeTab === 'history' && (
                         <div className="table-container">
+                            <div className="table-header-row">
+                                <span className="title">Universal Payment History</span>
+                                <button className="btn-export" onClick={() => exportToCSV(filteredHistory, 'Payment_History')}>
+                                    <Download size={14} /> Export CSV
+                                </button>
+                            </div>
                             <table className="finance-table">
                                 <thead>
                                     <tr>
                                         <th>DATE</th>
                                         <th>CUSTOMER / SHOP</th>
-                                        <th>STATUS</th>
+                                        <th>METHOD</th>
+                                        <th>LINKED INV</th>
                                         <th>NOTES</th>
                                         <th className="text-right">COLLECTED</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {filteredHistory.length === 0 ? (
-                                        <tr><td colSpan="5" className="empty-cell">No payment history found.</td></tr>
+                                        <tr><td colSpan="6" className="empty-cell">No payment history found.</td></tr>
                                     ) : filteredHistory.map(h => (
                                         <tr key={h.id}>
                                             <td className="date-cell">
@@ -488,7 +592,16 @@ const Finance = ({ user }) => {
                                                     <span className="shop">{h.customer_name}</span>
                                                 </div>
                                             </td>
-                                            <td><div className="badge badge-success"><CheckCircle size={12} /> Received</div></td>
+                                            <td>
+                                                <span className={`method-pill ${h.payment_method?.toLowerCase().replace(' ', '-') || 'cash'}`}>
+                                                    {h.payment_method || 'Cash'}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {h.applied_invoice_id ? (
+                                                    <span className="text-blue-500 font-bold">INV-{h.applied_invoice_id.slice(0, 8).toUpperCase()}</span>
+                                                ) : <span className="text-gray-400">Direct</span>}
+                                            </td>
                                             <td className="notes-cell">{h.notes || '-'}</td>
                                             <td className="text-right font-black text-emerald-600">
                                                 +₹{Number(h.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
@@ -659,9 +772,25 @@ const Finance = ({ user }) => {
                             </div>
 
                             <div className="form-group">
+                                <label>Payment Method</label>
+                                <div className="payment-methods-grid">
+                                    {['Cash', 'UPI', 'Bank Transfer', 'Card', 'Credit'].map(method => (
+                                        <button
+                                            key={method}
+                                            type="button"
+                                            className={`method-btn ${selectedPaymentMethod === method ? 'active' : ''}`}
+                                            onClick={() => setSelectedPaymentMethod(method)}
+                                        >
+                                            {method}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="form-group">
                                 <label>Payment Reference / Notes</label>
                                 <textarea
-                                    placeholder="e.g. Cash, GPay, Bank Transfer Reference..."
+                                    placeholder="e.g. UPI Ref, Cheque No, Bank Ref..."
                                     value={paymentData.notes}
                                     onChange={e => setPaymentData({ ...paymentData, notes: e.target.value })}
                                     rows="3"
@@ -710,19 +839,63 @@ const Finance = ({ user }) => {
                                 />
                             </div>
 
-                            <div className="quick-actions">
-                                <button
-                                    type="button"
-                                    className="btn-link"
-                                    onClick={() => setPaymentAmount((Number(selectedOrder?.total_amount) - Number(selectedOrder?.paid_amount)).toString())}
-                                >
-                                    Settling Full Payment?
-                                </button>
+                            <div className="form-group mt-4">
+                                <label>Payment Method</label>
+                                <div className="payment-methods-grid">
+                                    {['Cash', 'UPI', 'Bank Transfer', 'Card', 'Credit'].map(method => (
+                                        <button
+                                            key={method}
+                                            type="button"
+                                            className={`method-btn ${selectedPaymentMethod === method ? 'active' : ''}`}
+                                            onClick={() => setSelectedPaymentMethod(method)}
+                                        >
+                                            {method}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             <div className="modal-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setPaymentModal(false)}>Cancel</button>
                                 <button type="submit" className="btn-primary">Update Account</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Credit Limit Management Modal */}
+            {showCreditModal && (
+                <div className="modal-overlay">
+                    <div className="modal-content credit-limit-modal">
+                        <div className="modal-header">
+                            <h2><ShieldAlert size={20} /> Credit Limit Control</h2>
+                            <button className="close-btn" onClick={() => setShowCreditModal(false)}><X size={20} /></button>
+                        </div>
+                        <form onSubmit={handleUpdateCreditLimit}>
+                            <div className="selected-customer-box">
+                                <User size={16} />
+                                <span>Policy for: <strong>{selectedCustomer?.full_name}</strong></span>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Maximum Credit Allowed (₹)</label>
+                                <div className="amount-input">
+                                    <IndianRupee size={18} />
+                                    <input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={creditData.limit}
+                                        onChange={e => setCreditData({ limit: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <p className="helper-text">System will block new orders if balance exceeds this limit. Set to 0 for unlimited.</p>
+                            </div>
+
+                            <div className="modal-actions">
+                                <button type="button" className="btn-secondary" onClick={() => setShowCreditModal(false)}>Cancel</button>
+                                <button type="submit" className="btn-primary">Authorize Limit</button>
                             </div>
                         </form>
                     </div>

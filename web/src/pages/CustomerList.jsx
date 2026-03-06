@@ -288,10 +288,22 @@ const CustomerList = () => {
                                     </td>
                                     <td>
                                         <div className="finance-cell">
-                                            <span className={`balance ${parseFloat(c.balance) > 0 ? 'text-red' : 'text-green'}`}>
-                                                ₹{parseFloat(c.balance).toLocaleString()}
-                                            </span>
-                                            <span className="orders-count">{c.total_orders} Orders</span>
+                                            <div className="finance-row">
+                                                <label>Used:</label>
+                                                <span className={`balance ${parseFloat(c.balance) > 0 ? 'text-red' : 'text-green'}`}>
+                                                    ₹{parseFloat(c.balance).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <div className="finance-row">
+                                                <label>Limit:</label>
+                                                <span>₹{parseFloat(c.credit_limit || 0).toLocaleString()}</span>
+                                            </div>
+                                            <div className="finance-row remaining">
+                                                <label>Remaining:</label>
+                                                <span className={parseFloat(c.credit_limit || 0) - parseFloat(c.balance || 0) < 0 ? 'text-red' : 'text-blue'}>
+                                                    ₹{Math.max(0, parseFloat(c.credit_limit || 0) - parseFloat(c.balance || 0)).toLocaleString()}
+                                                </span>
+                                            </div>
                                         </div>
                                     </td>
                                     <td>

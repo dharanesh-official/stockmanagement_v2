@@ -51,6 +51,7 @@ const CustomerProfile = () => {
                     <ArrowLeft size={20} /> Back to Customers
                 </button>
                 <div className="header-actions">
+                    <button className="btn btn-secondary" onClick={() => navigate(`/dashboard/customers/${customer.id}/ledger`)}>View Statement</button>
                     <button className="btn btn-secondary" onClick={() => navigate(`/dashboard/customers?edit=${customer.id}`)}>Edit Profile</button>
                     <button className="btn btn-primary" onClick={() => navigate('/dashboard/create-order', { state: { customerId: customer.id } })}>New Transaction</button>
                 </div>
