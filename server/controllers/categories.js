@@ -2,7 +2,13 @@ const pool = require('../db');
 
 const getCategories = async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM categories ORDER BY name');
+        const result = await pool.query(`
+            SELECT c.*, COUNT(s.id)::int as product_count 
+            FROM categories c
+            LEFT JOIN stock s ON c.id = s.category_id AND s.is_archived IS NOT TRUE
+            GROUP BY c.id
+            ORDER BY c.name
+        `);
         res.json(result.rows);
     } catch (error) {
         console.error(error.message);
@@ -47,7 +53,7 @@ const deleteCategory = async (req, res) => {
     const { id } = req.params;
     try {
         // Check if category is being used by any products
-        const productsCount = await pool.query('SELECT COUNT(*) FROM products WHERE category_id = $1', [id]);
+        const productsCount = await pool.query('SELECT COUNT(*) FROM stock WHERE category_id = $1 AND is_archived IS NOT TRUE', [id]);
         if (parseInt(productsCount.rows[0].count) > 0) {
             return res.status(400).send('Cannot delete category as it is associated with existing products');
         }

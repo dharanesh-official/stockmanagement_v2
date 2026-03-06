@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw } from 'lucide-react';
+import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw, History } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css';
 import './Employees.css';
@@ -13,8 +13,15 @@ const StockList = () => {
     const [showModal, setShowModal] = useState(false);
     const [showCategoryModal, setShowCategoryModal] = useState(false);
     const [showAdjustModal, setShowAdjustModal] = useState(false);
-    const [adjustData, setAdjustData] = useState({ id: null, name: '', quantity: 1, type: 'increase' });
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [selectedStockHistory, setSelectedStockHistory] = useState([]);
+    const [adjustData, setAdjustData] = useState({ id: null, name: '', adjustment: 0, reason: 'Purchase' });
     const [actionLoading, setActionLoading] = useState(false);
+    const [selectedItems, setSelectedItems] = useState([]);
+    
+    // Filters
+    const [filterCategory, setFilterCategory] = useState('All');
+    const [filterStatus, setFilterStatus] = useState('All');
 
     // Category Management
     const [categories, setCategories] = useState([]);
@@ -26,8 +33,12 @@ const StockList = () => {
         id: null,
         item_name: '',
         category_id: '',
+        sku: '',
         price: '',
-        quantity: ''
+        quantity: '',
+        min_stock_level: 10,
+        supplier: '',
+        description: ''
     });
 
     useEffect(() => {
@@ -122,19 +133,75 @@ const StockList = () => {
     };
 
     const resetStockForm = () => {
-        setFormData({ id: null, item_name: '', category_id: '', price: '', quantity: '' });
+        setFormData({ id: null, item_name: '', category_id: '', sku: '', price: '', quantity: '', min_stock_level: 10, supplier: '', description: '' });
     };
 
     const openEditStock = (stock) => {
         setFormData({
-            id: stock.id,
-            item_name: stock.item_name,
-            category_id: stock.category_id,
-            price: stock.price,
-            quantity: stock.quantity
+            ...stock,
+            price: Number(stock.price),
+            quantity: Number(stock.quantity),
+            min_stock_level: Number(stock.min_stock_level || 10)
         });
         setShowModal(true);
     };
+
+    const fetchHistory = async (stockId) => {
+        try {
+            const res = await api.get(`/stock/${stockId}/history`);
+            setSelectedStockHistory(res.data);
+            setShowHistoryModal(true);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const getStockStatus = (qty, min) => {
+        const m = min || 10;
+        if (qty <= m) return { label: 'Critical', class: 'critical' };
+        if (qty <= m + 20) return { label: 'Low Stock', class: 'low' };
+        return { label: 'In Stock', class: 'good' };
+    };
+
+    const filteredStocks = stocks.filter(stock => {
+        const matchesSearch = stock.item_name.toLowerCase().includes(search.toLowerCase()) || 
+                             (stock.sku && stock.sku.toLowerCase().includes(search.toLowerCase()));
+        const matchesCategory = filterCategory === 'All' || stock.category_id === filterCategory;
+        
+        const status = getStockStatus(stock.quantity, stock.min_stock_level);
+        const matchesStatus = filterStatus === 'All' || status.label === filterStatus;
+
+        return matchesSearch && matchesCategory && matchesStatus;
+    }).sort((a, b) => a.item_name.localeCompare(b.item_name));
+
+    const handleAdjustment = async (e) => {
+        e.preventDefault();
+        setActionLoading(true);
+        try {
+            await api.post(`/stock/${adjustData.id}/adjust`, { 
+                adjustment: parseInt(adjustData.adjustment), 
+                reason: adjustData.reason 
+            });
+            setShowAdjustModal(false);
+            fetchStocks();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to adjust stock');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedItems.length === filteredStocks.length) setSelectedItems([]);
+        else setSelectedItems(filteredStocks.map(s => s.id));
+    };
+
+    const toggleSelectItem = (id) => {
+        if (selectedItems.includes(id)) setSelectedItems(selectedItems.filter(i => i !== id));
+        else setSelectedItems([...selectedItems, id]);
+    };
+
 
     const handleDeleteStock = async (id) => {
         if (!window.confirm('Are you sure? This action cannot be undone.')) return;
@@ -148,43 +215,22 @@ const StockList = () => {
         }
     };
 
-    const filteredStocks = stocks.filter(stock =>
-        stock.item_name.toLowerCase().includes(search.toLowerCase())
-    ).sort((a, b) => a.item_name.localeCompare(b.item_name));
-
-    const handleAdjustment = async (e) => {
-        e.preventDefault();
-        setActionLoading(true);
-        try {
-            const endpoint = adjustData.type === 'increase' ? `/stock/increase/${adjustData.id}` : `/stock/reduce/${adjustData.id}`;
-            await api.put(endpoint, { quantity: parseInt(adjustData.quantity) });
-            setShowAdjustModal(false);
-            fetchStocks();
-        } catch (error) {
-            console.error(error);
-            alert('Failed to adjust stock');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-
     return (
         <>
             {loading && <LoadingSpinner fullScreen message="Loading inventory..." />}
             <div className="stock-page">
                 <div className="page-header">
-                    <div>
-                        <h1>Product Management</h1>
-                        <p className="subtitle">Centralized control for enterprise inventory across all regions.</p>
+                    <div className="header-title">
+                        <h1>Product Hub</h1>
+                        <p className="subtitle">Enterprise inventory management with real-time tracking.</p>
                     </div>
                     <div className="header-actions">
                         <button className="btn btn-secondary" onClick={() => setShowCategoryModal(true)}>
-                            <LayoutGrid size={18} /> Manage Categories
+                            <LayoutGrid size={18} /> Categories
                         </button>
                         {hasPermission('stock', 'create') && (
                             <button className="btn btn-primary" onClick={() => { resetStockForm(); setShowModal(true); }}>
-                                <Plus size={18} /> Add Product
+                                <Plus size={18} /> New Product
                             </button>
                         )}
                     </div>
@@ -195,10 +241,28 @@ const StockList = () => {
                         <Search size={18} color="#9ca3af" />
                         <input
                             type="text"
-                            placeholder="Search by Product Name..."
+                            placeholder="Find by product name or SKU..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                    </div>
+                    <div className="filters-group">
+                        <div className="filter-item">
+                            <label className="filter-label">Category</label>
+                            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="filter-select">
+                                <option value="All">All Categories</option>
+                                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                        </div>
+                        <div className="filter-item">
+                            <label className="filter-label">Stock Status</label>
+                            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="filter-select">
+                                <option value="All">All Status</option>
+                                <option value="In Stock">In Stock</option>
+                                <option value="Low Stock">Low Stock</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
@@ -206,57 +270,97 @@ const StockList = () => {
                     <table className="stock-table">
                         <thead>
                             <tr>
-                                <th>S.No</th>
-                                <th>PRODUCT NAME</th>
+                                <th style={{ width: '40px' }}>
+                                    <input type="checkbox" checked={selectedItems.length === filteredStocks.length && filteredStocks.length > 0} onChange={toggleSelectAll} />
+                                </th>
+                                <th>PRODUCT / SKU</th>
                                 <th>CATEGORY</th>
+                                <th>SUPPLIER</th>
                                 <th>PRICE</th>
-                                <th>STOCK LEVEL</th>
-                                <th>ACTIONS</th>
+                                <th>STOCK</th>
+                                <th>STATUS</th>
+                                <th>UPDATED</th>
+                                <th style={{ textAlign: 'right' }}>ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {!loading && filteredStocks.map((stock, index) => (
-                                <tr key={stock.id}>
-                                    <td className="sno-cell">{index + 1}</td>
-                                    <td className="product-cell">
-                                        <span className="product-name">{stock.item_name}</span>
-                                    </td>
-                                    <td><span className="badge badge-gray">{stock.category_name || 'General'}</span></td>
-                                    <td className="price-cell">₹{Number(stock.price).toFixed(2)}</td>
-                                    <td>
-                                        <span className={`stock-count ${stock.quantity < 10 ? 'text-red' : ''}`}>
-                                            {stock.quantity} Units
-                                        </span>
-                                    </td>
-                                    <td className="actions-cell">
-                                        <div className="flex gap-1">
-                                            <button className="icon-btn text-blue-600" title="Increase Stock" onClick={() => {
-                                                setAdjustData({ id: stock.id, name: stock.item_name, quantity: 1, type: 'increase' });
-                                                setShowAdjustModal(true);
-                                            }}>
-                                                <PlusCircle size={18} />
-                                            </button>
-                                            <button className="icon-btn text-orange-600" title="Reduce Stock" onClick={() => {
-                                                setAdjustData({ id: stock.id, name: stock.item_name, quantity: 1, type: 'reduce' });
-                                                setShowAdjustModal(true);
-                                            }}>
-                                                <MinusCircle size={18} />
-                                            </button>
-                                            <div className="w-px h-4 bg-gray-200 mx-1 self-center"></div>
-                                            {hasPermission('stock', 'edit') && (
-                                                <button className="icon-btn" onClick={() => openEditStock(stock)}><Edit size={18} /></button>
-                                            )}
-                                            {hasPermission('stock', 'delete') && (
-                                                <button className="icon-btn delete-btn" onClick={() => handleDeleteStock(stock.id)}>
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            )}
+                            {filteredStocks.length === 0 ? (
+                                <tr>
+                                    <td colSpan="9">
+                                        <div className="empty-inventory">
+                                            <RefreshCw size={48} className="empty-icon" />
+                                            <h3>No Products Found</h3>
+                                            <p>Try adjusting your search or filters to find what you're looking for.</p>
+                                            <button className="btn btn-outline" onClick={() => { setSearch(''); setFilterCategory('All'); setFilterStatus('All'); }}>Clear All Filters</button>
                                         </div>
                                     </td>
                                 </tr>
-                            ))}
+                            ) : filteredStocks.map((stock) => {
+                                const status = getStockStatus(stock.quantity, stock.min_stock_level);
+                                return (
+                                    <tr key={stock.id} className={selectedItems.includes(stock.id) ? 'row-selected' : ''}>
+                                        <td>
+                                            <input type="checkbox" checked={selectedItems.includes(stock.id)} onChange={() => toggleSelectItem(stock.id)} />
+                                        </td>
+                                        <td className="product-cell">
+                                            <div className="product-info-cell">
+                                                <span className="product-name" onClick={() => fetchHistory(stock.id)}>{stock.item_name}</span>
+                                                <span className="product-sku">{stock.sku || 'NO-SKU'}</span>
+                                            </div>
+                                        </td>
+                                        <td><span className="badge badge-gray">{stock.category_name || 'General'}</span></td>
+                                        <td><span className="supplier-name">{stock.supplier || 'Not set'}</span></td>
+                                        <td className="price-cell">₹{Number(stock.price).toLocaleString()}</td>
+                                        <td className="stock-cell">
+                                            <span className={`stock-count ${status.class}`}>
+                                                {stock.quantity} Units
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className={`status-pill ${status.class}`}>{status.label}</span>
+                                        </td>
+                                        <td className="updated-cell">
+                                            <div className="date-display">
+                                                <span>{new Date(stock.updated_at).toLocaleDateString()}</span>
+                                                <small>{new Date(stock.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                                            </div>
+                                        </td>
+                                        <td className="actions-cell">
+                                            <div className="flex gap-1 justify-end">
+                                                <button className="icon-btn-sm" title="Adjust Stock" onClick={() => {
+                                                    setAdjustData({ id: stock.id, name: stock.item_name, adjustment: 0, reason: 'Manual adjustment' });
+                                                    setShowAdjustModal(true);
+                                                }}>
+                                                    <RefreshCw size={16} />
+                                                </button>
+                                                <button className="icon-btn-sm" title="Movement History" onClick={() => fetchHistory(stock.id)}>
+                                                    <History size={16} />
+                                                </button>
+                                                <div className="separator"></div>
+                                                {hasPermission('stock', 'edit') && (
+                                                    <button className="icon-btn-sm" title="Edit Product" onClick={() => openEditStock(stock)}><Edit size={16} /></button>
+                                                )}
+                                                {hasPermission('stock', 'delete') && (
+                                                    <button className="icon-btn-sm delete-btn" title="Delete Product" onClick={() => handleDeleteStock(stock.id)}>
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
+                </div>
+                
+                <div className="pagination-bar">
+                    <p>Showing <strong>{filteredStocks.length}</strong> of <strong>{stocks.length}</strong> products</p>
+                    <div className="pagination-btns">
+                        <button className="btn-page disabled" disabled>Previous</button>
+                        <button className="btn-page active">1</button>
+                        <button className="btn-page disabled" disabled>Next</button>
+                    </div>
                 </div>
 
                 {/* Category Management Modal */}
@@ -311,6 +415,7 @@ const StockList = () => {
                                             <thead>
                                                 <tr>
                                                     <th>Category Name</th>
+                                                    <th style={{ textAlign: 'center' }}>Products</th>
                                                     <th style={{ textAlign: 'right' }}>Actions</th>
                                                 </tr>
                                             </thead>
@@ -318,9 +423,12 @@ const StockList = () => {
                                                 {categories.map(cat => (
                                                     <tr key={cat.id}>
                                                         <td>{cat.name}</td>
+                                                        <td style={{ textAlign: 'center' }}>
+                                                             <span className="count-pill">{cat.product_count || 0}</span>
+                                                        </td>
                                                         <td className="actions-cell" style={{ justifyContent: 'flex-end' }}>
-                                                            <button className="icon-btn" onClick={() => openEditCategory(cat)}><Edit size={14} /></button>
-                                                            <button className="icon-btn delete-btn" onClick={() => handleDeleteCategory(cat.id)}><Trash2 size={14} /></button>
+                                                            <button className="icon-btn-sm" onClick={() => openEditCategory(cat)}><Edit size={14} /></button>
+                                                            <button className="icon-btn-sm delete-btn" onClick={() => handleDeleteCategory(cat.id)}><Trash2 size={14} /></button>
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -339,62 +447,114 @@ const StockList = () => {
                 {/* Product Modal */}
                 {showModal && (
                     <div className="modal-overlay">
-                        <div className="modal-content" style={{ maxWidth: '500px' }}>
+                        <div className="modal-content wide-modal">
                             <div className="modal-header">
-                                <h2>{formData.id ? 'Edit Product' : 'Add New Product'}</h2>
+                                <h2>{formData.id ? 'Edit Product Configuration' : 'Onboard New Product'}</h2>
+                                <p className="subtitle">Complete the fields below to synchronize your inventory records.</p>
                             </div>
                             <form onSubmit={handleCreateOrUpdateStock}>
                                 <div className="managed-form">
-                                    <div className="form-group">
-                                        <label>Product Name</label>
-                                        <input
-                                            type="text"
-                                            value={formData.item_name}
-                                            onChange={e => setFormData({ ...formData, item_name: e.target.value })}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="form-group">
-                                        <label>Category</label>
-                                        <select
-                                            value={formData.category_id}
-                                            onChange={e => setFormData({ ...formData, category_id: e.target.value })}
-                                            required
-                                        >
-                                            <option value="">Select Category</option>
-                                            {categories.map(cat => (
-                                                <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="form-group" style={{ flex: 1 }}>
-                                            <label>Price (₹)</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                value={formData.price}
-                                                onChange={e => setFormData({ ...formData, price: e.target.value })}
-                                                required
-                                            />
+                                    <div className="form-sections">
+                                        <div className="form-section">
+                                            <h3 className="section-title">Identity & Classification</h3>
+                                            <div className="grid-2">
+                                                <div className="form-group">
+                                                    <label>Product Name</label>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.item_name}
+                                                        onChange={e => setFormData({ ...formData, item_name: e.target.value })}
+                                                        required
+                                                        placeholder="e.g. Pilot V7 Hi-Tecpoint"
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label>SKU / Identifier (Unique)</label>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.sku}
+                                                        onChange={e => setFormData({ ...formData, sku: e.target.value })}
+                                                        placeholder="PILOT-V7-BLK-001"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="grid-2">
+                                                <div className="form-group">
+                                                    <label>Category</label>
+                                                    <select
+                                                        value={formData.category_id}
+                                                        onChange={e => setFormData({ ...formData, category_id: e.target.value })}
+                                                        required
+                                                    >
+                                                        <option value="">Select Category</option>
+                                                        {categories.map(cat => (
+                                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                                <div className="form-group">
+                                                    <label>Supplier / Vendor</label>
+                                                    <input
+                                                        type="text"
+                                                        value={formData.supplier}
+                                                        onChange={e => setFormData({ ...formData, supplier: e.target.value })}
+                                                        placeholder="e.g. ABC Distributors"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="form-group" style={{ flex: 1 }}>
-                                            <label>Quantity</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                value={formData.quantity}
-                                                onChange={e => setFormData({ ...formData, quantity: e.target.value })}
-                                                required
-                                            />
+
+                                        <div className="form-section">
+                                            <h3 className="section-title">Valuation & Stock Controls</h3>
+                                            <div className="grid-3">
+                                                <div className="form-group">
+                                                    <label>Unit Price (₹)</label>
+                                                    <input
+                                                        type="number"
+                                                        step="0.01"
+                                                        min="0"
+                                                        value={formData.price}
+                                                        onChange={e => setFormData({ ...formData, price: e.target.value })}
+                                                        required
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label>Initial Quantity</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={formData.quantity}
+                                                        onChange={e => setFormData({ ...formData, quantity: e.target.value })}
+                                                        required
+                                                        disabled={formData.id !== null}
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label>Alert Threshold (Min)</label>
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={formData.min_stock_level}
+                                                        onChange={e => setFormData({ ...formData, min_stock_level: e.target.value })}
+                                                        required
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Product Description / Notes</label>
+                                                <textarea
+                                                    value={formData.description}
+                                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                                    placeholder="Provide additional details about the product specifications, variants, or handling instructions..."
+                                                ></textarea>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <div className="modal-actions">
-                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={actionLoading}>Cancel</button>
+                                <div className="modal-actions-alt">
+                                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={actionLoading}>Discard</button>
                                     <button type="submit" className="btn btn-primary" disabled={actionLoading}>
-                                        {actionLoading ? 'Saving...' : 'Save Product'}
+                                        {actionLoading ? 'Synchronizing...' : (formData.id ? 'Save Configuration' : 'Onboard Product')}
                                     </button>
                                 </div>
                             </form>
@@ -405,32 +565,100 @@ const StockList = () => {
                 {/* Adjustment Modal */}
                 {showAdjustModal && (
                     <div className="modal-overlay">
-                        <div className="modal-content" style={{ maxWidth: '400px' }}>
+                        <div className="modal-content" style={{ maxWidth: '420px' }}>
                             <div className="modal-header">
-                                <h2>{adjustData.type === 'increase' ? 'Increase Stock' : 'Reduce Stock'}</h2>
-                                <p className="text-secondary text-sm mt-1">{adjustData.name}</p>
+                                <h2>Manual Stock Adjustment</h2>
+                                <p className="subtitle">{adjustData.name}</p>
                             </div>
                             <form onSubmit={handleAdjustment}>
                                 <div className="managed-form">
                                     <div className="form-group">
-                                        <label>Adjustment Quantity</label>
+                                        <label>Adjustment Value (+/-)</label>
                                         <input
                                             type="number"
-                                            min="1"
-                                            value={adjustData.quantity}
-                                            onChange={e => setAdjustData({ ...adjustData, quantity: e.target.value })}
+                                            value={adjustData.adjustment}
+                                            onChange={e => setAdjustData({ ...adjustData, adjustment: e.target.value })}
                                             required
                                             autoFocus
+                                            placeholder="e.g. 50 or -10"
                                         />
+                                        <small className="help-text">Use positive values for re-stocking, negative for damage/loss.</small>
+                                    </div>
+                                    <div className="form-group">
+                                        <label>Reason for Adjustment</label>
+                                        <select 
+                                            value={adjustData.reason} 
+                                            onChange={e => setAdjustData({ ...adjustData, reason: e.target.value })}
+                                            required
+                                        >
+                                            <option value="Purchase">Inbound Purchase / Restock</option>
+                                            <option value="Sale">Direct Sale / Correction</option>
+                                            <option value="Return">Customer Return</option>
+                                            <option value="Damage">Damage / Expiry</option>
+                                            <option value="Inventory Count">Audit / Inventory Count</option>
+                                        </select>
                                     </div>
                                 </div>
                                 <div className="modal-actions">
                                     <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(false)} disabled={actionLoading}>Cancel</button>
-                                    <button type="submit" className={`btn ${adjustData.type === 'increase' ? 'btn-primary' : 'btn-danger'}`} disabled={actionLoading}>
-                                        {actionLoading ? 'Processing...' : `Confirm ${adjustData.type === 'increase' ? 'Addition' : 'Reduction'}`}
+                                    <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                                        {actionLoading ? 'Processing...' : 'Sync Inventory'}
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* History Modal */}
+                {showHistoryModal && (
+                    <div className="modal-overlay">
+                        <div className="modal-content wide-modal" style={{ maxWidth: '700px' }}>
+                            <div className="modal-header">
+                                <h2>Stock Movement History</h2>
+                                <p className="subtitle">Complete audit trail for the selected product.</p>
+                            </div>
+                            <div className="history-table-container">
+                                <table className="stock-table history-table">
+                                    <thead>
+                                         <tr>
+                                             <th>DATE & TIME</th>
+                                             <th style={{ textAlign: 'center' }}>CHANGE</th>
+                                             <th>REASON</th>
+                                             <th>ADJUSTED BY</th>
+                                         </tr>
+                                     </thead>
+                                     <tbody>
+                                         {selectedStockHistory.length === 0 ? (
+                                             <tr><td colSpan="4" style={{ textAlign: 'center', padding: '3rem' }}>No adjustment history found for this product.</td></tr>
+                                         ) : selectedStockHistory.map(h => (
+                                             <tr key={h.id}>
+                                                 <td>
+                                                     <div className="date-display">
+                                                         <span>{new Date(h.transaction_date).toLocaleDateString()}</span>
+                                                         <small>{new Date(h.transaction_date).toLocaleTimeString()}</small>
+                                                     </div>
+                                                 </td>
+                                                 <td style={{ textAlign: 'center' }}>
+                                                     <span className={`movement-chip ${h.change_amount > 0 ? 'plus' : 'minus'}`}>
+                                                         {h.change_amount > 0 ? '+' : ''}{h.change_amount}
+                                                     </span>
+                                                 </td>
+                                                 <td><span className="reason-text">{h.reason}</span></td>
+                                                 <td>
+                                                     <div className="user-ref">
+                                                         <div className="avatar-sm">{h.user_name?.charAt(0)}</div>
+                                                         <span>{h.user_name || 'System'}</span>
+                                                     </div>
+                                                 </td>
+                                             </tr>
+                                         ))}
+                                     </tbody>
+                                </table>
+                            </div>
+                            <div className="modal-actions">
+                                <button className="btn btn-secondary" onClick={() => setShowHistoryModal(false)}>Close Archive</button>
+                            </div>
                         </div>
                     </div>
                 )}

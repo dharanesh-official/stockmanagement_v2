@@ -5,6 +5,8 @@ const {
     getStockById,
     addStock,
     updateStock,
+    adjustStock,
+    getStockHistory,
     increaseStock,
     reduceStock,
     deleteStock
@@ -16,6 +18,8 @@ router.get('/:id', verifyToken, getStockById);
 
 router.post('/', verifyToken, isAdmin, addStock);
 router.put('/:id', verifyToken, isAdmin, updateStock);
+router.post('/:id/adjust', verifyToken, isAdmin, adjustStock);
+router.get('/:id/history', verifyToken, getStockHistory);
 router.put('/increase/:id', verifyToken, isAdmin, increaseStock);
 router.put('/reduce/:id', verifyToken, isAdmin, reduceStock);
 router.delete('/:id', verifyToken, isAdmin, deleteStock);
