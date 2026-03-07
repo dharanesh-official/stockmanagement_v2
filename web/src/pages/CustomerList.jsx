@@ -252,7 +252,7 @@ const CustomerList = () => {
                                 <th>Location</th>
                                 <th>Finances</th>
                                 <th>Last Order</th>
-                                <th>Actions</th>
+                                <th style={{ textAlign: 'right' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -313,13 +313,13 @@ const CustomerList = () => {
                                         </div>
                                     </td>
                                     <td className="actions-cell">
-                                        <div className="action-btns">
-                                            <button className="icon-btn" onClick={() => navigate(`/dashboard/customers/${c.id}`)} title="View Profile"><Eye size={18} /></button>
-                                            <button className="icon-btn" onClick={() => openEdit(c)} title="Edit"><Edit size={18} /></button>
-                                            <button className="icon-btn money-btn" onClick={() => navigate('/dashboard/finance', { state: { customerId: c.id } })} title="Record Payment">
-                                                <CreditCard size={18} />
+                                        <div className="flex justify-end gap-2">
+                                            <button className="icon-btn-sm" onClick={() => navigate(`/dashboard/customers/${c.id}`)} title="View Profile"><Eye size={16}/></button>
+                                            <button className="icon-btn-sm" onClick={() => openEdit(c)} title="Edit"><Edit size={16}/></button>
+                                            <button className="icon-btn-sm" style={{ color: '#10b981' }} onClick={() => navigate('/dashboard/finance', { state: { customerId: c.id } })} title="Record Payment">
+                                                <CreditCard size={16}/>
                                             </button>
-                                            <button className="icon-btn delete-btn" onClick={() => handleDelete(c.id)} title="Delete"><Trash2 size={18} /></button>
+                                            <button className="icon-btn-sm delete-btn" onClick={() => handleDelete(c.id)} title="Delete"><Trash2 size={16}/></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -348,7 +348,12 @@ const CustomerList = () => {
                                 <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowModal(false)}>
                                     <ArrowLeft size={18} />
                                 </button>
-                                <h2>{formData.id ? 'Refine Customer Data' : 'Establish New Relation'}</h2>
+                                <div>
+                                    <h2>{formData.id ? 'Refine Customer Data' : 'Establish New Relation'}</h2>
+                                    <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px', fontWeight: '500' }}>
+                                        {formData.id ? 'Update existing business details and credit parameters.' : 'Onboard a new client into your distribution network.'}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                         <form onSubmit={handleCreateOrUpdate} className="customer-rich-form">
