@@ -346,26 +346,29 @@ const Shops = () => {
       </div>
 
       <div className="controls-bar">
-        <div className="search-filters">
-          <div className="search-box">
-            <Search size={18} color="#9ca3af" />
-            <input
-              type="text"
-              placeholder="Search by Shop Name, Code or Phone..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+        <div className="search-box">
+          <Search size={18} color="#9ca3af" />
+          <input
+            type="text"
+            placeholder="Search by Shop Name, Code or Phone..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="filters-group">
+          <div className="filter-item">
+            <label className="filter-label">Status</label>
+            <select 
+              className="filter-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All Status</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Temporarily Closed">Temporarily Closed</option>
+            </select>
           </div>
-          <select 
-            className="select-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="All">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Temporarily Closed">Temporarily Closed</option>
-          </select>
         </div>
       </div>
       {!selectedArea ? (
@@ -416,12 +419,12 @@ const Shops = () => {
           <table className="stock-table">
             <thead>
               <tr>
-                <th>S.No</th>
+                <th style={{ width: '60px' }}>S.No</th>
                 <th>SHOP DETAILS</th>
                 <th>STATUS</th>
                 <th>FINANCIALS</th>
                 <th>ACTIVITY</th>
-                <th>ACTIONS</th>
+                <th style={{ textAlign: 'right' }}>ACTIONS</th>
               </tr>
             </thead>
             <tbody>
@@ -444,8 +447,8 @@ const Shops = () => {
                         <span className="product-name font-bold text-gray-900">
                           {shop.name}
                         </span>
-                        <div className="flex items-center gap-2">
-                           <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-600">ID: {shop.shop_code || shop.id}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                           <span className="text-xs font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-600">ID: {shop.shop_code || (shop.id ? String(shop.id).slice(0, 8).toUpperCase() : '')}</span>
                            <span className="text-xs text-blue-600 font-semibold">{shop.shop_type}</span>
                         </div>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -486,49 +489,49 @@ const Shops = () => {
                        </div>
                     </td>
                     <td className="actions-cell">
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 justify-end">
                         {shop.location && (
                           <button
-                            className="icon-btn text-blue-500 hover:text-blue-700"
+                            className="icon-btn-sm"
                             title="Get Directions"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleGetDirections(shop.location);
                             }}
                           >
-                            <Navigation size={18} />
+                            <Navigation size={16} className="text-blue-500" />
                           </button>
                         )}
                         <button
-                          className="icon-btn text-emerald-600 hover:text-emerald-800"
+                          className="icon-btn-sm"
                           title="View Finance"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigate('/dashboard/finance', { state: { shopId: shop.id } });
                           }}
                         >
-                          <CreditCard size={18} />
+                          <CreditCard size={16} className="text-emerald-600" />
                         </button>
                         {hasPermission("shops", "edit") && (
                           <button
-                            className="icon-btn"
+                            className="icon-btn-sm"
                             onClick={(e) => {
                               e.stopPropagation();
                               openEditShop(shop);
                             }}
                           >
-                            <Edit size={18} />
+                            <Edit size={16} />
                           </button>
                         )}
                         {hasPermission("shops", "delete") && (
                           <button
-                            className="icon-btn delete-btn"
+                            className="icon-btn-sm delete-btn"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteShop(shop.id);
                             }}
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} />
                           </button>
                         )}
                       </div>

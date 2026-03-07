@@ -324,13 +324,13 @@ const Employees = ({ user }) => {
                 <table className="stock-table">
                     <thead>
                         <tr>
-                            <th>E-ID</th>
+                            <th style={{ width: '80px' }}>E-ID</th>
                             <th>Employee Name</th>
                             <th>Role & Level</th>
                             <th>Shop Load</th>
                             <th>Account Status</th>
                             <th>Recent Activity</th>
-                            <th>Actions</th>
+                            <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -379,11 +379,11 @@ const Employees = ({ user }) => {
                                     {emp.last_login ? new Date(emp.last_login).toLocaleString() : 'Never logged in'}
                                 </td>
                                 <td className="actions-cell">
-                                    <div className="flex gap-1">
-                                        <button className="icon-btn" onClick={(e) => { e.stopPropagation(); openEditModal(emp); }}>
+                                    <div className="flex gap-1 justify-end">
+                                        <button className="icon-btn-sm" onClick={(e) => { e.stopPropagation(); openEditModal(emp); }}>
                                             <Edit size={16} />
                                         </button>
-                                        <button className="icon-btn delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(emp.id); }}>
+                                        <button className="icon-btn-sm delete-btn" onClick={(e) => { e.stopPropagation(); handleDelete(emp.id); }}>
                                             <Trash2 size={16} />
                                         </button>
                                     </div>
