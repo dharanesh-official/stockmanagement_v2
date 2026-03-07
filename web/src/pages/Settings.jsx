@@ -3,7 +3,7 @@ import api from '../services/api';
 import { 
     User, Lock, Save, AlertCircle, CheckCircle, Building, 
     MapPin, Globe, FileText, CreditCard, Bell, 
-    Database, Link2, Palette, Shield, Activity, AlertTriangle, UserCircle
+    Database, Link2, Palette, Shield, Activity, AlertTriangle, UserCircle, Settings as SettingsIcon
 } from 'lucide-react';
 import './StockList.css'; 
 import './Settings.css'; 
@@ -335,7 +335,7 @@ const Settings = ({ user }) => {
             default:
                 return (
                     <div className="placeholder-view">
-                        <Setting size={48} color="#cbd5e1" style={{marginBottom: 16}} />
+                        <SettingsIcon size={48} color="#cbd5e1" style={{marginBottom: 16}} />
                         <h3 style={{fontSize: '1.2rem', color: '#475569', marginBottom: 8}}>Component Under Development</h3>
                         <p>The "{TABS.find(t => t.id === activeTab)?.label}" configuration panel is actively being implemented.</p>
                     </div>
