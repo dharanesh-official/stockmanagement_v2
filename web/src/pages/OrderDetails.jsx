@@ -134,7 +134,9 @@ const OrderDetails = ({ user }) => {
                                 <History size={20} className="text-blue-600" />
                                 <h2>Payment Lifecycle</h2>
                             </div>
-                            <button className="btn-text" onClick={() => navigate('/dashboard/finance')}>View Ledger</button>
+                            <button className="btn btn-outline text-xs py-1 px-3" onClick={() => navigate('/dashboard/finance')}>
+                                View Ledger
+                            </button>
                         </div>
                         <div className="payment-timeline">
                             {payments.length === 0 ? (
