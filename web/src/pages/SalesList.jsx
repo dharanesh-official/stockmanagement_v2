@@ -175,6 +175,7 @@ const SalesList = ({ user }) => {
                             <tr>
                                 <th>ORDER / INVOICE</th>
                                 <th>CLIENT & SHOP</th>
+                                <th>LOCATION</th>
                                 <th>ORIGIN</th>
                                 <th>PAYMENT</th>
                                 <th>STATUS</th>
@@ -186,7 +187,7 @@ const SalesList = ({ user }) => {
                         <tbody>
                             {filteredSales.length === 0 ? (
                                 <tr>
-                                    <td colSpan="8">
+                                    <td colSpan="9">
                                         <div className="empty-inventory" style={{ padding: '4rem' }}>
                                             <ClipboardCheck size={48} className="empty-icon" />
                                             <h3>No Transactions Found</h3>
@@ -216,18 +217,22 @@ const SalesList = ({ user }) => {
                                                     <span className="flex items-center gap-1">
                                                         <Store size={12} /> {sale.shop_name || 'Direct Sale'}
                                                     </span>
-                                                    {sale.shop_location && (
-                                                        <button 
-                                                            onClick={(e) => { e.stopPropagation(); handleGetDirections(sale.shop_location); }}
-                                                            className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
-                                                            title="View Location on Map"
-                                                            style={{ fontSize: '10px', fontWeight: 600, border: 'none' }}
-                                                        >
-                                                            <MapPin size={10} /> Map
-                                                        </button>
-                                                    )}
                                                 </small>
                                             </div>
+                                        </td>
+                                        <td>
+                                            {sale.shop_location ? (
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); handleGetDirections(sale.shop_location); }}
+                                                    className="inline-flex items-center justify-center bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow"
+                                                    title="View Full Location on Map"
+                                                    style={{ fontSize: '11px', fontWeight: 600, gap: '6px' }}
+                                                >
+                                                    <MapPin size={12} className="text-blue-500" /> View Map
+                                                </button>
+                                            ) : (
+                                                <span className="text-gray-400 text-xs italic">-</span>
+                                            )}
                                         </td>
                                         <td>
                                             <span className={`count-pill`} style={{ background: sale.order_type === 'Shop Order' ? '#f3e8ff' : '#f1f5f9', color: sale.order_type === 'Shop Order' ? '#7e22ce' : '#475569' }}>
