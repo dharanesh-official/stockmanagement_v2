@@ -218,8 +218,8 @@ const SalesList = ({ user }) => {
                                             </div>
                                         </td>
                                         <td>
-                                            <div className="relative inline-block w-40">
-                                                <div className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} style={{ padding: '0.4rem 0.75rem', cursor: updatingId === sale.id ? 'wait' : 'pointer', background: sale.status === 'Ordered' ? '#f1f5f9' : undefined, color: sale.status === 'Ordered' ? '#475569' : undefined }}>
+                                            <div style={{ position: 'relative', display: 'inline-block', minWidth: '140px' }}>
+                                                <div className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} style={{ padding: '0.4rem 0.75rem', cursor: updatingId === sale.id ? 'wait' : 'pointer', background: sale.status === 'Ordered' || sale.status === 'Confirmed' ? '#f1f5f9' : undefined, color: sale.status === 'Ordered' || sale.status === 'Confirmed' ? '#475569' : undefined, width: '100%' }}>
                                                     <span>{sale.status}</span>
                                                     {updatingId === sale.id ? (
                                                         <Loader2 size={14} className="animate-spin" />
@@ -231,7 +231,7 @@ const SalesList = ({ user }) => {
                                                     value={sale.status}
                                                     onChange={(e) => handleStatusUpdate(sale.id, e.target.value, sale.status)}
                                                     disabled={updatingId === sale.id}
-                                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', appearance: 'none' }}
                                                 >
                                                     <option value="Ordered">Ordered</option>
                                                     <option value="Confirmed">Confirmed</option>
