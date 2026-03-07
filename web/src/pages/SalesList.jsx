@@ -224,11 +224,11 @@ const SalesList = ({ user }) => {
                                             {sale.shop_location ? (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); handleGetDirections(sale.shop_location); }}
-                                                    className="inline-flex items-center justify-center bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg cursor-pointer transition-all shadow-sm hover:shadow"
+                                                    className="btn btn-outline"
                                                     title="View Full Location on Map"
-                                                    style={{ fontSize: '11px', fontWeight: 600, gap: '6px' }}
+                                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '6px', minWidth: 'max-content' }}
                                                 >
-                                                    <MapPin size={12} className="text-blue-500" /> View Map
+                                                    <MapPin size={14} className="text-blue-500" /> View Map
                                                 </button>
                                             ) : (
                                                 <span className="text-gray-400 text-xs italic">-</span>
