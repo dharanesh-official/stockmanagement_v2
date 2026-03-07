@@ -464,7 +464,7 @@ const StockList = () => {
                                     </div>
                                 </div>
                             </div>
-                            <form onSubmit={handleCreateOrUpdateStock}>
+                            <form onSubmit={handleCreateOrUpdateStock} className="modal-body-form">
                                 <div className="managed-form">
                                     <div className="form-sections">
                                         <div className="form-section">
@@ -589,7 +589,7 @@ const StockList = () => {
                                     </div>
                                 </div>
                             </div>
-                            <form onSubmit={handleAdjustment}>
+                            <form onSubmit={handleAdjustment} className="modal-body-form">
                                 <div className="managed-form">
                                     <div className="form-group">
                                         <label>Adjustment Value (+/-)</label>

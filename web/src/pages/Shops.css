@@ -45,6 +45,10 @@
     letter-spacing: -0.025em;
 }
 
+.modal-header {
+    flex-shrink: 0;
+}
+
 .shop-form {
     display: flex;
     flex-direction: column;
@@ -125,6 +129,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .btn {

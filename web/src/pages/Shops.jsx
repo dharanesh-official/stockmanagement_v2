@@ -634,7 +634,8 @@ const Shops = () => {
               </div>
             </div>
             <form onSubmit={handleCreateOrUpdateShop} className="shop-form">
-                <div className="form-grid-2">
+                <div className="managed-form">
+                  <div className="form-grid-2">
                   <div className="form-group full-width">
                     <label>Shop Name</label>
                     <input
@@ -801,6 +802,7 @@ const Shops = () => {
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       style={{ minHeight: "60px" }}
                     />
+                  </div>
                   </div>
                 </div>
               <div className="modal-actions">

@@ -431,6 +431,27 @@
 }
 
 /* Modals */
+.modal-body-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.managed-form {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-header {
+    flex-shrink: 0;
+}
+
+.modal-actions, .modal-actions-alt {
+    flex-shrink: 0;
+}
+
 .wide-modal {
     max-width: 800px !important;
 }
