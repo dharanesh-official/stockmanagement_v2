@@ -65,11 +65,13 @@ const SalesList = ({ user }) => {
     const getPaymentStatus = (sale) => {
         const total = Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0);
         const paid = Number(sale.paid_amount || 0);
+        const due_amount = Number(sale.due_amount);
         const due_date = new Date(sale.due_date);
         const today = new Date();
 
-        if (paid >= total) return { label: 'Paid', class: 'badge-emerald' };
-        if (paid > 0) return { label: 'Partial', class: 'badge-blue' };
+        if (due_amount < 0) return { label: 'Overpaid', class: 'badge-purple' };
+        if (due_amount === 0 && paid > 0) return { label: 'Paid', class: 'badge-emerald' };
+        if (paid > 0 && due_amount > 0) return { label: 'Partial', class: 'badge-blue' };
         if (sale.due_date && due_date < today) return { label: 'Overdue', class: 'badge-red' };
         return { label: 'Unpaid', class: 'badge-gray' };
     };
@@ -149,6 +151,7 @@ const SalesList = ({ user }) => {
                                 <option value="All">Any Status</option>
                                 <option value="Paid">Paid</option>
                                 <option value="Partial">Partially Paid</option>
+                                <option value="Overpaid">Overpaid</option>
                                 <option value="Unpaid">Unpaid</option>
                                 <option value="Overdue">Overdue</option>
                             </select>
