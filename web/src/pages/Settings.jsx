@@ -140,13 +140,6 @@ const Settings = ({ user }) => {
         { id: 'notification', label: 'Notification Settings', icon: <Bell size={16}/>, adminOnly: true },
         { id: 'user_profile', label: 'User Profile', icon: <UserCircle size={16}/>, adminOnly: false },
         { id: 'security', label: 'Security Settings', icon: <Lock size={16}/>, adminOnly: false },
-        { id: 'system', label: 'System Settings', icon: <Shield size={16}/>, adminOnly: true },
-        { id: 'data', label: 'Data Management', icon: <Database size={16}/>, adminOnly: true },
-        { id: 'integrations', label: 'Integrations', icon: <Link2 size={16}/>, adminOnly: true },
-        { id: 'branding', label: 'Branding', icon: <Palette size={16}/>, adminOnly: true },
-        { id: 'account', label: 'Account Management', icon: <User size={16}/>, adminOnly: true },
-        { id: 'activity_log', label: 'Activity Log', icon: <Activity size={16}/>, adminOnly: true },
-        { id: 'danger', label: 'Danger Zone', icon: <AlertTriangle size={16}/>, adminOnly: true },
     ];
 
     const renderTabContent = () => {
@@ -296,42 +289,7 @@ const Settings = ({ user }) => {
                         </div>
                     </>
                 );
-            case 'activity_log':
-                return (
-                    <>
-                        <h2 className="settings-section-title">Activity Log</h2>
-                        <p className="settings-section-desc">Recent administrative actions across the platform.</p>
-                        <div className="activity-list">
-                            {activityLogs.map((log) => (
-                                <div key={log.id} className="activity-item">
-                                    <div className="activity-icon"><Activity size={18}/></div>
-                                    <div className="activity-meta">
-                                        <div className="activity-action">{log.action}</div>
-                                        <div className="activity-user">{log.full_name || 'System'} • {log.ip_address}</div>
-                                    </div>
-                                    <div className="activity-time">{new Date(log.created_at).toLocaleString()}</div>
-                                </div>
-                            ))}
-                            {activityLogs.length === 0 && <p className="placeholder-view">No audit records found.</p>}
-                        </div>
-                    </>
-                );
-            case 'danger':
-                return (
-                    <>
-                        <h2 className="settings-section-title" style={{color: '#b91c1c'}}>Danger Zone</h2>
-                        <p className="settings-section-desc">Irreversible organizational actions.</p>
-                        <div className="danger-zone">
-                            <div className="danger-item">
-                                <div className="danger-info">
-                                    <h4>Factory Reset Database</h4>
-                                    <p>Clears all transactions, orders, and logs. Does not delete products.</p>
-                                </div>
-                                <button type="button" className="btn-danger" onClick={() => alert('Feature strictly disabled in current branch')}>Wipe Data</button>
-                            </div>
-                        </div>
-                    </>
-                );
+
             default:
                 return (
                     <div className="placeholder-view">
@@ -380,7 +338,7 @@ const Settings = ({ user }) => {
                         {renderTabContent()}
 
                         {/* Hide save button on purely informational tabs */}
-                        {!['activity_log', 'danger'].includes(activeTab) && activeTab !== 'system' && activeTab !== 'data' && activeTab !== 'integrations' && activeTab !== 'branding' && activeTab !== 'account' && activeTab !== 'notification' && activeTab !== 'payment' && (
+                        {activeTab !== 'notification' && activeTab !== 'payment' && (
                             <div className="settings-actions">
                                 <button type="submit" className="btn-save-settings">
                                     <Save size={18} /> Save Settings
