@@ -243,12 +243,12 @@ const SalesList = ({ user }) => {
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <span className={`stock-count ${Number(sale.due_amount) > 0 ? 'critical' : ''}`} style={{ color: Number(sale.due_amount) === 0 ? '#94a3b8' : undefined }}>
+                                            <span className="stock-count" style={{ color: Number(sale.due_amount) > 0 ? '#ef4444' : '#10b981' }}>
                                                 ₹{Number(sale.due_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <span className="price-cell text-lg">
+                                            <span className="price-cell text-lg" style={{ color: '#10b981', fontWeight: 800 }}>
                                                 ₹{(Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>
