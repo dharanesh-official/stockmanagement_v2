@@ -136,8 +136,6 @@ const Settings = ({ user }) => {
         { id: 'address', label: 'Address Details', icon: <MapPin size={16}/>, adminOnly: true },
         { id: 'business', label: 'Business Settings', icon: <Globe size={16}/>, adminOnly: true },
         { id: 'invoice', label: 'Invoice Settings', icon: <FileText size={16}/>, adminOnly: true },
-        { id: 'payment', label: 'Payment Settings', icon: <CreditCard size={16}/>, adminOnly: true },
-        { id: 'notification', label: 'Notification Settings', icon: <Bell size={16}/>, adminOnly: true },
         { id: 'user_profile', label: 'User Profile', icon: <UserCircle size={16}/>, adminOnly: false },
         { id: 'security', label: 'Security Settings', icon: <Lock size={16}/>, adminOnly: false },
     ];
@@ -337,14 +335,11 @@ const Settings = ({ user }) => {
                     <form onSubmit={handleSubmit}>
                         {renderTabContent()}
 
-                        {/* Hide save button on purely informational tabs */}
-                        {activeTab !== 'notification' && activeTab !== 'payment' && (
-                            <div className="settings-actions">
-                                <button type="submit" className="btn-save-settings">
-                                    <Save size={18} /> Save Settings
-                                </button>
-                            </div>
-                        )}
+                        <div className="settings-actions">
+                            <button type="submit" className="btn-save-settings">
+                                <Save size={18} /> Save Settings
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
