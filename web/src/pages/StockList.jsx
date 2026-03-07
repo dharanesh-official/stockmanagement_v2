@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw, History } from 'lucide-react';
+import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw, History, ArrowLeft } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css';
 import './Employees.css';
@@ -368,7 +368,12 @@ const StockList = () => {
                     <div className="modal-overlay">
                         <div className="modal-content" style={{ maxWidth: '600px' }}>
                             <div className="modal-header">
-                                <h2>Manage Categories</h2>
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowCategoryModal(false)}>
+                                        <ArrowLeft size={18} />
+                                    </button>
+                                    <h2>Manage Categories</h2>
+                                </div>
                             </div>
                             <div className="managed-form">
                                 <form onSubmit={handleCategorySubmit} className="category-inline-form">
@@ -449,8 +454,15 @@ const StockList = () => {
                     <div className="modal-overlay">
                         <div className="modal-content wide-modal">
                             <div className="modal-header">
-                                <h2>{formData.id ? 'Edit Product Configuration' : 'Onboard New Product'}</h2>
-                                <p className="subtitle">Complete the fields below to synchronize your inventory records.</p>
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowModal(false)}>
+                                        <ArrowLeft size={18} />
+                                    </button>
+                                    <div>
+                                        <h2>{formData.id ? 'Edit Product Configuration' : 'Onboard New Product'}</h2>
+                                        <p className="subtitle">Complete the fields below to synchronize your inventory records.</p>
+                                    </div>
+                                </div>
                             </div>
                             <form onSubmit={handleCreateOrUpdateStock}>
                                 <div className="managed-form">
@@ -567,8 +579,15 @@ const StockList = () => {
                     <div className="modal-overlay">
                         <div className="modal-content" style={{ maxWidth: '420px' }}>
                             <div className="modal-header">
-                                <h2>Manual Stock Adjustment</h2>
-                                <p className="subtitle">{adjustData.name}</p>
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowAdjustModal(false)}>
+                                        <ArrowLeft size={18} />
+                                    </button>
+                                    <div>
+                                        <h2>Manual Stock Adjustment</h2>
+                                        <p className="subtitle">{adjustData.name}</p>
+                                    </div>
+                                </div>
                             </div>
                             <form onSubmit={handleAdjustment}>
                                 <div className="managed-form">
@@ -615,8 +634,15 @@ const StockList = () => {
                     <div className="modal-overlay">
                         <div className="modal-content wide-modal" style={{ maxWidth: '700px' }}>
                             <div className="modal-header">
-                                <h2>Stock Movement History</h2>
-                                <p className="subtitle">Complete audit trail for the selected product.</p>
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowHistoryModal(false)}>
+                                        <ArrowLeft size={18} />
+                                    </button>
+                                    <div>
+                                        <h2>Stock Movement History</h2>
+                                        <p className="subtitle">Complete audit trail for the selected product.</p>
+                                    </div>
+                                </div>
                             </div>
                             <div className="history-table-container">
                                 <table className="stock-table history-table">

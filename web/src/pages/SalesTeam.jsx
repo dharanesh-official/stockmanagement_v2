@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Trash2, ShieldCheck, Mail, User } from 'lucide-react';
+import { Plus, Trash2, ShieldCheck, Mail, User, ArrowLeft } from 'lucide-react';
 import './StockList.css'; // Inheriting shared table styles
 import './SalesTeam.css'; // New styles
 
@@ -109,7 +109,12 @@ const SalesTeam = ({ user }) => {
                 <div className="modal-overlay">
                     <div className="modal-content">
                         <div className="modal-header">
-                            <h2>Add New Salesman</h2>
+                            <div className="flex items-center gap-3">
+                                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowModal(false)}>
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <h2>Add New Salesman</h2>
+                            </div>
                         </div>
                         <form onSubmit={handleCreate} className="personnel-form">
                             <div className="form-group">

@@ -553,10 +553,12 @@ const Shops = () => {
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '600px', width: '90%', padding: '24px' }}>
             <div className="modal-header" style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Manage Sub-Areas & Districts</h2>
-              <button className="close-btn" onClick={() => { setShowAreaModal(false); setEditingAreaId(null); }}>
-                <span style={{ cursor: 'pointer', fontSize: '28px' }}>&times;</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => { setShowAreaModal(false); setEditingAreaId(null); }}>
+                  <ArrowLeft size={18} />
+                </button>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', margin: 0 }}>Manage Sub-Areas & Districts</h2>
+              </div>
             </div>
 
             <form onSubmit={handleCreateArea} style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
@@ -621,7 +623,12 @@ const Shops = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>{formData.id ? "Edit Shop" : "Add New Shop"}</h2>
+              <div className="flex items-center gap-3">
+                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowModal(false)}>
+                  <ArrowLeft size={18} />
+                </button>
+                <h2>{formData.id ? "Edit Shop" : "Add New Shop"}</h2>
+              </div>
             </div>
             <form onSubmit={handleCreateOrUpdateShop} className="shop-form">
                 <div className="form-grid-2">
@@ -818,7 +825,10 @@ const Shops = () => {
         <div className="modal-overlay">
           <div className="modal-content history-modal">
             <div className="modal-header history-header">
-              <div className="flex justify-between items-start">
+              <div className="flex items-center gap-3">
+                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowHistory(false)}>
+                  <ArrowLeft size={18} />
+                </button>
                 <div>
                   <h2>{selectedShop.name} - History</h2>
                   <p className="text-sm text-gray-500 mt-1">
@@ -826,12 +836,6 @@ const Shops = () => {
                     {selectedShop.salesman_name || "N/A"}
                   </p>
                 </div>
-                <button
-                  className="close-btn"
-                  onClick={() => setShowHistory(false)}
-                >
-                  <X size={24} />
-                </button>
               </div>
             </div>
 

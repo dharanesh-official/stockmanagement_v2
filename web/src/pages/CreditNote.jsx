@@ -12,7 +12,8 @@ import {
     FileText,
     TrendingUp,
     IndianRupee,
-    ArrowRight
+    ArrowRight,
+    ArrowLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './CreditNote.css';
@@ -187,8 +188,12 @@ const CreditNote = ({ user }) => {
                 <div className="modal-overlay">
                     <div className="modal-content credit-modal">
                         <div className="modal-header">
-                            <h2>Record Payment Entry</h2>
-                            <button className="close-btn" onClick={() => setPaymentModal(false)}><X size={20} /></button>
+                            <div className="flex items-center gap-3">
+                                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setPaymentModal(false)}>
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <h2>Record Payment Entry</h2>
+                            </div>
                         </div>
                         <form onSubmit={handleUpdatePayment}>
                             <div className="order-context">

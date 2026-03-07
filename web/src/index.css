@@ -94,3 +94,24 @@ button {
   font-style: italic;
   gap: 12px;
 }
+
+/* Custom Modal Back Button global class */
+.icon-btn-rounded {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  border-radius: 9999px !important;
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  flex-shrink: 0 !important;
+}
+
+.icon-btn-rounded:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}

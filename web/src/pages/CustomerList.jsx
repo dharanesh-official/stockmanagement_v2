@@ -5,7 +5,7 @@ import {
     Plus, Search, Lock, Unlock, Trash2, Edit, 
     Eye, CreditCard, Filter, ChevronDown, 
     MoreVertical, Phone, Mail, Copy, Check,
-    TrendingUp, Users, AlertCircle, Calendar
+    TrendingUp, Users, AlertCircle, Calendar, ArrowLeft
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css';
@@ -344,8 +344,12 @@ const CustomerList = () => {
                 <div className="modal-overlay">
                     <div className="modal-content wide-modal">
                         <div className="modal-header">
-                            <h2>{formData.id ? 'Refine Customer Data' : 'Establish New Relation'}</h2>
-                            <button className="close-x" onClick={() => setShowModal(false)}>&times;</button>
+                            <div className="flex items-center gap-3">
+                                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowModal(false)}>
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <h2>{formData.id ? 'Refine Customer Data' : 'Establish New Relation'}</h2>
+                            </div>
                         </div>
                         <form onSubmit={handleCreateOrUpdate} className="customer-rich-form">
                             <div className="form-sections">

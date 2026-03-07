@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Trash2, Edit, ShieldCheck, Mail, User, Briefcase, ChevronDown, ChevronRight, Check, Settings2, Store, Phone, TrendingUp, Map, MapPin } from 'lucide-react';
+import { Plus, Trash2, Edit, ShieldCheck, Mail, User, Briefcase, ChevronDown, ChevronRight, Check, Settings2, Store, Phone, TrendingUp, Map, MapPin, ArrowLeft } from 'lucide-react';
 import './StockList.css'; // Inheriting shared table styles
 import './Employees.css'; // Shared styles
 
@@ -399,7 +399,12 @@ const Employees = ({ user }) => {
                 <div className="modal-overlay">
                     <div className="modal-content permissions-modal-content">
                         <div className="modal-header">
-                            <h2>{editMode ? `Edit Access: ${formData.full_name}` : 'Create New Personnel'}</h2>
+                            <div className="flex items-center gap-3">
+                                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowModal(false)}>
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <h2>{editMode ? `Edit Access: ${formData.full_name}` : 'Create New Personnel'}</h2>
+                            </div>
                         </div>
                         <form onSubmit={handleCreateOrUpdate} className="personnel-form">
                             <div className="managed-form">
@@ -596,8 +601,12 @@ const Employees = ({ user }) => {
                 <div className="modal-overlay">
                     <div className="modal-content permissions-modal-content">
                         <div className="modal-header flex justify-between items-center">
-                            <h2>Employee Profile</h2>
-                            <button className="icon-btn" onClick={() => setShowProfile(false)}><Plus size={24} style={{ transform: 'rotate(45deg)' }} /></button>
+                            <div className="flex items-center gap-3">
+                                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowProfile(false)}>
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <h2>Employee Profile</h2>
+                            </div>
                         </div>
                         <div className="managed-form profile-view-content">
                             {profileLoading ? (
@@ -722,8 +731,15 @@ const Employees = ({ user }) => {
                 <div className="modal-overlay assignment-overlay">
                     <div className="modal-content shop-select-modal">
                         <div className="modal-header">
-                            <h2>Select Targeted Shops</h2>
-                            <p className="text-xs text-gray-500">Pick the shops this salesman will manage.</p>
+                            <div className="flex items-center gap-3">
+                                <button type="button" className="icon-btn-rounded flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-8 h-8 transition-colors" onClick={() => setShowAssignmentModal(false)}>
+                                    <ArrowLeft size={18} />
+                                </button>
+                                <div>
+                                    <h2>Select Targeted Shops</h2>
+                                    <p className="text-xs text-gray-500">Pick the shops this salesman will manage.</p>
+                                </div>
+                            </div>
                         </div>
                         <div className="managed-form shop-selection-grid">
                             {allShops.map(shop => (
