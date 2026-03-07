@@ -243,7 +243,7 @@ const SalesList = ({ user }) => {
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <span className="stock-count" style={{ color: Number(sale.due_amount) > 0 ? '#ef4444' : '#10b981' }}>
+                                            <span className="stock-count" style={{ color: Number(sale.due_amount) === 0 ? '#10b981' : '#ef4444' }}>
                                                 ₹{Number(sale.due_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>
