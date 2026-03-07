@@ -3,7 +3,7 @@ import api from '../services/api';
 import { 
     Plus, Search, Trash2, Edit, X, ShoppingCart, Store, User, Hash, 
     Package, ClipboardCheck, FileText, ChevronDown, Filter, Loader2, 
-    Navigation, TrendingUp, BarChart3 
+    Navigation, MapPin, TrendingUp, BarChart3 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -212,15 +212,18 @@ const SalesList = ({ user }) => {
                                         <td>
                                             <div className="product-info-cell">
                                                 <span className="supplier-name" style={{ color: '#0f172a', fontWeight: 600 }}>{sale.customer_name}</span>
-                                                <small className="flex items-center gap-1 text-gray-500 mt-1">
-                                                    <Store size={12} /> {sale.shop_name || 'Direct Sale'}
+                                                <small className="flex items-center text-gray-500 mt-1" style={{ gap: '6px' }}>
+                                                    <span className="flex items-center gap-1">
+                                                        <Store size={12} /> {sale.shop_name || 'Direct Sale'}
+                                                    </span>
                                                     {sale.shop_location && (
                                                         <button 
                                                             onClick={(e) => { e.stopPropagation(); handleGetDirections(sale.shop_location); }}
-                                                            className="text-blue-500 hover:text-blue-700 ml-1 flex items-center bg-blue-50 hover:bg-blue-100 p-1 rounded transition-colors"
-                                                            title="Get Directions"
+                                                            className="inline-flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
+                                                            title="View Location on Map"
+                                                            style={{ fontSize: '10px', fontWeight: 600, border: 'none' }}
                                                         >
-                                                            <Navigation size={12} />
+                                                            <MapPin size={10} /> Map
                                                         </button>
                                                     )}
                                                 </small>
