@@ -196,11 +196,11 @@ const OrderDetails = ({ user }) => {
                             <div className="balance-box">
                                 <div className="balance-item">
                                     <span>Captured</span>
-                                    <span className="val text-emerald-600">₹{paidAmount.toLocaleString('en-IN')}</span>
+                                    <span className="val settled-val">₹{paidAmount.toLocaleString('en-IN')}</span>
                                 </div>
                                 <div className="balance-item">
                                     <span>Outstanding</span>
-                                    <span className={`val ${balanceDue > 0 ? 'text-red-600' : 'text-gray-400'}`}>₹{balanceDue.toLocaleString('en-IN')}</span>
+                                    <span className={`val ${balanceDue > 0 ? 'outstanding-val' : ''}`}>₹{balanceDue.toLocaleString('en-IN')}</span>
                                 </div>
                             </div>
                             {balanceDue > 0 && (
