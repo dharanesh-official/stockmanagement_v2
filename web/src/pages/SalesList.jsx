@@ -62,6 +62,16 @@ const SalesList = ({ user }) => {
         }
     };
 
+    const handleGetDirections = (location) => {
+        if (!location) return;
+        if (location.startsWith("http://") || location.startsWith("https://")) {
+            window.open(location, "_blank");
+        } else {
+            const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
+            window.open(url, "_blank");
+        }
+    };
+
     const getPaymentStatus = (sale) => {
         const total = Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0);
         const paid = Number(sale.paid_amount || 0);
@@ -204,6 +214,15 @@ const SalesList = ({ user }) => {
                                                 <span className="supplier-name" style={{ color: '#0f172a', fontWeight: 600 }}>{sale.customer_name}</span>
                                                 <small className="flex items-center gap-1 text-gray-500 mt-1">
                                                     <Store size={12} /> {sale.shop_name || 'Direct Sale'}
+                                                    {sale.shop_location && (
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); handleGetDirections(sale.shop_location); }}
+                                                            className="text-blue-500 hover:text-blue-700 ml-1 flex items-center bg-blue-50 hover:bg-blue-100 p-1 rounded transition-colors"
+                                                            title="Get Directions"
+                                                        >
+                                                            <Navigation size={12} />
+                                                        </button>
+                                                    )}
                                                 </small>
                                             </div>
                                         </td>
