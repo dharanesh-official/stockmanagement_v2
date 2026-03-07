@@ -186,49 +186,47 @@ const SalesList = ({ user }) => {
                                 const payStatus = getPaymentStatus(sale);
                                 return (
                                     <tr key={sale.id}>
-                                        <td className="date-cell">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-gray-900">{sale.invoice_number || `ORD-${sale.id.slice(0, 8).toUpperCase()}`}</span>
-                                                <span className="text-[10px] text-gray-400 font-bold uppercase">{new Date(sale.transaction_date).toLocaleDateString()} at {new Date(sale.transaction_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <td>
+                                            <div className="product-info-cell">
+                                                <span className="product-name" onClick={() => navigate(`/dashboard/sales/${sale.id}`)}>
+                                                    ORD-{sale.id.slice(0, 8).toUpperCase()}
+                                                </span>
+                                                <div className="date-display mt-1">
+                                                    <small>{new Date(sale.transaction_date).toLocaleDateString()} at {new Date(sale.transaction_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                                                </div>
                                             </div>
                                         </td>
                                         <td>
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-gray-800">{sale.customer_name}</span>
-                                                <small className="text-gray-500 font-medium flex items-center gap-1">
+                                            <div className="product-info-cell">
+                                                <span className="supplier-name" style={{ color: '#0f172a', fontWeight: 600 }}>{sale.customer_name}</span>
+                                                <small className="flex items-center gap-1 text-gray-500 mt-1">
                                                     <Store size={12} /> {sale.shop_name || 'Direct Sale'}
                                                 </small>
                                             </div>
                                         </td>
                                         <td>
-                                            <span className={`badge ${sale.order_type === 'Shop Order' ? 'badge-purple' : 'badge-gray'}`}>
+                                            <span className={`count-pill`} style={{ background: sale.order_type === 'Shop Order' ? '#f3e8ff' : '#f1f5f9', color: sale.order_type === 'Shop Order' ? '#7e22ce' : '#475569' }}>
                                                 {sale.order_type || 'Direct Sale'}
                                             </span>
                                         </td>
                                         <td>
-                                            <div className="flex flex-col gap-1">
-                                                <span className={`badge ${payStatus.class}`} style={{ width: 'fit-content' }}>{payStatus.label}</span>
-                                                <small className="text-gray-400 font-bold uppercase" style={{ fontSize: '9px' }}>{sale.payment_method || 'Unspecified'}</small>
+                                            <div className="flex flex-col items-start gap-1">
+                                                <span className={`status-pill ${payStatus.class.replace('badge-', '')}`}>{payStatus.label}</span>
+                                                <small className="text-gray-400 font-bold uppercase" style={{ fontSize: '9px', letterSpacing: '0.05em' }}>
+                                                    {sale.payment_method || 'UNSPECIFIED'}
+                                                </small>
                                             </div>
                                         </td>
                                         <td>
-                                            <div
-                                                className={`badge ${sale.status === 'Delivered' ? 'badge-emerald' : sale.status === 'Dispatched' ? 'badge-blue' : sale.status === 'Cancelled' ? 'badge-red' : 'badge-gray'}`}
-                                                style={{
-                                                    position: 'relative',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    paddingRight: '1.75rem',
-                                                    cursor: updatingId === sale.id ? 'wait' : 'pointer',
-                                                    minWidth: '120px',
-                                                }}
-                                            >
-                                                <span className="uppercase font-bold" style={{ flex: 1 }}>{sale.status}</span>
-                                                {updatingId === sale.id ? (
-                                                    <Loader2 size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 animate-spin" />
-                                                ) : (
-                                                    <ChevronDown size={14} className="absolute right-2 top-1/2 transform -translate-y-1/2 opacity-60" />
-                                                )}
+                                            <div className="relative inline-block w-40">
+                                                <div className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} style={{ padding: '0.4rem 0.75rem', cursor: updatingId === sale.id ? 'wait' : 'pointer', background: sale.status === 'Ordered' ? '#f1f5f9' : undefined, color: sale.status === 'Ordered' ? '#475569' : undefined }}>
+                                                    <span>{sale.status}</span>
+                                                    {updatingId === sale.id ? (
+                                                        <Loader2 size={14} className="animate-spin" />
+                                                    ) : (
+                                                        <ChevronDown size={14} className="opacity-70" />
+                                                    )}
+                                                </div>
                                                 <select
                                                     value={sale.status}
                                                     onChange={(e) => handleStatusUpdate(sale.id, e.target.value, sale.status)}
@@ -245,25 +243,30 @@ const SalesList = ({ user }) => {
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <span className={`font-bold ${Number(sale.due_amount) > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                                            <span className={`stock-count ${Number(sale.due_amount) > 0 ? 'critical' : ''}`} style={{ color: Number(sale.due_amount) === 0 ? '#94a3b8' : undefined }}>
                                                 ₹{Number(sale.due_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <span className="text-lg font-black text-gray-900">₹{(Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                            <span className="price-cell text-lg">
+                                                ₹{(Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                            </span>
                                         </td>
-                                        <td className="actions-cell" style={{ justifyContent: 'flex-end' }}>
-                                            <div className="flex gap-1">
-                                                <button className="icon-btn" title="View Invoice" onClick={() => navigate(`/dashboard/invoice/${sale.id}`)}>
-                                                    <FileText size={18} />
+                                        <td className="actions-cell">
+                                            <div className="flex justify-end gap-1">
+                                                <button className="icon-btn-sm" title="View Invoice" onClick={() => navigate(`/dashboard/invoice/${sale.id}`)}>
+                                                    <FileText size={16} />
                                                 </button>
-                                                <button className="icon-btn" title="Order Details" onClick={() => navigate(`/dashboard/sales/${sale.id}`)}>
-                                                    <Package size={18} />
+                                                <button className="icon-btn-sm" title="Order Details" onClick={() => navigate(`/dashboard/sales/${sale.id}`)}>
+                                                    <Package size={16} />
                                                 </button>
                                                 {user.role === 'admin' && (
-                                                    <button className="icon-btn delete-btn" title="Void Order" onClick={() => handleDelete(sale.id)}>
-                                                        <Trash2 size={18} />
-                                                    </button>
+                                                    <>
+                                                        <div className="separator"></div>
+                                                        <button className="icon-btn-sm delete-btn" title="Void Order" onClick={() => handleDelete(sale.id)}>
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                         </td>
