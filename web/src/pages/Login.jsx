@@ -13,6 +13,7 @@ const Login = () => {
     const navigate = useNavigate();
 
     const [companyName, setCompanyName] = useState(localStorage.getItem('company_name') || 'Inventory Pro');
+    const [logo, setLogo] = useState(localStorage.getItem('company_logo') || '');
 
     React.useEffect(() => {
         const fetchSettings = async () => {
@@ -21,6 +22,10 @@ const Login = () => {
                 if (res.data?.company_name) {
                     setCompanyName(res.data.company_name);
                     localStorage.setItem('company_name', res.data.company_name);
+                }
+                if (res.data?.company_logo) {
+                    setLogo(res.data.company_logo);
+                    localStorage.setItem('company_logo', res.data.company_logo);
                 }
             } catch (err) {
                 console.error(err);
@@ -52,9 +57,18 @@ const Login = () => {
         <div className="login-container">
             <div className="login-left">
                 <div className="brand">
-                    <div className="logo-box"><LayoutDashboard size={24} color="white" /></div>
+                    <div className="logo-box">
+                        {logo ? (
+                            <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        ) : (
+                            <LayoutDashboard size={24} color="white" />
+                        )}
+                    </div>
                     <span className="brand-text-small">{companyName}</span>
                 </div>
+                {logo ? (
+                    <img src={logo} alt="Company Logo" style={{ width: '80px', marginBottom: '1.5rem', borderRadius: '16px' }} />
+                ) : null}
                 <h1>{companyName}</h1>
                 <p>Enterprise-grade inventory tracking, warehouse <br />management, and financial reporting in one unified dashboard.</p>
             </div>

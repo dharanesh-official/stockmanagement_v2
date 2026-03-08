@@ -22,6 +22,7 @@ const Sidebar = ({ user, isOpen, closeSidebar }) => {
     const role = user?.role;
     const permissions = user?.permissions || {};
     const [companyName, setCompanyName] = useState(localStorage.getItem('company_name') || 'Inventory Pro');
+    const [logo, setLogo] = useState(localStorage.getItem('company_logo') || '');
 
     React.useEffect(() => {
         // ... kept same
@@ -31,6 +32,10 @@ const Sidebar = ({ user, isOpen, closeSidebar }) => {
                 if (res.data?.company_name) {
                     setCompanyName(res.data.company_name);
                     localStorage.setItem('company_name', res.data.company_name);
+                }
+                if (res.data?.company_logo) {
+                    setLogo(res.data.company_logo);
+                    localStorage.setItem('company_logo', res.data.company_logo);
                 }
             } catch (err) {
                 console.error(err);
@@ -56,7 +61,13 @@ const Sidebar = ({ user, isOpen, closeSidebar }) => {
             <div className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-brand">
                     <div className="flex items-center gap-2">
-                        <LayoutDashboard size={28} color="#10b981" />
+                        {logo ? (
+                            <div className="sidebar-logo-container">
+                                <img src={logo} alt="Logo" />
+                            </div>
+                        ) : (
+                            <LayoutDashboard size={28} color="#10b981" />
+                        )}
                         <span className="brand-name">{companyName}</span>
                     </div>
                     <button className="sidebar-close-btn" onClick={closeSidebar}>

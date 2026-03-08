@@ -78,6 +78,21 @@ const Settings = ({ user }) => {
         setCompanyForm({ ...companyForm, [e.target.name]: e.target.value });
     };
 
+    const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB Limit
+                setMsg({ type: 'error', text: 'Logo size should be less than 2MB' });
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCompanyForm(prev => ({ ...prev, company_logo: reader.result }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const saveUserSettings = async () => {
         if (userForm.new_password && userForm.new_password !== userForm.confirm_password) {
             return setMsg({ type: 'error', text: 'Passwords do not match.' });
@@ -152,13 +167,40 @@ const Settings = ({ user }) => {
                                 <label>Company Name</label>
                                 <input type="text" name="company_name" value={companyForm.company_name} onChange={handleCompanyChange} />
                             </div>
-                            <div className="form-group">
+                             <div className="form-group">
                                 <label>Business Registration Number (GST/VAT)</label>
                                 <input type="text" name="gst_number" value={companyForm.gst_number || ''} onChange={handleCompanyChange} />
                             </div>
-                            <div className="form-group">
-                                <label>Company Logo URL</label>
-                                <input type="text" name="company_logo" value={companyForm.company_logo || ''} onChange={handleCompanyChange} placeholder="https://..." />
+                             <div className="form-group">
+                                <label>Company Logo</label>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                                    <div style={{ 
+                                        width: '60px', 
+                                        height: '60px', 
+                                        borderRadius: '12px', 
+                                        border: '2px dashed #e2e8f0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        overflow: 'hidden',
+                                        background: '#f8fafc'
+                                    }}>
+                                        {companyForm.company_logo ? (
+                                            <img src={companyForm.company_logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        ) : (
+                                            <Building size={24} color="#94a3b8" />
+                                        )}
+                                    </div>
+                                    <label className="btn-save-settings" style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
+                                        Upload Logo
+                                        <input type="file" hidden accept="image/*" onChange={handleLogoUpload} />
+                                    </label>
+                                    {companyForm.company_logo && (
+                                        <button type="button" onClick={() => setCompanyForm(p => ({ ...p, company_logo: '' }))} style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}>
+                                            Remove
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div className="form-group">
                                 <label>Phone Number</label>

@@ -19,6 +19,7 @@ const Finance = ({ user }) => {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [activeTab, setActiveTab] = useState('dues');
+    const [history, setHistory] = useState([]);
     
     // Dynamic Stats
     const [stats, setStats] = useState({
@@ -73,6 +74,12 @@ const Finance = ({ user }) => {
                 };
             });
             setShopsWithStats(shopStats);
+
+            // Calculate History (Payments)
+            const paymentsHistory = allSales
+                .filter(s => s.type === 'payment')
+                .sort((a, b) => new Date(b.created_at || b.transaction_date) - new Date(a.created_at || a.transaction_date));
+            setHistory(paymentsHistory);
 
             // Calculate Global Stats
             const totalOut = unpaid.reduce((sum, item) => sum + (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0)), 0);
@@ -271,7 +278,42 @@ const Finance = ({ user }) => {
                                     ))
                                 )
                             ) : (
-                                <tr><td colSpan="5" className="empty-cell">History feature coming soon to this view...</td></tr>
+                                history.length === 0 ? (
+                                    <tr><td colSpan="5" className="empty-cell">No transaction history found.</td></tr>
+                                ) : (
+                                    history.map((record) => (
+                                        <tr key={record.id}>
+                                            <td>
+                                                <div className="invoice-badge secondary">REC #{record.id.slice(0, 8).toUpperCase()}</div>
+                                                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'bold' }}>
+                                                    {formatDate(record.created_at || record.transaction_date)}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="merchant-info">
+                                                    <span className="merchant-name">{record.shop_name || 'Generic Shop'}</span>
+                                                    <span className="merchant-sub">{record.customer_name || 'Default Customer'}</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div className="currency-text success">₹{Number(record.paid_amount || 0).toLocaleString()}</div>
+                                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{record.payment_method || 'Payment Received'}</div>
+                                            </td>
+                                            <td>
+                                                <div className="status-ring success">
+                                                    <CheckCircle size={14} /> Settled
+                                                </div>
+                                            </td>
+                                            <td style={{ textAlign: 'right' }}>
+                                                <div className="action-stack">
+                                                    <button className="premium-btn-pay" onClick={() => navigate(`/dashboard/invoice/${record.parent_id || record.id}`)}>
+                                                        View Source
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )
                             )}
                         </tbody>
                     </table>
