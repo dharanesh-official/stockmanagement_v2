@@ -148,7 +148,7 @@ const CreateOrder = ({ user }) => {
     const totalAmount = subtotal + Number(orderData.shipping_charge) - Number(orderData.discount_amount);
     const selectedShop = shops.find(s => s.id === orderData.shop_id);
 
-    if (loading) return <div className="loading-container">Synchronizing warehouse data...</div>;
+    if (loading) return <div className="loading-container">Synchronizing inventory data...</div>;
 
     return (
         <div className="create-order-page">

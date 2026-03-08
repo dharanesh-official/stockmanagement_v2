@@ -18,8 +18,13 @@ const getSales = async (req, res) => {
     `;
         const params = [];
 
-        if (role !== 'admin') {
-            query += ' WHERE (t.user_id = $1 OR s.salesman_id = $1 OR c.salesman_id = $1)';
+        if (role !== 'admin' && role !== 'super_admin') {
+            query += ` 
+                WHERE (t.user_id = $1 
+                OR s.salesman_id = $1 
+                OR c.salesman_id = $1 
+                OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1))
+            `;
             params.push(id);
         }
 
@@ -49,8 +54,13 @@ const getSaleById = async (req, res) => {
     `;
         const params = [id];
 
-        if (role !== 'admin') {
-            query += ' AND (t.user_id = $2 OR s.salesman_id = $2 OR c.salesman_id = $2)';
+        if (role !== 'admin' && role !== 'super_admin') {
+            query += ` 
+                AND (t.user_id = $2 
+                OR s.salesman_id = $2 
+                OR c.salesman_id = $2
+                OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $2))
+            `;
             params.push(userId);
         }
 
@@ -219,9 +229,14 @@ const deleteSale = async (req, res) => {
         let query = 'DELETE FROM transactions t';
         const params = [id];
 
-        if (role !== 'admin') {
+        if (role !== 'admin' && role !== 'super_admin') {
             // Using a subquery for delete isolation
-            query += ' WHERE t.id = $1 AND (t.user_id = $2 OR EXISTS (SELECT 1 FROM shops s WHERE s.id = t.shop_id AND s.salesman_id = $2) OR EXISTS (SELECT 1 FROM customers c WHERE c.id = t.customer_id AND c.salesman_id = $2))';
+            query += ` 
+                WHERE t.id = $1 
+                AND (t.user_id = $2 
+                OR EXISTS (SELECT 1 FROM shops s WHERE s.id = t.shop_id AND (s.salesman_id = $2 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $2))) 
+                OR EXISTS (SELECT 1 FROM customers c WHERE c.id = t.customer_id AND c.salesman_id = $2))
+            `;
             params.push(userId);
         } else {
             query += ' WHERE t.id = $1';
@@ -248,8 +263,14 @@ const updateSale = async (req, res) => {
         let query = 'UPDATE transactions t SET notes = $1, status = $2';
         const params = [notes, status, id];
 
-        if (role !== 'admin') {
-            query += ' FROM customers c LEFT JOIN shops s ON t.shop_id = s.id WHERE t.customer_id = c.id AND t.id = $3 AND (t.user_id = $4 OR s.salesman_id = $4 OR c.salesman_id = $4)';
+        if (role !== 'admin' && role !== 'super_admin') {
+            query += ` 
+                FROM customers c 
+                LEFT JOIN shops s ON t.shop_id = s.id 
+                WHERE t.customer_id = c.id 
+                AND t.id = $3 
+                AND (t.user_id = $4 OR s.salesman_id = $4 OR c.salesman_id = $4 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $4))
+            `;
             params.push(userId);
         } else {
             query += ' WHERE t.id = $3';
@@ -350,8 +371,8 @@ const getSalesAnalytics = async (req, res) => {
         let baseQuery = "FROM transactions WHERE type IN ('sale', 'order')";
         const params = [];
 
-        if (role !== 'admin') {
-            baseQuery += " AND user_id = $1";
+        if (role !== 'admin' && role !== 'super_admin') {
+            baseQuery += " AND (user_id = $1 OR shop_id IN (SELECT id FROM shops WHERE salesman_id = $1 OR area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)))";
             params.push(id);
         }
 

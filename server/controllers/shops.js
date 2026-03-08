@@ -18,10 +18,10 @@ const getShops = async (req, res) => {
         `;
         const params = [];
 
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
             query += ` 
                 WHERE s.salesman_id = $1 
-                AND s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)
+                OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)
             `;
             params.push(req.user.id);
         }
@@ -94,8 +94,7 @@ const updateShop = async (req, res) => {
 
         let paramCount = params.length;
 
-        if (req.user.role === 'admin') {
-            const assignedSalesmanId = salesman_id || req.user.id;
+        if (req.user.role === 'admin' || req.user.role === 'super_admin') {
             query += ` , salesman_id = $${paramCount + 1} WHERE id = $${paramCount + 2} RETURNING *`;
             params.push(assignedSalesmanId, id);
         } else {
@@ -121,7 +120,7 @@ const deleteShop = async (req, res) => {
         let query = 'DELETE FROM shops WHERE id = $1';
         const params = [id];
 
-        if (req.user.role !== 'admin') {
+        if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
             query += ' AND salesman_id = $2';
             params.push(req.user.id);
         }

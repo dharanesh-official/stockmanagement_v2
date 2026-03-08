@@ -336,7 +336,7 @@ const Shops = () => {
           </div>
         </div>
         <div className="header-actions">
-          {!selectedArea && hasPermission('shops', 'create') && (
+          {!selectedArea && (user?.role === 'admin' || user?.role === 'super_admin') && (
             <button className="btn btn-secondary" onClick={() => setShowAreaModal(true)}>
               <Map size={18} /> Manage Areas
             </button>
@@ -733,9 +733,9 @@ const Shops = () => {
                     <select
                       value={formData.salesman_id}
                       onChange={(e) => setFormData({ ...formData, salesman_id: e.target.value })}
-                      disabled={user?.role !== 'admin'}
+                      disabled={user?.role !== 'admin' && user?.role !== 'super_admin'}
                     >
-                      <option value="">{user?.role === 'admin' ? 'Assign Later' : user?.full_name}</option>
+                      <option value="">{(user?.role === 'admin' || user?.role === 'super_admin') ? 'Assign Later' : user?.full_name}</option>
                       {employees.map((emp) => (
                         <option key={emp.id} value={emp.id}>{emp.full_name}</option>
                       ))}

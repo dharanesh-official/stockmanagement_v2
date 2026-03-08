@@ -191,7 +191,7 @@ const Settings = ({ user }) => {
                                             <Building size={24} color="#94a3b8" />
                                         )}
                                     </div>
-                                    <label className="btn-save-settings" style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.8rem' }}>
+                                    <label className="btn-save-settings" style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.8rem', color: '#ffffff' }}>
                                         Upload Logo
                                         <input type="file" hidden accept="image/*" onChange={handleLogoUpload} />
                                     </label>
@@ -353,7 +353,7 @@ const Settings = ({ user }) => {
             <div className="settings-layout">
                 {/* Vertical Navigation Tab Sidebar */}
                 <div className="settings-sidebar">
-                    {TABS.filter(t => !t.adminOnly || user?.role === 'admin').map((tab) => (
+                    {TABS.filter(t => !t.adminOnly || (user?.role === 'admin' || user?.role === 'super_admin')).map((tab) => (
                         <div 
                             key={tab.id}
                             className={`settings-nav-item ${activeTab === tab.id ? 'active' : ''}`}

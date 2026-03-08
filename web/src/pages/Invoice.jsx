@@ -155,25 +155,7 @@ const Invoice = () => {
 
                 <div className="invoice-lower">
                     <div className="lower-left">
-                        <div className="qr-payment">
-                            <div className="qr-container">
-                                <div className="qr-box">
-                                    {/* QR Code Placeholder UI */}
-                                    <div style={{ width: '100%', height: '100%', background: '#fff', padding: '10px', display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '1px' }}>
-                                        {Array(100).fill(0).map((_, i) => (
-                                            <div key={i} style={{ background: Math.random() > 0.5 ? '#000' : 'transparent', height: '10px' }}></div>
-                                        ))}
-                                    </div>
-                                    <div className="qr-overlay"><CreditCard size={20} /></div>
-                                </div>
-                                <div className="qr-info">
-                                    <p className="qr-label">SCAN TO PAY VIA UPI</p>
-                                    <p className="qr-address">secuvra@upi</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="terms-section">
+                        <div className="terms-section" style={{ marginTop: '2rem' }}>
                             <h4>TERMS & CONDITIONS</h4>
                             <ul>
                                 <li>Goods once sold will not be taken back.</li>
@@ -221,53 +203,6 @@ const Invoice = () => {
                     </div>
                 </div>
 
-                <div className="payment-history-segment">
-                    <div className="hdr-flex">
-                        <History size={16} /> <h3>TRANSACTION AUDIT LOG</h3>
-                    </div>
-                    <table className="audit-table">
-                        <thead>
-                            <tr>
-                                <th>Transaction Date</th>
-                                <th>Description / Reference</th>
-                                <th>Method</th>
-                                <th className="text-right">Settled Amount</th>
-                                <th className="text-right">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {payments.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" className="text-center text-gray-400 py-4 italic">No secondary transactions recorded. Record recovery payments in financial module if balance remains.</td>
-                                </tr>
-                            ) : (
-                                payments.map((p, i) => (
-                                    <tr key={i}>
-                                        <td>{new Date(p.transaction_date).toLocaleDateString()}</td>
-                                        <td>{p.notes || 'Recovery Payment'}</td>
-                                        <td className="text-capitalize">{p.payment_method || 'Unspecified'}</td>
-                                        <td className="text-right font-bold">₹{parseFloat(p.total_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                        <td className="text-right"><span className="badge-payment">SUCCESS</span></td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                <footer className="invoice-doc-footer">
-                    <div className="footer-cols">
-                        <div className="auth-box">
-                            <div className="signature-line"></div>
-                            <p>Customer Signature</p>
-                        </div>
-                        <div className="auth-box">
-                            <p className="salesman-tag">Handled By: <strong>{sale.salesman_name}</strong></p>
-                            <div className="signature-line primary"></div>
-                            <p>Authorized Signatory</p>
-                        </div>
-                    </div>
-                </footer>
             </div>
         </div>
     );

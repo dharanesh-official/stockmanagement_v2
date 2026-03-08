@@ -20,8 +20,11 @@ const getCustomers = async (req, res) => {
         `;
         const params = [];
 
-        if (role !== 'admin') {
-            query += ' WHERE c.salesman_id = $1';
+        if (role !== 'admin' && role !== 'super_admin') {
+            query += ` 
+                WHERE c.salesman_id = $1 
+                OR EXISTS (SELECT 1 FROM shops s WHERE s.customer_id = c.id AND (s.salesman_id = $1 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)))
+            `;
             params.push(id);
         }
         query += ' ORDER BY c.full_name';
@@ -47,16 +50,20 @@ const getCustomerById = async (req, res) => {
         const customer = customerResult.rows[0];
 
         // Access Control
-        if (role !== 'admin' && customer.salesman_id !== userId) {
-            return res.status(403).send('Access denied: This customer is not assigned to you.');
+        if (role !== 'admin' && role !== 'super_admin' && customer.salesman_id !== userId) {
+            // Check if they have a shop for this customer
+            const shopCheck = await pool.query('SELECT 1 FROM shops WHERE customer_id = $1 AND (salesman_id = $2 OR area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $2))', [id, userId]);
+            if (shopCheck.rows.length === 0) {
+                return res.status(403).send('Access denied: This customer is not assigned to you.');
+            }
         }
         
         // Get Transaction History
         const transactions = await pool.query(
             `SELECT * FROM transactions WHERE customer_id = $1 
-             ${role !== 'admin' ? 'AND (user_id = $2 OR EXISTS (SELECT 1 FROM shops s WHERE s.id = transactions.shop_id AND s.salesman_id = $2))' : ''}
+             ${(role !== 'admin' && role !== 'super_admin') ? 'AND (user_id = $2 OR EXISTS (SELECT 1 FROM shops s WHERE s.id = transactions.shop_id AND (s.salesman_id = $2 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $2))))' : ''}
              ORDER BY transaction_date DESC`,
-            role === 'admin' ? [id] : [id, userId]
+            (role === 'admin' || role === 'super_admin') ? [id] : [id, userId]
         );
         
         // Basic analytics
@@ -141,7 +148,7 @@ const updateCustomer = async (req, res) => {
             notes, status, tags, id
         ];
 
-        if (role !== 'admin') {
+        if (role !== 'admin' && role !== 'super_admin') {
             query += ' AND salesman_id = $16';
             params.push(userId);
         }
@@ -163,7 +170,7 @@ const deleteCustomer = async (req, res) => {
         let query = 'DELETE FROM customers WHERE id = $1';
         const params = [id];
 
-        if (role !== 'admin') {
+        if (role !== 'admin' && role !== 'super_admin') {
             query += ' AND salesman_id = $2';
             params.push(userId);
         }

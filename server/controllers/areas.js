@@ -6,7 +6,7 @@ const getAreas = async (req, res) => {
         let query;
         let params = [id];
 
-        if (role !== 'admin') {
+        if (role !== 'admin' && role !== 'super_admin') {
             // Salesperson view: Only show areas in their 'assigned_areas' list
             query = `
                 SELECT 
@@ -17,7 +17,7 @@ const getAreas = async (req, res) => {
                     0 as low_stock_shops
                 FROM areas a
                 CROSS JOIN users u
-                LEFT JOIN shops s ON a.id = s.area_id AND s.salesman_id = u.id
+                LEFT JOIN shops s ON a.id = s.area_id
                 LEFT JOIN transactions t ON s.id = t.shop_id
                 WHERE u.id = $1 
                   AND a.id = ANY(u.assigned_areas)
