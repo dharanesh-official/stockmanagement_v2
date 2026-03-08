@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Printer, ArrowLeft, Download, Mail, Building2, Store, User, FileText, Truck, History } from 'lucide-react';
+import { Printer, ArrowLeft, Download, Mail, Building2, Store, User, FileText, Truck, History, CreditCard } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './Invoice.css';
 
