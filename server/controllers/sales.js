@@ -20,8 +20,7 @@ const getSales = async (req, res) => {
 
         if (role !== 'admin' && role !== 'super_admin') {
             query += ` 
-                WHERE (t.user_id = $1 
-                OR s.salesman_id = $1 
+                WHERE (s.salesman_id = $1 
                 OR c.salesman_id = $1 
                 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1))
             `;
@@ -56,8 +55,7 @@ const getSaleById = async (req, res) => {
 
         if (role !== 'admin' && role !== 'super_admin') {
             query += ` 
-                AND (t.user_id = $2 
-                OR s.salesman_id = $2 
+                AND (s.salesman_id = $2 
                 OR c.salesman_id = $2
                 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $2))
             `;
@@ -233,8 +231,7 @@ const deleteSale = async (req, res) => {
             // Using a subquery for delete isolation
             query += ` 
                 WHERE t.id = $1 
-                AND (t.user_id = $2 
-                OR EXISTS (SELECT 1 FROM shops s WHERE s.id = t.shop_id AND (s.salesman_id = $2 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $2))) 
+                AND (EXISTS (SELECT 1 FROM shops s WHERE s.id = t.shop_id AND (s.salesman_id = $2 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $2))) 
                 OR EXISTS (SELECT 1 FROM customers c WHERE c.id = t.customer_id AND c.salesman_id = $2))
             `;
             params.push(userId);
@@ -269,7 +266,7 @@ const updateSale = async (req, res) => {
                 LEFT JOIN shops s ON t.shop_id = s.id 
                 WHERE t.customer_id = c.id 
                 AND t.id = $3 
-                AND (t.user_id = $4 OR s.salesman_id = $4 OR c.salesman_id = $4 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $4))
+                AND (s.salesman_id = $4 OR c.salesman_id = $4 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $4))
             `;
             params.push(userId);
         } else {
@@ -372,7 +369,7 @@ const getSalesAnalytics = async (req, res) => {
         const params = [];
 
         if (role !== 'admin' && role !== 'super_admin') {
-            baseQuery += " AND (user_id = $1 OR shop_id IN (SELECT id FROM shops WHERE salesman_id = $1 OR area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)))";
+            baseQuery += " AND (shop_id IN (SELECT id FROM shops WHERE salesman_id = $1 OR area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)) OR customer_id IN (SELECT id FROM customers WHERE salesman_id = $1))";
             params.push(id);
         }
 

@@ -16,11 +16,12 @@ const getAreas = async (req, res) => {
                     COALESCE(SUM(CASE WHEN t.type IN ('order', 'sale') THEN t.total_amount ELSE 0 END) - SUM(CASE WHEN t.type IN ('payment', 'credit_note') THEN t.total_amount ELSE 0 END), 0) as pending_payments,
                     0 as low_stock_shops
                 FROM areas a
-                CROSS JOIN users u
                 LEFT JOIN shops s ON a.id = s.area_id
+                LEFT JOIN customers c ON s.customer_id = c.id
                 LEFT JOIN transactions t ON s.id = t.shop_id
-                WHERE u.id = $1 
-                  AND a.id = ANY(u.assigned_areas)
+                WHERE a.id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)
+                   OR s.salesman_id = $1
+                   OR c.salesman_id = $1
                 GROUP BY a.id, a.name, a.created_at
                 ORDER BY a.name ASC
             `;

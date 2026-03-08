@@ -21,6 +21,7 @@ const getShops = async (req, res) => {
         if (req.user.role !== 'admin' && req.user.role !== 'super_admin') {
             query += ` 
                 WHERE s.salesman_id = $1 
+                OR c.salesman_id = $1
                 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)
             `;
             params.push(req.user.id);

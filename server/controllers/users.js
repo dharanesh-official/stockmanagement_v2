@@ -117,8 +117,10 @@ const getEmployeeDetails = async (req, res) => {
                 SUM(CASE WHEN type IN ('sale', 'order') THEN total_amount ELSE 0 END) as total_sales_volume,
                 SUM(CASE WHEN type = 'payment' THEN total_amount ELSE 0 END) as total_collections,
                 (SELECT COUNT(DISTINCT customer_id) FROM shops WHERE salesman_id = $1) as total_customers
-            FROM transactions 
-            WHERE user_id = $1 OR shop_id IN (SELECT id FROM shops WHERE salesman_id = $1)
+            FROM transactions t
+            WHERE t.user_id = $1 
+               OR t.shop_id IN (SELECT id FROM shops WHERE salesman_id = $1 OR area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1))
+               OR t.customer_id IN (SELECT id FROM customers WHERE salesman_id = $1)
         `, [id]);
 
         res.json({
