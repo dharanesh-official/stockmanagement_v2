@@ -73,7 +73,7 @@ const SalesList = ({ user }) => {
     };
 
     const getPaymentStatus = (sale) => {
-        const total = Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0);
+        const total = Number(sale.total_amount) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0);
         const paid = Number(sale.paid_amount || 0);
         const due_amount = Number(sale.due_amount);
         const due_date = new Date(sale.due_date);
@@ -203,7 +203,7 @@ const SalesList = ({ user }) => {
                                         <td>
                                             <div className="product-info-cell">
                                                 <span className="product-name" style={{ color: '#0f172a', letterSpacing: '0.02em' }} onClick={() => navigate(`/dashboard/sales/${sale.id}`)}>
-                                                    ORD-{sale.id.slice(0, 8).toUpperCase()}
+                                                    #{sale.invoice_number}
                                                 </span>
                                                 <div className="date-display mt-0.5">
                                                     <small style={{ color: '#94a3b8', fontSize: '10px' }}>{new Date(sale.transaction_date).toLocaleDateString()} • {new Date(sale.transaction_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
@@ -293,7 +293,7 @@ const SalesList = ({ user }) => {
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
                                             <span className="price-cell" style={{ color: '#0f172a', fontWeight: 800, fontSize: '16px' }}>
-                                                ₹{(Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                ₹{(Number(sale.total_amount) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>
                                         <td className="actions-cell">

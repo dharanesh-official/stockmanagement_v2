@@ -106,8 +106,8 @@ const InvoiceScreen = ({ route, navigation }) => {
                     <div>
                         <div class="invoice-title">INVOICE</div>
                         <div class="meta-row">
-                            <span class="meta-label">INVOICE ID</span>
-                            <span class="meta-value">#${sale.id.slice(0, 8).toUpperCase()}</span>
+                            <span class="meta-label">INVOICE NO.</span>
+                            <span class="meta-value">#${sale.invoice_number}</span>
                         </div>
                         <div class="meta-row">
                             <span class="meta-label">DATE</span>

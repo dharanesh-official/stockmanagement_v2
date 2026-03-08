@@ -9,7 +9,7 @@ const getSales = async (req, res) => {
 
         let query = `
       SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name, s.location as shop_location,
-             (t.total_amount + t.gst_amount + t.shipping_charge - t.discount_amount - t.paid_amount) as due_amount,
+             (t.total_amount + t.shipping_charge - t.discount_amount - t.paid_amount) as due_amount,
              EXTRACT(DAY FROM (NOW() - t.due_date)) as days_overdue
       FROM transactions t
       JOIN users u ON t.user_id = u.id
@@ -64,13 +64,17 @@ const getSaleById = async (req, res) => {
 };
 
 const generateInvoiceNumber = async (client) => {
-    const year = new Date().getFullYear();
     const result = await client.query(
-        "SELECT COUNT(*) FROM transactions WHERE type IN ('order', 'sale') AND invoice_number LIKE $1",
-        [`ORD-${year}-%`]
+        "SELECT invoice_number FROM transactions WHERE type IN ('order', 'sale') ORDER BY created_at DESC LIMIT 1"
     );
-    const count = parseInt(result.rows[0].count) + 1;
-    return `ORD-${year}-${count.toString().padStart(4, '0')}`;
+    if (result.rows.length === 0) return "1001";
+    const lastInvoice = result.rows[0].invoice_number;
+    const lastNum = parseInt(lastInvoice);
+    if (isNaN(lastNum)) {
+        const countRes = await client.query("SELECT COUNT(*) FROM transactions WHERE type IN ('order', 'sale')");
+        return (1000 + parseInt(countRes.rows[0].count) + 1).toString();
+    }
+    return (lastNum + 1).toString();
 };
 
 const createSale = async (req, res) => {
@@ -79,7 +83,7 @@ const createSale = async (req, res) => {
         const { 
             customer_id, shop_id, type, items, notes, due_date, 
             payment_method, applied_invoice_id, order_type, 
-            gst_amount = 0, discount_amount = 0, shipping_charge = 0 
+            discount_amount = 0, shipping_charge = 0 
         } = req.body;
         const user_id = req.user.id;
 
@@ -100,17 +104,22 @@ const createSale = async (req, res) => {
             }
         }
 
-        const total_payable = Number(subtotal) + Number(gst_amount) + Number(shipping_charge) - Number(discount_amount);
+        const total_payable = Number(subtotal) + Number(shipping_charge) - Number(discount_amount);
         const paid_amount = Number(req.body.paid_amount) || 0;
 
-        // Credit Limit Check
+        // Note: Credit limit check for customers removed as per user request.
+        // If shop-level credit limits are needed, they would be checked here using shop_id.
         if (type === 'order' || type === 'sale') {
-            const netAdjustment = total_payable - paid_amount;
-            const projectedBalance = Number(customer.balance) + netAdjustment;
-            const limit = Number(customer.credit_limit);
-
-            if (limit > 0 && projectedBalance > limit) {
-                throw new Error(`Credit limit exceeded. New Balance: ₹${projectedBalance.toFixed(2)}, Limit: ₹${limit}`);
+            if (shop_id) {
+                const shopRes = await client.query('SELECT credit_limit, (SELECT SUM(total_amount + shipping_charge - discount_amount - paid_amount) FROM transactions WHERE shop_id = $1) as current_balance FROM shops WHERE id = $1', [shop_id]);
+                if (shopRes.rows.length > 0) {
+                    const shop = shopRes.rows[0];
+                    const limit = Number(shop.credit_limit);
+                    const projectedBalance = Number(shop.current_balance || 0) + (total_payable - paid_amount);
+                    if (limit > 0 && projectedBalance > limit) {
+                        throw new Error(`Shop Credit limit exceeded. Projected Balance: ₹${projectedBalance.toFixed(2)}, Limit: ₹${limit}`);
+                    }
+                }
             }
         }
 
@@ -120,13 +129,13 @@ const createSale = async (req, res) => {
             `INSERT INTO transactions (
                 user_id, customer_id, shop_id, type, total_amount, notes, status, 
                 paid_amount, due_date, payment_method, applied_invoice_id, 
-                invoice_number, order_type, gst_amount, discount_amount, shipping_charge
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
+                invoice_number, order_type, discount_amount, shipping_charge
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
             RETURNING id`,
             [
                 user_id, customer_id, shop_id, type, subtotal, notes, status, 
                 paid_amount, due_date || null, payment_method, applied_invoice_id, 
-                invoice_number, order_type || 'Direct Sale', gst_amount, discount_amount, shipping_charge
+                invoice_number, order_type || 'Direct Sale', discount_amount, shipping_charge
             ]
         );
         const transaction_id = transactionRes.rows[0].id;
@@ -349,9 +358,9 @@ const getSalesAnalytics = async (req, res) => {
         const metricsQuery = `
             SELECT 
                 COUNT(*) as total_orders,
-                SUM(total_amount + gst_amount + shipping_charge - discount_amount) as total_revenue,
+                SUM(total_amount + shipping_charge - discount_amount) as total_revenue,
                 SUM(paid_amount) as total_collected,
-                SUM(total_amount + gst_amount + shipping_charge - discount_amount - paid_amount) as total_pending
+                SUM(total_amount + shipping_charge - discount_amount - paid_amount) as total_pending
             ${baseQuery}
         `;
 

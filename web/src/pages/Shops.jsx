@@ -20,7 +20,8 @@ import {
   AlertCircle,
   FileText,
   Clock,
-  Briefcase
+  Briefcase,
+  ShoppingCart
 } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
 import "./StockList.css"; // Reusing common table/page styles
@@ -62,7 +63,6 @@ const Shops = () => {
     area_id: "",
     shop_code: "",
     shop_type: "Retail",
-    gst_number: "",
     city: "",
     state: "",
     pincode: "",
@@ -149,10 +149,21 @@ const Shops = () => {
   const handleCreateOrUpdateShop = async (e) => {
     e.preventDefault();
 
+    // Validation: All fields mandatory
+    if (!formData.name || !formData.address || !formData.phone || !formData.email || !formData.area_id || !formData.city || !formData.state || !formData.pincode) {
+        alert("All fields are mandatory (Name, Address, Phone, Email, Area, City, State, Pincode)");
+        return;
+    }
+
     // Phone validation: should be exactly 10 digits
     const phoneDigits = formData.phone.replace(/[^0-9]/g, "");
-    if (phoneDigits.length !== 10) {
+    if (phoneDigits.length < 10) {
       alert("Please enter a valid 10-digit phone number");
+      return;
+    }
+
+    if (!formData.shop_code) {
+      alert("Shop Code is mandatory");
       return;
     }
 
@@ -188,7 +199,6 @@ const Shops = () => {
       area_id: selectedArea ? selectedArea.id : "",
       shop_code: "",
       shop_type: "Retail",
-      gst_number: "",
       city: "",
       state: "",
       pincode: "",
@@ -249,7 +259,6 @@ const Shops = () => {
       area_id: shop.area_id || "",
       shop_code: shop.shop_code || "",
       shop_type: shop.shop_type || "Retail",
-      gst_number: shop.gst_number || "",
       city: shop.city || "",
       state: shop.state || "",
       pincode: shop.pincode || "",
@@ -422,7 +431,7 @@ const Shops = () => {
                 <th style={{ width: '60px' }}>S.No</th>
                 <th>SHOP DETAILS</th>
                 <th>STATUS</th>
-                <th>FINANCIALS</th>
+                <th>FINANCE</th>
                 <th>ACTIVITY</th>
                 <th style={{ textAlign: 'right' }}>ACTIONS</th>
               </tr>
@@ -502,6 +511,16 @@ const Shops = () => {
                             <Navigation size={16} className="text-blue-500" />
                           </button>
                         )}
+                        <button
+                          className="icon-btn-sm"
+                          title="New Order"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate('/dashboard/create-order', { state: { shopId: shop.id } });
+                          }}
+                        >
+                          <ShoppingCart size={16} className="text-blue-600" />
+                        </button>
                         <button
                           className="icon-btn-sm"
                           title="View Finance"
@@ -724,12 +743,13 @@ const Shops = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>GST Number</label>
+                    <label>Email Address</label>
                     <input
-                      type="text"
-                      placeholder="Optional GSTIN"
-                      value={formData.gst_number || ''}
-                      onChange={(e) => setFormData({ ...formData, gst_number: e.target.value })}
+                      type="email"
+                      placeholder="business@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
                     />
                   </div>
 
@@ -835,13 +855,19 @@ const Shops = () => {
                   <ArrowLeft size={18} />
                 </button>
                 <div>
-                  <h2>{selectedShop.name} - History</h2>
+                  <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{selectedShop.name}</h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    Owner: {selectedShop.customer_name} | Salesman:{" "}
-                    {selectedShop.salesman_name || "N/A"}
+                    Owner: {selectedShop.customer_name} | Code: {selectedShop.shop_code}
                   </p>
                 </div>
               </div>
+              <button 
+                className="btn btn-primary" 
+                style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+                onClick={() => navigate('/dashboard/create-order', { state: { shopId: selectedShop.id } })}
+              >
+                <Plus size={16} /> New Transaction
+              </button>
             </div>
 
             <div className="history-stats">

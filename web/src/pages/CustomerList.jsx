@@ -41,12 +41,9 @@ const CustomerList = () => {
         phone: '',
         address: '',
         customer_type: 'Retail',
-        gst_number: '',
-        company_name: '',
         city: '',
         state: 'Tamil Nadu',
         pincode: '',
-        credit_limit: 0,
         notes: '',
         status: 'Active',
         tags: []
@@ -66,9 +63,7 @@ const CustomerList = () => {
 
     const resetForm = React.useCallback(() => {
         setFormData({
-            id: null, full_name: '', email: '', phone: '', address: '',
-            customer_type: 'Retail', gst_number: '', company_name: '',
-            city: '', state: 'Tamil Nadu', pincode: '', credit_limit: 0,
+            city: '', state: 'Tamil Nadu', pincode: '',
             notes: '', status: 'Active', tags: []
         });
     }, []);
@@ -77,12 +72,9 @@ const CustomerList = () => {
         setFormData({
             ...c,
             email: c.email || '',
-            gst_number: c.gst_number || '',
-            company_name: c.company_name || '',
             city: c.city || '',
             state: c.state || 'Tamil Nadu',
             pincode: c.pincode || '',
-            credit_limit: parseFloat(c.credit_limit || 0),
             notes: c.notes || '',
             tags: c.tags || []
         });
@@ -119,6 +111,11 @@ const CustomerList = () => {
 
     const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
+        // UI Validation
+        if (!formData.full_name || !formData.email || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode || !formData.company_name) {
+            alert("All fields are mandatory (Name, Email, Phone, Address, City, State, Pincode, Company Name)");
+            return;
+        }
         try {
             if (formData.id) {
                 await api.put(`/customers/${formData.id}`, formData);
@@ -160,20 +157,19 @@ const CustomerList = () => {
     const analytics = React.useMemo(() => {
         const totalOutstanding = customers.reduce((sum, c) => sum + parseFloat(c.balance || 0), 0);
         const activeCount = customers.filter(c => c.status === 'Active').length;
-        const highDueCount = customers.filter(c => parseFloat(c.balance) > parseFloat(c.credit_limit)).length;
-        return { totalOutstanding, activeCount, highDueCount };
+        return { totalOutstanding, activeCount };
     }, [customers]);
 
     return (
         <div className="stock-page customer-mgmt">
             <div className="page-header">
                 <div className="header-title">
-                    <h1>Customer Ecosystem</h1>
-                    <p className="subtitle">Manage relationships, credit lines, and purchase patterns.</p>
+                    <h1>Customers</h1>
+                    <p className="subtitle">Manage customers and their orders.</p>
                 </div>
                 <div className="header-actions">
                     <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                        <Plus size={18} /> New Customer
+                        <Plus size={18} /> Add Customer
                     </button>
                 </div>
             </div>
@@ -183,22 +179,22 @@ const CustomerList = () => {
                 <div className="anal-card">
                     <TrendingUp className="anal-icon red" />
                     <div className="anal-content">
-                        <label>Outstanding Debt</label>
+                        <label>Total Balance</label>
                         <h3>₹{analytics.totalOutstanding.toLocaleString()}</h3>
                     </div>
                 </div>
                 <div className="anal-card">
                     <Users className="anal-icon blue" />
                     <div className="anal-content">
-                        <label>Active Relations</label>
+                        <label>Active Customers</label>
                         <h3>{analytics.activeCount}</h3>
                     </div>
                 </div>
                 <div className="anal-card">
                     <AlertCircle className="anal-icon orange" />
                     <div className="anal-content">
-                        <label>Over Credit Limit</label>
-                        <h3>{analytics.highDueCount}</h3>
+                        <label>Total Customers</label>
+                        <h3>{customers.length}</h3>
                     </div>
                 </div>
             </div>
@@ -263,7 +259,7 @@ const CustomerList = () => {
                                             <div className="avatar">{c.full_name.charAt(0).toUpperCase()}</div>
                                             <div className="details">
                                                 <span className="name" onClick={() => navigate(`/dashboard/customers/${c.id}`)}>{c.full_name}</span>
-                                                <span className="sub">ID: #{c.id.slice(0, 8).toUpperCase()}</span>
+                                                <span className="sub">ID: {c.id.slice(0, 8).toUpperCase()}</span>
                                                 <div className="contact-links">
                                                     <a href={`tel:${c.phone}`} title="Call"><Phone size={12} /></a>
                                                     <span className="sep">|</span>
@@ -289,19 +285,9 @@ const CustomerList = () => {
                                     <td>
                                         <div className="finance-cell">
                                             <div className="finance-row">
-                                                <label>Used:</label>
-                                                <span className={`balance ${parseFloat(c.balance) > 0 ? 'text-red' : 'text-green'}`}>
+                                                <label>Balance:</label>
+                                                <span className={`balance ${parseFloat(c.balance) > 0 ? 'text-red' : 'text-green'}`} style={{ fontWeight: 800 }}>
                                                     ₹{parseFloat(c.balance).toLocaleString()}
-                                                </span>
-                                            </div>
-                                            <div className="finance-row">
-                                                <label>Limit:</label>
-                                                <span>₹{parseFloat(c.credit_limit || 0).toLocaleString()}</span>
-                                            </div>
-                                            <div className="finance-row remaining">
-                                                <label>Remaining:</label>
-                                                <span className={parseFloat(c.credit_limit || 0) - parseFloat(c.balance || 0) < 0 ? 'text-red' : 'text-blue'}>
-                                                    ₹{Math.max(0, parseFloat(c.credit_limit || 0) - parseFloat(c.balance || 0)).toLocaleString()}
                                                 </span>
                                             </div>
                                         </div>
@@ -349,9 +335,9 @@ const CustomerList = () => {
                                     <ArrowLeft size={18} />
                                 </button>
                                 <div>
-                                    <h2>{formData.id ? 'Refine Customer Data' : 'Establish New Relation'}</h2>
+                                    <h2>{formData.id ? 'Edit Customer' : 'Add Customer'}</h2>
                                     <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px', fontWeight: '500' }}>
-                                        {formData.id ? 'Update existing business details and credit parameters.' : 'Onboard a new client into your distribution network.'}
+                                        {formData.id ? 'Update customer details.' : 'Add a new customer.'}
                                     </p>
                                 </div>
                             </div>
@@ -381,17 +367,13 @@ const CustomerList = () => {
                                         </div>
                                         <div className="form-group">
                                             <label>Email Address</label>
-                                            <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="john@example.com" />
+                                            <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required placeholder="john@example.com" />
                                         </div>
                                     </div>
                                     <div className="grid-2">
                                         <div className="form-group">
                                             <label>Company Name (Optional)</label>
                                             <input type="text" value={formData.company_name} onChange={e => setFormData({...formData, company_name: e.target.value})} placeholder="Acme Corp" />
-                                        </div>
-                                        <div className="form-group">
-                                            <label>GST Number</label>
-                                            <input type="text" value={formData.gst_number} onChange={e => setFormData({...formData, gst_number: e.target.value})} placeholder="22AAAAA0000A1Z5" />
                                         </div>
                                     </div>
                                 </div>
@@ -401,12 +383,12 @@ const CustomerList = () => {
                                     <h3 className="section-title">Location Details</h3>
                                     <div className="form-group">
                                         <label>Street Address</label>
-                                        <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} placeholder="Door No, Street name..."></textarea>
+                                        <textarea value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} required placeholder="Door No, Street name..."></textarea>
                                     </div>
                                     <div className="grid-3">
                                         <div className="form-group">
                                             <label>City</label>
-                                            <input type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} placeholder="City" />
+                                            <input type="text" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} required placeholder="City" />
                                         </div>
                                         <div className="form-group">
                                             <label>State</label>
@@ -416,7 +398,7 @@ const CustomerList = () => {
                                         </div>
                                         <div className="form-group">
                                             <label>Pincode</label>
-                                            <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} placeholder="600001" />
+                                            <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} required placeholder="600001" />
                                         </div>
                                     </div>
                                 </div>
@@ -424,11 +406,7 @@ const CustomerList = () => {
                                 {/* Section 3: Parameters & Credit */}
                                 <div className="section">
                                     <h3 className="section-title">Business Parameters</h3>
-                                    <div className="grid-3">
-                                        <div className="form-group">
-                                            <label>Credit Limit (₹)</label>
-                                            <input type="number" value={formData.credit_limit} onChange={e => setFormData({...formData, credit_limit: e.target.value})} />
-                                        </div>
+                                    <div className="grid-2">
                                         <div className="form-group">
                                             <label>Relationship Status</label>
                                             <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})}>

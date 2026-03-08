@@ -3,7 +3,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // REPLACE WITH YOUR BACKEND IP ADDRESS
-const API_URL = 'http://10.1.44.53:5001/api';
+const API_URL = 'https://stockmanager-server.vercel.app/api';
 
 // Utility function to recursively convert string booleans to actual booleans
 const normalizeBooleansInObject = (obj) => {
@@ -44,6 +44,7 @@ const normalizeBooleansInObject = (obj) => {
 
 const api = axios.create({
     baseURL: API_URL,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
     },

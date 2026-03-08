@@ -414,29 +414,32 @@ const StockList = () => {
                                 </form>
 
                                 <div className="categories-list-mini">
-                                    <h3 className="section-title">Existing Categories</h3>
-                                    <div className="table-container" style={{ border: '1px solid #f3f4f6', boxShadow: 'none' }}>
-                                        <table className="stock-table" style={{ fontSize: '0.85rem' }}>
+                                    <h3 className="section-title">Established Categories</h3>
+                                    <div className="modern-table-view">
+                                        <table className="modern-table">
                                             <thead>
                                                 <tr>
-                                                    <th>Category Name</th>
-                                                    <th style={{ textAlign: 'center' }}>Products</th>
-                                                    <th style={{ textAlign: 'right' }}>Actions</th>
+                                                    <th>Category</th>
+                                                    <th className="text-center">Usage</th>
+                                                    <th className="text-right">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {categories.map(cat => (
                                                     <tr key={cat.id}>
-                                                        <td>{cat.name}</td>
-                                                        <td style={{ textAlign: 'center' }}>
-                                                             <span className="count-pill">{cat.product_count || 0}</span>
+                                                        <td className="font-bold text-gray-800">{cat.name}</td>
+                                                        <td className="text-center">
+                                                             <span className="count-chip">{cat.product_count || 0} Items</span>
                                                         </td>
-                                                        <td className="actions-cell" style={{ justifyContent: 'flex-end' }}>
-                                                            <button className="icon-btn-sm" onClick={() => openEditCategory(cat)}><Edit size={14} /></button>
-                                                            <button className="icon-btn-sm delete-btn" onClick={() => handleDeleteCategory(cat.id)}><Trash2 size={14} /></button>
+                                                        <td className="actions-cell justify-end">
+                                                            <button className="icon-btn-sm" title="Edit" onClick={() => openEditCategory(cat)}><Edit size={14} /></button>
+                                                            <button className="icon-btn-sm delete-btn" title="Delete" onClick={() => handleDeleteCategory(cat.id)}><Trash2 size={14} /></button>
                                                         </td>
                                                     </tr>
                                                 ))}
+                                                {categories.length === 0 && (
+                                                    <tr><td colSpan="3" className="text-center py-10 text-gray-400">No categories established.</td></tr>
+                                                )}
                                             </tbody>
                                         </table>
                                     </div>
@@ -459,8 +462,8 @@ const StockList = () => {
                                         <ArrowLeft size={18} />
                                     </button>
                                     <div>
-                                        <h2>{formData.id ? 'Edit Product Configuration' : 'Onboard New Product'}</h2>
-                                        <p className="subtitle">Complete the fields below to synchronize your inventory records.</p>
+                                        <h2>{formData.id ? 'Edit Product' : 'Add Product'}</h2>
+                                        <p className="subtitle">{formData.id ? 'Update product details.' : 'Add a new product to inventory.'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -468,7 +471,7 @@ const StockList = () => {
                                 <div className="managed-form">
                                     <div className="form-sections">
                                         <div className="form-section">
-                                            <h3 className="section-title">Identity & Classification</h3>
+                                            <h3 className="section-title">Product Info</h3>
                                             <div className="grid-2">
                                                 <div className="form-group">
                                                     <label>Product Name</label>
@@ -517,7 +520,7 @@ const StockList = () => {
                                         </div>
 
                                         <div className="form-section">
-                                            <h3 className="section-title">Valuation & Stock Controls</h3>
+                                            <h3 className="section-title">Price & Stock</h3>
                                             <div className="grid-3">
                                                 <div className="form-group">
                                                     <label>Unit Price (₹)</label>
@@ -566,7 +569,7 @@ const StockList = () => {
                                 <div className="modal-actions-alt">
                                     <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)} disabled={actionLoading}>Discard</button>
                                     <button type="submit" className="btn btn-primary" disabled={actionLoading}>
-                                        {actionLoading ? 'Synchronizing...' : (formData.id ? 'Save Configuration' : 'Onboard Product')}
+                                        {actionLoading ? 'Saving...' : (formData.id ? 'Save Product' : 'Add Product')}
                                     </button>
                                 </div>
                             </form>
@@ -584,7 +587,7 @@ const StockList = () => {
                                         <ArrowLeft size={18} />
                                     </button>
                                     <div>
-                                        <h2>Manual Stock Adjustment</h2>
+                                        <h2>Adjust Stock</h2>
                                         <p className="subtitle">{adjustData.name}</p>
                                     </div>
                                 </div>
@@ -621,7 +624,7 @@ const StockList = () => {
                                 <div className="modal-actions">
                                     <button type="button" className="btn btn-secondary" onClick={() => setShowAdjustModal(false)} disabled={actionLoading}>Cancel</button>
                                     <button type="submit" className="btn btn-primary" disabled={actionLoading}>
-                                        {actionLoading ? 'Processing...' : 'Sync Inventory'}
+                                        {actionLoading ? 'Saving...' : 'Save Adjustment'}
                                     </button>
                                 </div>
                             </form>
@@ -639,8 +642,8 @@ const StockList = () => {
                                         <ArrowLeft size={18} />
                                     </button>
                                     <div>
-                                        <h2>Stock Movement History</h2>
-                                        <p className="subtitle">Complete audit trail for the selected product.</p>
+                                        <h2>Product History</h2>
+                                        <p className="subtitle">View stock movement for this product.</p>
                                     </div>
                                 </div>
                             </div>

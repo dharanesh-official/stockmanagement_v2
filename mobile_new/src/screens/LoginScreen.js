@@ -43,7 +43,7 @@ const LoginScreen = () => {
                 }
             } else if (error.request) {
                 // The request was made but no response was received
-                msg = 'Network error. Please check your internet connection.';
+                msg = 'Unable to connect to server. Please ensure the backend is running and you are on the same network.';
             } else {
                 // Something happened in setting up the request that triggered an Error
                 msg = error.message;

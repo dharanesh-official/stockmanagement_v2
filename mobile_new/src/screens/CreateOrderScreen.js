@@ -40,7 +40,6 @@ const CreateOrderScreen = ({ navigation, route }) => {
     const [showOrderTypeModal, setShowOrderTypeModal] = useState(false);
     
     // Financials
-    const [gstAmount, setGstAmount] = useState('0');
     const [discountAmount, setDiscountAmount] = useState('0');
     const [shippingCharge, setShippingCharge] = useState('0');
 
@@ -102,7 +101,6 @@ const CreateOrderScreen = ({ navigation, route }) => {
             setNotes(sale.notes || '');
             setStatus(sale.status || 'Ordered');
             setOrderType(sale.order_type || 'Shop Order');
-            setGstAmount(sale.gst_amount ? String(sale.gst_amount) : '0');
             setDiscountAmount(sale.discount_amount ? String(sale.discount_amount) : '0');
             setShippingCharge(sale.shipping_charge ? String(sale.shipping_charge) : '0');
 
@@ -187,10 +185,9 @@ const CreateOrderScreen = ({ navigation, route }) => {
 
     const calculateFinalTotal = () => {
         const sub = calculateSubtotal();
-        const gst = parseFloat(gstAmount) || 0;
         const ship = parseFloat(shippingCharge) || 0;
         const disc = parseFloat(discountAmount) || 0;
-        return sub + gst + ship - disc;
+        return sub + ship - disc;
     };
 
     const handleSubmit = async () => {
@@ -230,7 +227,6 @@ const CreateOrderScreen = ({ navigation, route }) => {
             type: 'order',
             status: finalStatus,
             order_type: orderType,
-            gst_amount: parseFloat(gstAmount) || 0,
             discount_amount: parseFloat(discountAmount) || 0,
             shipping_charge: parseFloat(shippingCharge) || 0
         };
@@ -447,10 +443,6 @@ const CreateOrderScreen = ({ navigation, route }) => {
                                 
                                 <View style={styles.row}>
                                     <View style={{ flex: 1, marginRight: 5 }}>
-                                        <Text style={styles.label}>GST (+)</Text>
-                                        <TextInput style={styles.input} value={gstAmount} onChangeText={setGstAmount} keyboardType="numeric" placeholder="0" />
-                                    </View>
-                                    <View style={{ flex: 1, marginLeft: 5 }}>
                                         <Text style={styles.label}>Shipping (+)</Text>
                                         <TextInput style={styles.input} value={shippingCharge} onChangeText={setShippingCharge} keyboardType="numeric" placeholder="0" />
                                     </View>

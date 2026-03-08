@@ -34,7 +34,6 @@ const ShopsScreen = ({ navigation }) => {
         area_id: '',
         shop_code: '',
         shop_type: 'Retail',
-        gst_number: '',
         city: '',
         state: '',
         pincode: '',
@@ -73,8 +72,9 @@ const ShopsScreen = ({ navigation }) => {
     }, []);
 
     const handleCreateOrUpdate = async () => {
-        if (!formData.name || !formData.customer_id || !formData.area_id) {
-            Alert.alert('Validation', 'Shop Name, Customer, and Area are required');
+        const { name, address, phone, email, customer_id, area_id, city, state, pincode } = formData;
+        if (!name || !address || !phone || !email || !customer_id || !area_id || !city || !state || !pincode) {
+            Alert.alert('Validation', 'All fields are mandatory (Name, Address, Phone, Email, Customer, Area, City, State, Pincode)');
             return;
         }
 
@@ -137,7 +137,6 @@ const ShopsScreen = ({ navigation }) => {
             area_id: selectedArea ? selectedArea.id : '',
             shop_code: '',
             shop_type: 'Retail',
-            gst_number: '',
             city: '',
             state: '',
             pincode: '',
@@ -211,7 +210,6 @@ const ShopsScreen = ({ navigation }) => {
             area_id: shop.area_id || '',
             shop_code: shop.shop_code || '',
             shop_type: shop.shop_type || 'Retail',
-            gst_number: shop.gst_number || '',
             city: shop.city || '',
             state: shop.state || '',
             pincode: shop.pincode || '',
@@ -589,12 +587,13 @@ const ShopsScreen = ({ navigation }) => {
                                 </View>
                             </View>
 
-                            <Text style={styles.label}>GST Number (Optional)</Text>
+                            <Text style={styles.label}>Email Address</Text>
                             <TextInput
                                 style={styles.input}
-                                value={formData.gst_number}
-                                onChangeText={t => setFormData({ ...formData, gst_number: t })}
-                                placeholder="Enter GSTIN"
+                                value={formData.email}
+                                onChangeText={t => setFormData({ ...formData, email: t })}
+                                placeholder="business@example.com"
+                                keyboardType="email-address"
                             />
 
                             <View style={styles.row}>

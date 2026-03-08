@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Printer, ArrowLeft, Download, Mail, Building2, Store, User, FileText } from 'lucide-react';
+import { Printer, ArrowLeft, Download, Mail, Building2, Store, User, FileText, Truck, History } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import './Invoice.css';
 
@@ -55,17 +55,17 @@ const Invoice = () => {
     if (!sale) return <div className="error-container">Invoice not found.</div>;
 
     const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-    const finalTotal = subtotal + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0);
+    const finalTotal = subtotal + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0);
 
     return (
         <div className="invoice-page-container">
             <div className="invoice-actions no-print">
                 <button onClick={() => navigate(-1)} className="btn-action">
-                    <ArrowLeft size={18} /> Exit Viewer
+                    <ArrowLeft size={18} /> Back
                 </button>
                 <div className="flex gap-2">
                     <button onClick={handlePrint} className="btn-action btn-primary">
-                        <Printer size={18} /> Print Record
+                        <Printer size={18} /> Print Invoice
                     </button>
                 </div>
             </div>
@@ -79,14 +79,13 @@ const Invoice = () => {
                             </div>
                             <div className="info">
                                 <h2>{company.company_name || 'Secuvra Enterprise'}</h2>
-                                <p className="gst-text">GSTIN: {company.gst_number || '27AAACG0000A1Z5'}</p>
                             </div>
                         </div>
                         <p className="company-address">{company.company_address || '123 Business Avenue, Tech Park, Industrial Estate'}</p>
                         <p className="company-contact">Support: +91 98765 43210 • info@secuvra.io</p>
                     </div>
                     <div className="invoice-meta">
-                        <h1>TAX INVOICE</h1>
+                        <h1>INVOICE</h1>
                         <div className="meta-grid">
                             <div className="meta-item">
                                 <span className="label">Invoice No</span>
@@ -119,7 +118,7 @@ const Invoice = () => {
                         <p><strong>{sale.shop_name || 'Direct Delivery'}</strong></p>
                         <p>{sale.shop_location || sale.shop_address || 'As per billing address'}</p>
                         <div className="delivery-method">
-                            <Truck size={14} /> <span>Surface Logistics</span>
+                            <Truck size={14} /> <span>Delivery</span>
                         </div>
                     </div>
                 </div>
@@ -187,13 +186,10 @@ const Invoice = () => {
                     <div className="lower-right">
                         <div className="calculation-panel">
                             <div className="calc-row">
-                                <span>TAXABLE VALUE (SUBTOTAL)</span>
+                                <span>SUBTOTAL</span>
                                 <strong>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
                             </div>
-                            <div className="calc-row">
-                                <span>GST (CONSOLIDATED)</span>
-                                <strong>+ ₹{Number(sale.gst_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                            </div>
+
                             <div className="calc-row">
                                 <span>LOGISTICS CHARGE</span>
                                 <strong>+ ₹{Number(sale.shipping_charge || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
@@ -206,7 +202,6 @@ const Invoice = () => {
                             <div className="calc-row total-row">
                                 <div className="total-label">
                                     <span>GRAND TOTAL</span>
-                                    <small>(INCLUSIVE OF ALL TAXES)</small>
                                 </div>
                                 <span className="total-value">₹{finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
                             </div>

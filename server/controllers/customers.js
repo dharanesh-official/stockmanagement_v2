@@ -83,21 +83,25 @@ const getCustomerById = async (req, res) => {
 const addCustomer = async (req, res) => {
     const { 
         full_name, email, phone, address, 
-        customer_type, gst_number, company_name, 
-        city, state, pincode, credit_limit, notes, tags 
+        customer_type, company_name, 
+        city, state, pincode, notes, tags 
     } = req.body;
+
+    if (!full_name || !email || !phone || !address || !city || !state || !pincode || !company_name) {
+        return res.status(400).send('All fields are mandatory (Name, Email, Phone, Address, City, State, Pincode, Company Name)');
+    }
     const salesman_id = req.user.id;
     try {
         const newCustomer = await pool.query(
             `INSERT INTO customers (
                 full_name, email, phone, address, salesman_id,
-                customer_type, gst_number, company_name,
-                city, state, pincode, credit_limit, notes, tags
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
+                customer_type, company_name,
+                city, state, pincode, notes, tags
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
             [
-                full_name, email || null, phone, address, salesman_id,
-                customer_type || 'Retail', gst_number || null, company_name || null,
-                city || null, state || null, pincode || null, credit_limit || 0, notes || null, tags || []
+                full_name, email, phone, address, salesman_id,
+                customer_type || 'Retail', company_name || null,
+                city, state, pincode, notes || null, tags || []
             ]
         );
         res.json(newCustomer.rows[0]);
@@ -114,22 +118,26 @@ const updateCustomer = async (req, res) => {
     const { id } = req.params;
     const { 
         full_name, email, phone, address, 
-        customer_type, gst_number, company_name, 
-        city, state, pincode, credit_limit, notes, status, tags 
+        customer_type, company_name, 
+        city, state, pincode, notes, status, tags 
     } = req.body;
+
+    if (!full_name || !email || !phone || !address || !city || !state || !pincode || !company_name) {
+        return res.status(400).send('All fields are mandatory');
+    }
     const { role, id: userId } = req.user;
     try {
         let query = `
             UPDATE customers SET 
                 full_name = $1, email = $2, phone = $3, address = $4,
-                customer_type = $5, gst_number = $6, company_name = $7,
-                city = $8, state = $9, pincode = $10, credit_limit = $11, 
-                notes = $12, status = $13, tags = $14
-            WHERE id = $15`;
+                customer_type = $5, company_name = $6,
+                city = $7, state = $8, pincode = $9, 
+                notes = $10, status = $11, tags = $12
+            WHERE id = $13`;
         const params = [
-            full_name, email || null, phone, address, 
-            customer_type, gst_number, company_name,
-            city, state, pincode, credit_limit, 
+            full_name, email, phone, address, 
+            customer_type, company_name,
+            city, state, pincode, 
             notes, status, tags, id
         ];
 

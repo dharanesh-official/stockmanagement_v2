@@ -112,4 +112,49 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-module.exports = { getDashboardStats };
+const globalSearch = async (req, res) => {
+    try {
+        const { query } = req.query;
+        if (!query || query.length < 2) return res.json({ stocks: [], shops: [], customers: [] });
+
+        const { role, id } = req.user;
+        const searchTerm = `%${query}%`;
+
+        // Search Stocks
+        const stocks = await pool.query(
+            "SELECT id, item_name as name, 'product' as type, sku FROM stock WHERE item_name ILIKE $1 OR sku ILIKE $1 LIMIT 5",
+            [searchTerm]
+        );
+
+        // Search Shops
+        let shopsQuery = "SELECT id, name, 'shop' as type, shop_code FROM shops WHERE (name ILIKE $1 OR shop_code ILIKE $1)";
+        let shopParams = [searchTerm];
+        if (role === 'salesman') {
+            shopsQuery += " AND salesman_id = $2";
+            shopParams.push(id);
+        }
+        shopsQuery += " LIMIT 5";
+        const shops = await pool.query(shopsQuery, shopParams);
+
+        // Search Customers
+        let custQuery = "SELECT id, full_name as name, 'customer' as type, phone FROM customers WHERE (full_name ILIKE $1 OR phone ILIKE $1)";
+        let custParams = [searchTerm];
+        if (role === 'salesman') {
+            custQuery += " AND salesman_id = $2";
+            custParams.push(id);
+        }
+        custQuery += " LIMIT 5";
+        const customers = await pool.query(custQuery, custParams);
+
+        res.json({
+            stocks: stocks.rows,
+            shops: shops.rows,
+            customers: customers.rows
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server Error');
+    }
+};
+
+module.exports = { getDashboardStats, globalSearch };

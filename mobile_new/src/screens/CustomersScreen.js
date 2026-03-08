@@ -26,7 +26,10 @@ const CustomersScreen = () => {
         full_name: '',
         email: '',
         phone: '',
-        address: ''
+        address: '',
+        city: '',
+        state: 'Tamil Nadu',
+        pincode: ''
     });
 
     const fetchCustomers = async () => {
@@ -65,8 +68,9 @@ const CustomersScreen = () => {
     }, [search, customers]);
 
     const handleSave = async () => {
-        if (!formData.full_name || !formData.phone) {
-            Alert.alert('Validation', 'Name and Phone are required');
+        const { full_name, phone, email, address, city, state, pincode } = formData;
+        if (!full_name || !phone || !email || !address || !city || !state || !pincode) {
+            Alert.alert('Validation', 'All fields are mandatory (Name, Phone, Email, Address, City, State, Pincode)');
             return;
         }
 
@@ -136,13 +140,16 @@ const CustomersScreen = () => {
             full_name: item.full_name || '',
             email: item.email || '',
             phone: item.phone ? item.phone.replace('+91 ', '') : '',
-            address: item.address || ''
+            address: item.address || '',
+            city: item.city || '',
+            state: item.state || 'Tamil Nadu',
+            pincode: item.pincode || ''
         });
         setModalVisible(true);
     };
 
     const resetForm = () => {
-        setFormData({ id: null, full_name: '', email: '', phone: '', address: '' });
+        setFormData({ id: null, full_name: '', email: '', phone: '', address: '', city: '', state: 'Tamil Nadu', pincode: '' });
     };
 
     const renderItem = ({ item }) => {
@@ -239,7 +246,7 @@ const CustomersScreen = () => {
                                 <View>
                                     <Text style={styles.modalTitle}>{formData.id ? 'Refine Customer Data' : 'Establish New Relation'}</Text>
                                     <Text style={styles.modalSubtitle}>
-                                        {formData.id ? 'Update existing client profile and credit limits.' : 'Register a new business entity to the portal.'}
+                                        {formData.id ? 'Update existing client profile details.' : 'Register a new business entity to the portal.'}
                                     </Text>
                                 </View>
                             </View>
@@ -264,21 +271,53 @@ const CustomersScreen = () => {
                                 />
                             </View>
 
-                            <Text style={styles.label}>Email</Text>
+                            <Text style={styles.label}>Email Address *</Text>
                             <TextInput
                                 style={styles.input}
                                 value={formData.email}
                                 onChangeText={t => setFormData({ ...formData, email: t })}
                                 keyboardType="email-address"
                                 autoCapitalize="none"
+                                placeholder="customer@example.com"
                             />
 
-                            <Text style={styles.label}>Address</Text>
+                            <Text style={styles.label}>Address *</Text>
                             <TextInput
                                 style={[styles.input, { height: 80 }]}
                                 value={formData.address}
                                 onChangeText={t => setFormData({ ...formData, address: t })}
                                 multiline={true}
+                                placeholder="Door No, Street name..."
+                            />
+
+                            <View style={{ flexDirection: 'row', gap: 12 }}>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.label}>City *</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={formData.city}
+                                        onChangeText={t => setFormData({ ...formData, city: t })}
+                                        placeholder="City"
+                                    />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.label}>Pincode *</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={formData.pincode}
+                                        onChangeText={t => setFormData({ ...formData, pincode: t })}
+                                        placeholder="600001"
+                                        keyboardType="numeric"
+                                    />
+                                </View>
+                            </View>
+
+                            <Text style={styles.label}>State *</Text>
+                            <TextInput
+                                style={styles.input}
+                                value={formData.state}
+                                onChangeText={t => setFormData({ ...formData, state: t })}
+                                placeholder="State"
                             />
 
                             <TouchableOpacity

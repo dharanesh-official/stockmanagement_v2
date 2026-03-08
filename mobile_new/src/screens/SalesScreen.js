@@ -106,7 +106,7 @@ const SalesScreen = ({ navigation }) => {
                     <View style={styles.headerTitle}>
                         <FileText size={18} color="#4b5563" />
                         <View>
-                            <Text style={styles.orderId}>{item.invoice_number || `TXN-${item.id.slice(0,8)}`}</Text>
+                            <Text style={styles.orderId}>{item.invoice_number ? `#${item.invoice_number}` : `TXN-${item.id.slice(0,8)}`}</Text>
                             <View style={styles.originRow}>
                                 <Text style={styles.txnType}>{item.type?.toUpperCase()}</Text>
                                 <View style={styles.originDot} />

@@ -52,6 +52,10 @@ const DashboardHome = () => {
     const [loading, setLoading] = useState(true);
     const [period, setPeriod] = useState('30d');
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifs, setShowNotifs] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(new Date());
 
     const fetchStats = React.useCallback(async () => {
@@ -63,6 +67,10 @@ const DashboardHome = () => {
             const response = await api.get(`/dashboard/stats?period=${period}`);
             setStats(response.data);
             setLastUpdated(new Date());
+
+            // Fetch notifications
+            const notifRes = await api.get('/notifications');
+            setNotifications(notifRes.data);
         } catch (error) {
             console.error('Error fetching dashboard stats:', error);
         } finally {
@@ -71,8 +79,36 @@ const DashboardHome = () => {
     }, [period, stats.recentTransactions]);
 
     useEffect(() => {
+        const delaySearch = setTimeout(async () => {
+            if (searchQuery.length > 1) {
+                setIsSearching(true);
+                try {
+                    const res = await api.get(`/dashboard/search?query=${searchQuery}`);
+                    setSearchResults(res.data);
+                } catch (err) {
+                    console.error("Search error:", err);
+                } finally {
+                    setIsSearching(false);
+                }
+            } else {
+                setSearchResults(null);
+            }
+        }, 300);
+        return () => clearTimeout(delaySearch);
+    }, [searchQuery]);
+
+    useEffect(() => {
         fetchStats();
     }, [fetchStats]);
+
+    const markRead = async (id) => {
+        try {
+            await api.put(`/notifications/${id}/read`);
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        } catch (err) {
+            console.error("Mark read error:", err);
+        }
+    };
 
     const statCards = [
         {
@@ -125,20 +161,95 @@ const DashboardHome = () => {
                     </div>
 
                     <div className="header-search">
-                        <Search className="search-icon" size={18} />
-                        <input 
-                            type="text" 
-                            placeholder="Find products, orders, or customers..." 
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                        <div className="search-input-wrapper">
+                            <Search className="search-icon" size={18} />
+                            <input 
+                                type="text" 
+                                placeholder="Find products, orders, or customers..." 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {isSearching && <div className="search-loader"></div>}
+                        </div>
+                        
+                        {searchResults && (
+                            <div className="search-results-dropdown">
+                                {Object.values(searchResults).every(arr => arr.length === 0) ? (
+                                    <div className="search-no-results">No matching records found</div>
+                                ) : (
+                                    <>
+                                        {searchResults.stocks.length > 0 && (
+                                            <div className="search-section">
+                                                <label>Products</label>
+                                                {searchResults.stocks.map(s => (
+                                                    <div key={s.id} className="search-result-item" onClick={() => navigate('/dashboard/stock')}>
+                                                        <Package size={14} /> <span>{s.name}</span> {s.sku && <small>{s.sku}</small>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {searchResults.shops.length > 0 && (
+                                            <div className="search-section">
+                                                <label>Shops</label>
+                                                {searchResults.shops.map(s => (
+                                                    <div key={s.id} className="search-result-item" onClick={() => navigate('/dashboard/shops')}>
+                                                        <ShoppingBag size={14} /> <span>{s.name}</span> {s.shop_code && <small>{s.shop_code}</small>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {searchResults.customers.length > 0 && (
+                                            <div className="search-section">
+                                                <label>Customers</label>
+                                                {searchResults.customers.map(c => (
+                                                    <div key={c.id} className="search-result-item" onClick={() => navigate('/dashboard/customers')}>
+                                                        <Users size={14} /> <span>{c.name}</span> {c.phone && <small>{c.phone}</small>}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="header-right">
-                        <button className="notif-btn" title="Notifications">
-                            <Bell size={20} />
-                            <span className="notif-badge"></span>
-                        </button>
+                        <div className="relative">
+                            <button className={`notif-btn ${showNotifs ? 'active' : ''}`} title="Notifications" onClick={() => setShowNotifs(!showNotifs)}>
+                                <Bell size={20} />
+                                {notifications.some(n => !n.is_read) && <span className="notif-badge"></span>}
+                            </button>
+                            
+                            {showNotifs && (
+                                <div className="notif-dropdown">
+                                    <div className="notif-header">
+                                        <h3>Notifications</h3>
+                                        <button onClick={async (e) => {
+                                            e.stopPropagation();
+                                            await api.put('/notifications/read-all');
+                                            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+                                        }}>Clear All</button>
+                                    </div>
+                                    <div className="notif-list">
+                                        {notifications.length === 0 ? (
+                                            <div className="notif-empty">No updates available</div>
+                                        ) : (
+                                            notifications.map(n => (
+                                                <div key={n.id} className={`notif-item ${!n.is_read ? 'unread' : ''}`} onClick={() => markRead(n.id)}>
+                                                    <div className={`notif-icon ${n.type}`}><AlertTriangle size={14} /></div>
+                                                    <div className="notif-content">
+                                                        <p className="notif-title">{n.title}</p>
+                                                        <p className="notif-message">{n.message}</p>
+                                                        <span className="notif-time">{new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <select 
                             className="period-filter" 
                             value={period} 

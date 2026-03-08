@@ -7,19 +7,18 @@ import './CreateOrder.css';
 const CreateOrder = ({ user }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(location.state?.shopId ? 2 : 1);
     const [shops, setShops] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [orderData, setOrderData] = useState({
         id: location.state?.editOrder?.id || '',
-        shop_id: location.state?.editOrder?.shop_id || '',
+        shop_id: location.state?.shopId || location.state?.editOrder?.shop_id || '',
         customer_id: location.state?.editOrder?.customer_id || '',
         items: [],
         notes: location.state?.editOrder?.notes || '',
         paid_amount: location.state?.editOrder?.paid_amount || 0,
         order_type: location.state?.editOrder?.order_type || 'Shop Order',
-        gst_amount: location.state?.editOrder?.gst_amount || 0,
         discount_amount: location.state?.editOrder?.discount_amount || 0,
         shipping_charge: location.state?.editOrder?.shipping_charge || 0,
         payment_method: location.state?.editOrder?.payment_method || 'Cash'
@@ -32,11 +31,21 @@ const CreateOrder = ({ user }) => {
         const init = async () => {
             setLoading(true);
             try {
-                await Promise.all([fetchShops(), fetchProducts()]);
+                const [shopsRes, productsRes] = await Promise.all([fetchShops(), fetchProducts()]);
+                
                 if (isEdit) {
                     const res = await api.get(`/sales/items/${orderData.id}`);
                     setOrderData(prev => ({ ...prev, items: res.data }));
                     setStep(3); // Go to summary for edit
+                } else if (location.state?.shopId) {
+                    // Match the shop to get customer_id
+                    const selectedShop = shopsRes.find(s => s.id === location.state.shopId);
+                    if (selectedShop) {
+                        setOrderData(prev => ({
+                            ...prev,
+                            customer_id: selectedShop.customer_id
+                        }));
+                    }
                 }
             } catch (err) {
                 console.error("Initialization error:", err);
@@ -45,16 +54,18 @@ const CreateOrder = ({ user }) => {
             }
         };
         init();
-    }, [isEdit, orderData.id]);
+    }, [isEdit, orderData.id, location.state?.shopId]);
 
     const fetchShops = async () => {
         const res = await api.get('/shops');
         setShops(res.data);
+        return res.data;
     };
 
     const fetchProducts = async () => {
         const res = await api.get('/stock');
         setProducts(res.data);
+        return res.data;
     };
 
     const handleShopSelect = (shop) => {
@@ -134,7 +145,7 @@ const CreateOrder = ({ user }) => {
     );
     
     const subtotal = orderData.items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-    const totalAmount = subtotal + Number(orderData.gst_amount) + Number(orderData.shipping_charge) - Number(orderData.discount_amount);
+    const totalAmount = subtotal + Number(orderData.shipping_charge) - Number(orderData.discount_amount);
     const selectedShop = shops.find(s => s.id === orderData.shop_id);
 
     if (loading) return <div className="loading-container">Synchronizing warehouse data...</div>;
@@ -142,30 +153,30 @@ const CreateOrder = ({ user }) => {
     return (
         <div className="create-order-page">
             <button onClick={() => navigate('/dashboard/sales')} className="btn-back">
-                <ArrowLeft size={18} /> Exit Console
+                <ArrowLeft size={18} /> Back
             </button>
 
             <header className="page-header">
                 <div>
-                    <h1 className="page-title">{isEdit ? 'Re-configure Order' : 'Precision Dispatch Terminal'}</h1>
-                    <p className="page-subtitle">{isEdit ? `Modifying audit record #${orderData.id}` : 'Create comprehensive sales orders with real-time stock management.'}</p>
+                    <h1 className="page-title">{isEdit ? 'Edit Order' : 'Create New Order'}</h1>
+                    <p className="page-subtitle">{isEdit ? `Editing order #${orderData.id}` : 'Create new sales orders and manage stock.'}</p>
                 </div>
             </header>
 
             <div className="order-stepper">
                 <div className={`step-item ${step === 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
                     <div className="step-circle">{step > 1 ? <Check size={20} /> : '1'}</div>
-                    <span className="step-label">Destination</span>
+                    <span className="step-label">Select Shop</span>
                 </div>
                 <div className={`step-line ${step > 1 ? 'filled' : ''}`}></div>
                 <div className={`step-item ${step === 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
                     <div className="step-circle">{step > 2 ? <Check size={20} /> : '2'}</div>
-                    <span className="step-label">Inventory</span>
+                    <span className="step-label">Add Products</span>
                 </div>
                 <div className={`step-line ${step > 2 ? 'filled' : ''}`}></div>
                 <div className={`step-item ${step === 3 ? 'active' : ''}`}>
                     <div className="step-circle">3</div>
-                    <span className="step-label">Fiscal Review</span>
+                    <span className="step-label">Review Order</span>
                 </div>
             </div>
 
@@ -174,8 +185,8 @@ const CreateOrder = ({ user }) => {
                     <div style={{ padding: '2rem' }}>
                         <div className="section-header">
                             <div>
-                                <h2 className="section-title">Select Client Destination</h2>
-                                <p className="section-subtitle">Review credit status and outstanding balances before selection.</p>
+                                <h2 className="section-title">Select Shop</h2>
+                                <p className="section-subtitle">Pick a shop to start the order.</p>
                             </div>
                             <div className="search-container">
                                 <Search className="search-icon" size={20} />
@@ -200,7 +211,7 @@ const CreateOrder = ({ user }) => {
                                     border: '1px dashed #e5e7eb'
                                 }}>
                                     <Store size={48} style={{ color: '#d1d5db', marginBottom: '1rem' }} />
-                                    <p style={{ color: '#6b7280', fontSize: '1.1rem' }}>Destination not listed in directory</p>
+                                    <p style={{ color: '#6b7280', fontSize: '1.1rem' }}>Shop not found</p>
                                 </div>
                             ) : (
                                 filteredShops.map(shop => (
@@ -226,7 +237,7 @@ const CreateOrder = ({ user }) => {
                                             </div>
                                         </div>
                                         <div className="shop-action" style={{ marginTop: 'auto' }}>
-                                            <span>Authorize Selection</span>
+                                            <span>Select Shop</span>
                                             <ChevronRight size={18} />
                                         </div>
                                     </div>
@@ -244,13 +255,13 @@ const CreateOrder = ({ user }) => {
                                     <Store size={24} />
                                 </div>
                                 <div>
-                                    <div className="selection-label">Dispatching To</div>
+                                    <div className="selection-label">Shop</div>
                                     <h2 className="selection-name" style={{ color: '#1e293b' }}>{selectedShop?.name}</h2>
                                     <small className="text-gray-500 font-bold">{selectedShop?.customer_name} • ID: {selectedShop?.id.slice(0, 8).toUpperCase()}</small>
                                 </div>
                             </div>
                             <button onClick={() => setStep(1)} className="btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.25rem', borderRadius: '8px', fontSize: '0.875rem', fontWeight: 700 }}>
-                                Modify Route
+                                Change Shop
                             </button>
                         </div>
 
@@ -316,10 +327,10 @@ const CreateOrder = ({ user }) => {
 
                         <div className="order-footer">
                             <div className="total-display">
-                                <div className="total-label">Estimated Subtotal</div>
+                                <div className="total-label">Subtotal</div>
                                 <div className="total-amount">₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
                                 <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600, marginTop: '0.4rem' }}>
-                                    {orderData.items.length} Component{orderData.items.length !== 1 ? 's' : ''} Staged
+                                    {orderData.items.length} Product{orderData.items.length !== 1 ? 's' : ''} Selected
                                 </div>
                             </div>
                             <button
@@ -341,8 +352,8 @@ const CreateOrder = ({ user }) => {
                                 <div style={{ width: '120px', height: '120px', background: '#ecfdf5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 2.5rem', border: '4px solid #f0fdf4' }}>
                                     <CheckCircle size={64} style={{ color: '#10b981' }} />
                                 </div>
-                                <h2 style={{ fontSize: '3rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.04em' }}>Transaction Authorized</h2>
-                                <p style={{ color: '#64748b', fontSize: '1.25rem', marginBottom: '3rem', maxWidth: '500px', margin: '0 auto 3rem' }}>The order record has been successfully committed to the database. Reference: <strong>{orderData.invoice_number || 'STAGING'}</strong></p>
+                                <h2 style={{ fontSize: '3rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.04em' }}>Order Saved</h2>
+                                <p style={{ color: '#64748b', fontSize: '1.25rem', marginBottom: '3rem', maxWidth: '500px', margin: '0 auto 3rem' }}>The order has been successfully created. Invoice No: <strong>{orderData.invoice_number || 'PENDING'}</strong></p>
                                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
                                     <button
                                         onClick={() => navigate(`/dashboard/invoice/${orderData.id}`)}
@@ -356,14 +367,14 @@ const CreateOrder = ({ user }) => {
                                         className="btn-outline"
                                         style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '1.25rem 2.5rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}
                                     >
-                                        Return to Console
+                                        Back to History
                                     </button>
                                 </div>
                             </div>
                         ) : (
                             <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '40px' }}>
                                 <div>
-                                    <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem', color: '#1e293b' }}>Order Validation</h2>
+                                    <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem', color: '#1e293b' }}>Review Order</h2>
                                     
                                     <div className="summary-card" style={{ background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
                                         <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -393,10 +404,6 @@ const CreateOrder = ({ user }) => {
                                                 <span style={{ fontWeight: 700, color: '#1e293b' }}>₹{subtotal.toLocaleString('en-IN')}</span>
                                             </div>
                                             <div className="flex justify-between mb-2">
-                                                <span style={{ color: '#64748b', fontWeight: 600 }}>Taxes (GST)</span>
-                                                <span style={{ fontWeight: 700, color: '#1e293b' }}>+ ₹{Number(orderData.gst_amount).toLocaleString('en-IN')}</span>
-                                            </div>
-                                            <div className="flex justify-between mb-2">
                                                 <span style={{ color: '#64748b', fontWeight: 600 }}>Logistics / Shipping</span>
                                                 <span style={{ fontWeight: 700, color: '#1e293b' }}>+ ₹{Number(orderData.shipping_charge).toLocaleString('en-IN')}</span>
                                             </div>
@@ -414,7 +421,7 @@ const CreateOrder = ({ user }) => {
 
                                 <div className="side-controls">
                                     <div className="fiscal-inputs-card" style={{ background: '#f8fafc', borderRadius: '24px', padding: '2rem', border: '1px solid #e2e8f0' }}>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '1.5rem', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Fiscal Adjustments</h3>
+                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '1.5rem', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order Details</h3>
                                         
                                         <div className="form-group-v2">
                                             <label>Order Type</label>
@@ -424,19 +431,13 @@ const CreateOrder = ({ user }) => {
                                             </select>
                                         </div>
 
-                                        <div className="grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '1.5rem' }}>
-                                            <div className="form-group-v2">
-                                                <label>GST Amount</label>
-                                                <input type="number" value={orderData.gst_amount} onChange={e => setOrderData({...orderData, gst_amount: e.target.value})} className="premium-input" />
-                                            </div>
-                                            <div className="form-group-v2">
-                                                <label>Shipping</label>
-                                                <input type="number" value={orderData.shipping_charge} onChange={e => setOrderData({...orderData, shipping_charge: e.target.value})} className="premium-input" />
-                                            </div>
+                                        <div className="form-group-v2">
+                                            <label>Shipping</label>
+                                            <input type="number" value={orderData.shipping_charge} onChange={e => setOrderData({...orderData, shipping_charge: e.target.value})} className="premium-input" />
                                         </div>
 
                                         <div className="form-group-v2">
-                                            <label>Incentive Discount</label>
+                                            <label>Discount</label>
                                             <input type="number" value={orderData.discount_amount} onChange={e => setOrderData({...orderData, discount_amount: e.target.value})} className="premium-input" style={{ color: '#dc2626' }} />
                                         </div>
 
@@ -458,16 +459,16 @@ const CreateOrder = ({ user }) => {
                                         </div>
 
                                         <div className="form-group-v2">
-                                            <label>Administrative Notes</label>
-                                            <textarea className="premium-textarea" placeholder="Internal logistics or shop instructions..." value={orderData.notes} onChange={e => setOrderData({ ...orderData, notes: e.target.value })}></textarea>
+                                            <label>Notes</label>
+                                            <textarea className="premium-textarea" placeholder="Enter any notes here..." value={orderData.notes} onChange={e => setOrderData({ ...orderData, notes: e.target.value })}></textarea>
                                         </div>
 
                                         <div className="action-buttons-stack" style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             <button onClick={submitOrder} className="btn-primary-confirm" style={{ padding: '1.25rem', width: '100%', borderRadius: '14px', border: 'none', background: '#10b981', color: 'white', fontWeight: 900, cursor: 'pointer', fontSize: '1.1rem' }}>
-                                                Authorize & Dispatch
+                                                {isEdit ? 'Update Order' : 'Save Order'}
                                             </button>
                                             <button onClick={() => setStep(2)} className="btn-outline" style={{ padding: '1.25rem', width: '100%', borderRadius: '14px', border: '1px solid #e2e8f0', background: 'white', color: '#1e293b', fontWeight: 800, cursor: 'pointer' }}>
-                                                Adjust Inventory
+                                                Back to Products
                                             </button>
                                         </div>
                                     </div>

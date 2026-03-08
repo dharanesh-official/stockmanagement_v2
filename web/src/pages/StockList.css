@@ -571,3 +571,47 @@
     border-color: #cbd5e1;
     color: #0f172a;
 }
+
+/* Category Management Visual Enhancements */
+.modern-table-view {
+    background: #fcfcfd;
+    border-radius: 12px;
+    border: 1px solid #f1f5f9;
+    overflow: hidden;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table th {
+    background: #f8fafc;
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #94a3b8;
+    text-transform: uppercase;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.modern-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 0.9rem;
+}
+
+.count-chip {
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.justify-end { justify-content: flex-end; }
+.font-bold { font-weight: 700; }

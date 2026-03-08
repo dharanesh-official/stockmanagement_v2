@@ -40,11 +40,11 @@ const createShop = async (req, res) => {
     try {
         const { 
             name, address, phone, email, customer_id, salesman_id, location, area_id,
-            shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
+            shop_code, shop_type, city, state, pincode, credit_limit, notes, status
         } = req.body;
 
-        if (!area_id) {
-            return res.status(400).send('Area selection is mandatory');
+        if (!name || !address || !phone || !email || !area_id || !city || !state || !pincode || !customer_id || !shop_code) {
+            return res.status(400).send('All fields are mandatory (Name, Address, Phone, Email, Area, City, State, Pincode, Owner, Shop Code)');
         }
 
         let assignedSalesmanId = req.user.role === 'admin' ? (salesman_id || req.user.id) : req.user.id;
@@ -52,11 +52,11 @@ const createShop = async (req, res) => {
         const result = await pool.query(
             `INSERT INTO shops (
                 name, address, phone, email, customer_id, salesman_id, location, area_id,
-                shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
+                shop_code, shop_type, city, state, pincode, credit_limit, notes, status
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
             [
                 name, address, phone, email, customer_id, assignedSalesmanId, location, area_id || null,
-                shop_code, shop_type || 'Retail', gst_number, city, state, pincode, credit_limit || 0, notes, status || 'Active'
+                shop_code, shop_type || 'Retail', city, state, pincode, credit_limit || 0, notes, status || 'Active'
             ]
         );
         
@@ -74,22 +74,22 @@ const updateShop = async (req, res) => {
         const { id } = req.params;
         const { 
             name, address, phone, email, customer_id, salesman_id, location, area_id,
-            shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
+            shop_code, shop_type, city, state, pincode, credit_limit, notes, status
         } = req.body;
 
-        if (!area_id) {
-            return res.status(400).send('Area selection is mandatory');
+        if (!name || !address || !phone || !email || !area_id || !city || !state || !pincode || !customer_id || !shop_code) {
+            return res.status(400).send('All fields are mandatory (Name, Address, Phone, Email, Area, City, State, Pincode, Owner, Shop Code)');
         }
 
         let query = `
             UPDATE shops 
             SET name = $1, address = $2, phone = $3, email = $4, customer_id = $5, location = $6, area_id = $7,
-                shop_code = $8, shop_type = $9, gst_number = $10, city = $11, state = $12, pincode = $13, 
-                credit_limit = $14, notes = $15, status = $16, updated_at = NOW()
+                shop_code = $8, shop_type = $9, city = $10, state = $11, pincode = $12, 
+                credit_limit = $13, notes = $14, status = $15, updated_at = NOW()
         `;
         const params = [
             name, address, phone, email, customer_id, location, area_id || null,
-            shop_code, shop_type, gst_number, city, state, pincode, credit_limit, notes, status
+            shop_code, shop_type, city, state, pincode, credit_limit, notes, status
         ];
 
         let paramCount = params.length;
