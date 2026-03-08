@@ -65,7 +65,7 @@ const getSaleById = async (req, res) => {
 
 const generateInvoiceNumber = async (client) => {
     const result = await client.query(
-        "SELECT invoice_number FROM transactions WHERE type IN ('order', 'sale') ORDER BY created_at DESC LIMIT 1"
+        "SELECT invoice_number FROM transactions WHERE type IN ('order', 'sale') ORDER BY transaction_date DESC LIMIT 1"
     );
     if (result.rows.length === 0) return "1001";
     const lastInvoice = result.rows[0].invoice_number;

@@ -166,17 +166,17 @@ const CreateOrder = ({ user }) => {
             <div className="order-stepper">
                 <div className={`step-item ${step === 1 ? 'active' : ''} ${step > 1 ? 'completed' : ''}`}>
                     <div className="step-circle">{step > 1 ? <Check size={20} /> : '1'}</div>
-                    <span className="step-label">Select Shop</span>
+                    <span className="step-label">Shop</span>
                 </div>
                 <div className={`step-line ${step > 1 ? 'filled' : ''}`}></div>
                 <div className={`step-item ${step === 2 ? 'active' : ''} ${step > 2 ? 'completed' : ''}`}>
                     <div className="step-circle">{step > 2 ? <Check size={20} /> : '2'}</div>
-                    <span className="step-label">Add Products</span>
+                    <span className="step-label">Products</span>
                 </div>
                 <div className={`step-line ${step > 2 ? 'filled' : ''}`}></div>
                 <div className={`step-item ${step === 3 ? 'active' : ''}`}>
                     <div className="step-circle">3</div>
-                    <span className="step-label">Review Order</span>
+                    <span className="step-label">Review</span>
                 </div>
             </div>
 
@@ -337,138 +337,139 @@ const CreateOrder = ({ user }) => {
                                 onClick={() => setStep(3)}
                                 disabled={orderData.items.length === 0}
                                 className="btn-continue"
-                                style={{ padding: '1rem 2.5rem', borderRadius: '12px', background: '#10b981', color: 'white', border: 'none', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
                             >
-                                Continue to Fiscal Check <ChevronRight size={20} />
+                                Review Order <ChevronRight size={20} />
                             </button>
                         </div>
                     </>
                 )}
 
                 {step === 3 && (
-                    <div className="confirmation-container" style={{ padding: '3rem 2rem' }}>
+                    <div className="confirmation-container">
                         {showSuccess ? (
-                            <div className="success-overlay" style={{ textAlign: 'center' }}>
-                                <div style={{ width: '120px', height: '120px', background: '#ecfdf5', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyCenter: 'center', margin: '0 auto 2.5rem', border: '4px solid #f0fdf4' }}>
+                            <div className="success-overlay">
+                                <div className="success-icon-wrapper">
                                     <CheckCircle size={64} style={{ color: '#10b981' }} />
                                 </div>
-                                <h2 style={{ fontSize: '3rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.04em' }}>Order Saved</h2>
-                                <p style={{ color: '#64748b', fontSize: '1.25rem', marginBottom: '3rem', maxWidth: '500px', margin: '0 auto 3rem' }}>The order has been successfully created. Invoice No: <strong>{orderData.invoice_number || 'PENDING'}</strong></p>
-                                <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                                <h2>Order Saved</h2>
+                                <p className="success-msg">The order has been successfully created. Invoice No: <strong>{orderData.invoice_number || 'PENDING'}</strong></p>
+                                <div className="success-actions">
                                     <button
                                         onClick={() => navigate(`/dashboard/invoice/${orderData.id}`)}
                                         className="btn-primary-confirm"
-                                        style={{ background: '#10b981', padding: '1.25rem 2.5rem', borderRadius: '12px', border: 'none', color: 'white', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
                                     >
                                         <FileText size={20} /> Generate Invoice
                                     </button>
                                     <button
                                         onClick={() => navigate('/dashboard/sales')}
                                         className="btn-outline"
-                                        style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1e293b', padding: '1.25rem 2.5rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}
                                     >
                                         Back to History
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '40px' }}>
-                                <div>
-                                    <h2 style={{ fontSize: '2rem', fontWeight: 900, marginBottom: '2rem', color: '#1e293b' }}>Review Order</h2>
+                            <div className="review-grid">
+                                <div className="review-main">
+                                    <h2 className="step-title">Final Review</h2>
                                     
-                                    <div className="summary-card" style={{ background: 'white', borderRadius: '20px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-                                        <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Item Breakdown</span>
-                                            <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#10b981' }}>{orderData.items.length} Selected</span>
+                                    <div className="review-card">
+                                        <div className="review-card-header">
+                                            <span className="label">Item Breakdown</span>
+                                            <span className="count-pill">{orderData.items.length} Selected</span>
                                         </div>
-                                        <div className="summary-items" style={{ padding: '0 2rem' }}>
+                                        <div className="review-items">
                                             {orderData.items.map((item, idx) => (
-                                                <div key={idx} className="item-row" style={{ padding: '1.25rem 0', borderBottom: idx === orderData.items.length - 1 ? 'none' : '1px dashed #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                    <div className="flex items-center gap-4">
-                                                        <div style={{ width: '40px', height: '40px', background: '#f8fafc', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, color: '#10b981', fontSize: '0.9rem' }}>{item.quantity}</div>
+                                                <div key={idx} className="review-item-row">
+                                                    <div className="item-details">
+                                                        <div className="item-qty-badge">{item.quantity}</div>
                                                         <div>
-                                                            <div style={{ fontWeight: 700, color: '#1e293b' }}>{item.name}</div>
-                                                            <small style={{ color: '#94a3b8', fontWeight: 700 }}>SKU: {item.sku || 'N/A'}</small>
+                                                            <div className="item-name">{item.name}</div>
+                                                            <small className="item-sku">SKU: {item.sku || 'N/A'}</small>
                                                         </div>
                                                     </div>
-                                                    <div style={{ textAlign: 'right' }}>
-                                                        <div style={{ fontWeight: 800, color: '#1e293b' }}>₹{(item.price * item.quantity).toLocaleString('en-IN')}</div>
-                                                        <small style={{ color: '#94a3b8' }}>₹{item.price} x {item.quantity}</small>
+                                                    <div className="item-pricing">
+                                                        <div className="item-total-price">₹{(item.price * item.quantity).toLocaleString('en-IN')}</div>
+                                                        <small className="item-unit-price">₹{item.price} x {item.quantity}</small>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
-                                        <div style={{ padding: '2rem', background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
-                                            <div className="flex justify-between mb-2">
-                                                <span style={{ color: '#64748b', fontWeight: 600 }}>Net Subtotal</span>
-                                                <span style={{ fontWeight: 700, color: '#1e293b' }}>₹{subtotal.toLocaleString('en-IN')}</span>
+                                        <div className="review-summary-footer">
+                                            <div className="summary-row">
+                                                <span>Net Subtotal</span>
+                                                <strong>₹{subtotal.toLocaleString('en-IN')}</strong>
                                             </div>
-                                            <div className="flex justify-between mb-2">
-                                                <span style={{ color: '#64748b', fontWeight: 600 }}>Logistics / Shipping</span>
-                                                <span style={{ fontWeight: 700, color: '#1e293b' }}>+ ₹{Number(orderData.shipping_charge).toLocaleString('en-IN')}</span>
+                                            <div className="summary-row">
+                                                <span>Logistics / Shipping</span>
+                                                <strong>+ ₹{Number(orderData.shipping_charge).toLocaleString('en-IN')}</strong>
                                             </div>
-                                            <div className="flex justify-between mb-4">
-                                                <span style={{ color: '#64748b', fontWeight: 600 }}>Discretionary Discount</span>
-                                                <span style={{ fontWeight: 700, color: '#dc2626' }}>- ₹{Number(orderData.discount_amount).toLocaleString('en-IN')}</span>
+                                            <div className="summary-row discount">
+                                                <span>Discretionary Discount</span>
+                                                <strong>- ₹{Number(orderData.discount_amount).toLocaleString('en-IN')}</strong>
                                             </div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '1.5rem', borderTop: '2px solid #e2e8f0' }}>
-                                                <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e293b' }}>Grand Total</span>
-                                                <span style={{ fontSize: '2.5rem', fontWeight: 900, color: '#10b981' }}>₹{totalAmount.toLocaleString('en-IN')}</span>
+                                            <div className="summary-grand-total">
+                                                <span className="label">Grand Total</span>
+                                                <span className="value">₹{totalAmount.toLocaleString('en-IN')}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="side-controls">
-                                    <div className="fiscal-inputs-card" style={{ background: '#f8fafc', borderRadius: '24px', padding: '2rem', border: '1px solid #e2e8f0' }}>
-                                        <h3 style={{ fontSize: '1.1rem', fontWeight: 900, marginBottom: '1.5rem', color: '#1e293b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Order Details</h3>
+                                <div className="review-sidebar">
+                                    <div className="sidebar-card">
+                                        <h3 className="sidebar-title">Order Logistics</h3>
                                         
-                                        <div className="form-group-v2">
-                                            <label>Order Type</label>
-                                            <select value={orderData.order_type} onChange={e => setOrderData({...orderData, order_type: e.target.value})} className="premium-input">
-                                                <option value="Shop Order">Shop Order</option>
-                                                <option value="Direct Sale">Direct Sale</option>
-                                            </select>
+                                        <div className="form-stack">
+                                            <div className="form-group-v2">
+                                                <label className="premium-label">Order Type</label>
+                                                <select value={orderData.order_type} onChange={e => setOrderData({...orderData, order_type: e.target.value})} className="premium-input">
+                                                    <option value="Shop Order">Shop Order</option>
+                                                    <option value="Direct Sale">Direct Sale</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="grid-2">
+                                                <div className="form-group-v2">
+                                                    <label className="premium-label">Shipping</label>
+                                                    <input type="number" value={orderData.shipping_charge} onChange={e => setOrderData({...orderData, shipping_charge: e.target.value})} className="premium-input" />
+                                                </div>
+
+                                                <div className="form-group-v2">
+                                                    <label className="premium-label">Discount</label>
+                                                    <input type="number" value={orderData.discount_amount} onChange={e => setOrderData({...orderData, discount_amount: e.target.value})} className="premium-input text-red-600" />
+                                                </div>
+                                            </div>
+
+                                            <hr className="divider" />
+
+                                            <div className="form-group-v2">
+                                                <label className="premium-label">Advance Payment (₹)</label>
+                                                <input type="number" className="premium-input highlight" placeholder="0.00" value={orderData.paid_amount || ''} onChange={e => setOrderData({ ...orderData, paid_amount: e.target.value })} />
+                                            </div>
+
+                                            <div className="form-group-v2">
+                                                <label className="premium-label">Payment Method</label>
+                                                <select value={orderData.payment_method} onChange={e => setOrderData({...orderData, payment_method: e.target.value})} className="premium-input">
+                                                    <option value="Cash">Physical Cash</option>
+                                                    <option value="UPI">Digital UPI</option>
+                                                    <option value="Bank">Bank Transfer</option>
+                                                    <option value="Credit">Store Credit</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="form-group-v2">
+                                                <label className="premium-label">Internal Notes</label>
+                                                <textarea className="premium-textarea" placeholder="Add specific order notes..." value={orderData.notes} onChange={e => setOrderData({ ...orderData, notes: e.target.value })}></textarea>
+                                            </div>
                                         </div>
 
-                                        <div className="form-group-v2">
-                                            <label>Shipping</label>
-                                            <input type="number" value={orderData.shipping_charge} onChange={e => setOrderData({...orderData, shipping_charge: e.target.value})} className="premium-input" />
-                                        </div>
-
-                                        <div className="form-group-v2">
-                                            <label>Discount</label>
-                                            <input type="number" value={orderData.discount_amount} onChange={e => setOrderData({...orderData, discount_amount: e.target.value})} className="premium-input" style={{ color: '#dc2626' }} />
-                                        </div>
-
-                                        <hr style={{ margin: '2rem 0', border: 'none', borderTop: '1px solid #e2e8f0' }} />
-
-                                        <div className="form-group-v2">
-                                            <label>Advance Payment Captured (₹)</label>
-                                            <input type="number" className="premium-input highlight" placeholder="0.00" value={orderData.paid_amount || ''} onChange={e => setOrderData({ ...orderData, paid_amount: e.target.value })} />
-                                        </div>
-
-                                        <div className="form-group-v2">
-                                            <label>Payment Method</label>
-                                            <select value={orderData.payment_method} onChange={e => setOrderData({...orderData, payment_method: e.target.value})} className="premium-input">
-                                                <option value="Cash">Physical Cash</option>
-                                                <option value="UPI">Digital UPI</option>
-                                                <option value="Bank">Bank Transfer</option>
-                                                <option value="Credit">Store Credit</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="form-group-v2">
-                                            <label>Notes</label>
-                                            <textarea className="premium-textarea" placeholder="Enter any notes here..." value={orderData.notes} onChange={e => setOrderData({ ...orderData, notes: e.target.value })}></textarea>
-                                        </div>
-
-                                        <div className="action-buttons-stack" style={{ marginTop: '2.5rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                            <button onClick={submitOrder} className="btn-primary-confirm" style={{ padding: '1.25rem', width: '100%', borderRadius: '14px', border: 'none', background: '#10b981', color: 'white', fontWeight: 900, cursor: 'pointer', fontSize: '1.1rem' }}>
-                                                {isEdit ? 'Update Order' : 'Save Order'}
+                                        <div className="review-actions">
+                                            <button onClick={submitOrder} className="btn-save-order">
+                                                {isEdit ? 'Update Order' : 'Complete & Save Order'}
                                             </button>
-                                            <button onClick={() => setStep(2)} className="btn-outline" style={{ padding: '1.25rem', width: '100%', borderRadius: '14px', border: '1px solid #e2e8f0', background: 'white', color: '#1e293b', fontWeight: 800, cursor: 'pointer' }}>
-                                                Back to Products
+                                            <button onClick={() => setStep(2)} className="btn-back-to-products">
+                                                <ArrowLeft size={16} /> Back to Products
                                             </button>
                                         </div>
                                     </div>
