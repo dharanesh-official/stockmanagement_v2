@@ -7,7 +7,7 @@ import api from '../services/api';
 import { 
     DollarSign, TrendingUp, Clock, CheckCircle2, AlertCircle, 
     CreditCard, X, Plus, ChevronRight, RotateCcw, 
-    ArrowDownLeft, ArrowUpRight, Calendar
+    ArrowDownLeft, ArrowUpRight, Calendar, ArrowLeft
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -293,8 +293,15 @@ const FinanceScreen = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Receive Payment</Text>
-                            <TouchableOpacity onPress={() => setPaymentModalVisible(false)}><X size={24} color="#64748b" /></TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <TouchableOpacity style={styles.backBtnModal} onPress={() => setPaymentModalVisible(false)}>
+                                    <ArrowLeft size={20} color="#475569" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.modalTitle}>Receive Payment</Text>
+                                    <Text style={styles.modalSubtitle}>Record a new cash or digital inflow from the client.</Text>
+                                </View>
+                            </View>
                         </View>
                         <Text style={styles.modalTarget}>{selectedCustomer?.full_name}</Text>
                         <View style={styles.inputBox}>
@@ -328,8 +335,15 @@ const FinanceScreen = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Settle Credit Bill</Text>
-                            <TouchableOpacity onPress={() => setOrderPaymentModalVisible(false)}><X size={24} color="#64748b" /></TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <TouchableOpacity style={styles.backBtnModal} onPress={() => setOrderPaymentModalVisible(false)}>
+                                    <ArrowLeft size={20} color="#475569" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.modalTitle}>Settle Credit Bill</Text>
+                                    <Text style={styles.modalSubtitle}>Apply partial or full payment to a specific invoice.</Text>
+                                </View>
+                            </View>
                         </View>
                         <View style={styles.billBrief}>
                             <Text style={styles.briefLabel}>Bill #{selectedOrder?.invoice_number}</Text>
@@ -403,9 +417,13 @@ const styles = StyleSheet.create({
     emptyBox: { alignItems: 'center', marginTop: 100 },
     emptyBoxText: { marginTop: 12, color: '#94a3b8', fontSize: 14 },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-    modalContent: { backgroundColor: 'white', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 24, paddingBottom: 40 },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#1e293b' },
+    backBtnModal: { 
+        padding: 8, 
+        backgroundColor: '#f1f5f9', 
+        borderRadius: 50,
+        marginRight: 4
+    },
+    modalSubtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
     modalTarget: { fontSize: 16, color: '#4f46e5', fontWeight: 'bold', marginBottom: 24 },
     inputBox: { marginBottom: 20 },
     inputLabel: { fontSize: 13, fontWeight: 'bold', color: '#64748b', marginBottom: 8 },

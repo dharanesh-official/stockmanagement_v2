@@ -147,18 +147,6 @@ const SettingsScreen = () => {
                     </View>
                     <ChevronRight size={20} color="#cbd5e1" />
                 </TouchableOpacity>
-
-                <View style={styles.item}>
-                    <View style={styles.itemLeft}>
-                        <Bell size={20} color="#f59e0b" />
-                        <Text style={styles.itemText}>Push Notifications</Text>
-                    </View>
-                    <Switch
-                        value={notificationsEnabled}
-                        onValueChange={setNotificationsEnabled}
-                        trackColor={{ true: '#3b82f6', false: '#e2e8f0' }}
-                    />
-                </View>
             </View>
 
             {user?.role === 'admin' && (

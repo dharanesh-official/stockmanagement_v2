@@ -5,6 +5,10 @@ const getSalesmanPerformance = async (req, res) => {
         const { salesmanId } = req.params;
         const { startDate, endDate } = req.query;
         
+        if (req.user.role !== 'admin' && req.user.id != salesmanId) {
+            return res.status(403).json({ message: 'Access denied: You can only view your own performance metrics.' });
+        }
+        
         const params = [salesmanId];
         let dateClause = '';
         if (startDate && endDate) {

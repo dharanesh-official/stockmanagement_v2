@@ -6,7 +6,7 @@ import {
     ScrollView
 } from 'react-native';
 import api from '../services/api';
-import { Search, Plus, Phone, Mail, MapPin, X, Lock, Unlock, Trash2, Edit } from 'lucide-react-native';
+import { Search, Plus, Phone, Mail, MapPin, X, Lock, Unlock, Trash2, Edit, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 import { normalizeAllBooleans } from '../utils/dataTransform';
 
@@ -170,22 +170,22 @@ const CustomersScreen = () => {
 
                 <View style={styles.actions}>
                     {hasPermission('customers', 'edit') && (
-                        <TouchableOpacity style={styles.actionBtn} onPress={() => openEdit(item)}>
-                            <Edit size={18} color="#4b5563" />
+                        <TouchableOpacity style={styles.iconBtnAction} onPress={() => openEdit(item)}>
+                            <Edit size={16} color="#64748b" />
                         </TouchableOpacity>
                     )}
                     {hasPermission('customers', 'edit') && (
                         <TouchableOpacity
-                            style={[styles.actionBtn, processing && { opacity: 0.5 }]}
+                            style={[styles.iconBtnAction, processing && { opacity: 0.5 }]}
                             disabled={processing}
                             onPress={() => toggleLock(item.id, isLocked)}
                         >
-                            {isLocked ? <Text style={styles.unlockText}>Unlock</Text> : <Text style={styles.lockText}>Lock</Text>}
+                            {isLocked ? <Unlock size={16} color="#059669" /> : <Lock size={16} color="#ef4444" />}
                         </TouchableOpacity>
                     )}
                     {hasPermission('customers', 'delete') && (
-                        <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(item.id)}>
-                            <Trash2 size={18} color="#ef4444" />
+                        <TouchableOpacity style={[styles.iconBtnAction, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+                            <Trash2 size={16} color="#ef4444" />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -232,10 +232,17 @@ const CustomersScreen = () => {
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{formData.id ? 'Edit Customer' : 'New Customer'}</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <X size={24} color="#6b7280" />
-                            </TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <TouchableOpacity style={styles.backBtnModal} onPress={() => setModalVisible(false)}>
+                                    <ArrowLeft size={20} color="#475569" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.modalTitle}>{formData.id ? 'Refine Customer Data' : 'Establish New Relation'}</Text>
+                                    <Text style={styles.modalSubtitle}>
+                                        {formData.id ? 'Update existing client profile and credit limits.' : 'Register a new business entity to the portal.'}
+                                    </Text>
+                                </View>
+                            </View>
                         </View>
                         <ScrollView>
                             <Text style={styles.label}>Name *</Text>
@@ -300,6 +307,24 @@ const styles = StyleSheet.create({
     infoText: { color: '#6b7280', fontSize: 14 },
     actions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderColor: '#f3f4f6' },
     actionBtn: { padding: 4 },
+    iconBtnAction: { 
+        padding: 8, 
+        backgroundColor: '#f8fafc', 
+        borderRadius: 8, 
+        borderWidth: 1, 
+        borderColor: '#e2e8f0',
+        minWidth: 36,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    deleteBtn: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+    backBtnModal: { 
+        padding: 8, 
+        backgroundColor: '#f1f5f9', 
+        borderRadius: 50,
+        marginRight: 4
+    },
+    modalSubtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
     fab: { position: 'absolute', bottom: 24, right: 24, backgroundColor: '#059669', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalContent: { backgroundColor: 'white', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, maxHeight: '85%' },

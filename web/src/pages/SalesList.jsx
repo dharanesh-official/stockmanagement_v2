@@ -202,22 +202,28 @@ const SalesList = ({ user }) => {
                                     <tr key={sale.id}>
                                         <td>
                                             <div className="product-info-cell">
-                                                <span className="product-name" onClick={() => navigate(`/dashboard/sales/${sale.id}`)}>
+                                                <span className="product-name" style={{ color: '#0f172a', letterSpacing: '0.02em' }} onClick={() => navigate(`/dashboard/sales/${sale.id}`)}>
                                                     ORD-{sale.id.slice(0, 8).toUpperCase()}
                                                 </span>
-                                                <div className="date-display mt-1">
-                                                    <small>{new Date(sale.transaction_date).toLocaleDateString()} at {new Date(sale.transaction_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                                                <div className="date-display mt-0.5">
+                                                    <small style={{ color: '#94a3b8', fontSize: '10px' }}>{new Date(sale.transaction_date).toLocaleDateString()} • {new Date(sale.transaction_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             <div className="product-info-cell">
-                                                <span className="supplier-name" style={{ color: '#0f172a', fontWeight: 600 }}>{sale.customer_name}</span>
-                                                <small className="flex items-center text-gray-500 mt-1" style={{ gap: '6px' }}>
-                                                    <span className="flex items-center gap-1">
-                                                        <Store size={12} /> {sale.shop_name || 'Direct Sale'}
-                                                    </span>
-                                                </small>
+                                                <span className="supplier-name" style={{ color: '#0f172a', fontWeight: 700, fontSize: '0.9rem' }}>{sale.customer_name}</span>
+                                                <div className="flex items-center text-gray-400 mt-1" style={{ gap: '6px', fontSize: '10px' }}>
+                                                    {sale.shop_name ? (
+                                                        <span className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-100 font-bold">
+                                                            <Store size={10} /> {sale.shop_name}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="flex items-center gap-1 bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded border border-gray-100 italic">
+                                                            <Hash size={10} /> Indiv. Customer
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                         <td>
@@ -226,35 +232,43 @@ const SalesList = ({ user }) => {
                                                     onClick={(e) => { e.stopPropagation(); handleGetDirections(sale.shop_location); }}
                                                     className="btn btn-outline"
                                                     title="View Full Location on Map"
-                                                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '6px', minWidth: 'max-content' }}
+                                                    style={{ padding: '0.35rem 0.75rem', fontSize: '0.7rem', display: 'inline-flex', alignItems: 'center', gap: '4px', minWidth: 'max-content', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                                                 >
-                                                    <MapPin size={14} className="text-blue-500" /> View Map
+                                                    <MapPin size={12} className="text-blue-500" /> View Map
                                                 </button>
                                             ) : (
-                                                <span className="text-gray-400 text-xs italic">-</span>
+                                                <span className="text-gray-300 text-xs">-</span>
                                             )}
                                         </td>
                                         <td>
-                                            <span className={`count-pill`} style={{ background: sale.order_type === 'Shop Order' ? '#f3e8ff' : '#f1f5f9', color: sale.order_type === 'Shop Order' ? '#7e22ce' : '#475569' }}>
+                                            <span className="status-pill" style={{ 
+                                                background: sale.order_type === 'Shop Order' ? '#f0f9ff' : '#f8fafc', 
+                                                color: sale.order_type === 'Shop Order' ? '#0369a1' : '#64748b',
+                                                border: `1px solid ${sale.order_type === 'Shop Order' ? '#e0f2fe' : '#e2e8f0'}`,
+                                                width: '100%',
+                                                justifyContent: 'center',
+                                                whiteSpace: 'nowrap',
+                                                minWidth: '100px'
+                                            }}>
                                                 {sale.order_type || 'Direct Sale'}
                                             </span>
                                         </td>
                                         <td>
                                             <div className="flex flex-col items-start gap-1">
-                                                <span className={`status-pill ${payStatus.class.replace('badge-', '')}`}>{payStatus.label}</span>
-                                                <small className="text-gray-400 font-bold uppercase" style={{ fontSize: '9px', letterSpacing: '0.05em' }}>
+                                                <span className={`status-pill ${payStatus.class.replace('badge-', '')}`} style={{ whiteSpace: 'nowrap' }}>{payStatus.label}</span>
+                                                <small className="text-gray-400 font-bold uppercase" style={{ fontSize: '9px', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                                                     {sale.payment_method || 'UNSPECIFIED'}
                                                 </small>
                                             </div>
                                         </td>
                                         <td>
-                                            <div style={{ position: 'relative', display: 'inline-block', minWidth: '140px' }}>
-                                                <div className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} style={{ padding: '0.4rem 0.75rem', cursor: updatingId === sale.id ? 'wait' : 'pointer', background: sale.status === 'Ordered' || sale.status === 'Confirmed' ? '#f1f5f9' : undefined, color: sale.status === 'Ordered' || sale.status === 'Confirmed' ? '#475569' : undefined, width: '100%' }}>
+                                            <div style={{ position: 'relative', display: 'inline-block', minWidth: '130px' }}>
+                                                <div className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} style={{ padding: '0.45rem 0.8rem', cursor: updatingId === sale.id ? 'wait' : 'pointer', background: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#f1f5f9' : undefined, color: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#475569' : undefined, width: '100%', whiteSpace: 'nowrap' }}>
                                                     <span>{sale.status}</span>
                                                     {updatingId === sale.id ? (
-                                                        <Loader2 size={14} className="animate-spin" />
+                                                        <Loader2 size={13} className="animate-spin" />
                                                     ) : (
-                                                        <ChevronDown size={14} className="opacity-70" />
+                                                        <ChevronDown size={13} className="opacity-70" />
                                                     )}
                                                 </div>
                                                 <select
@@ -273,12 +287,12 @@ const SalesList = ({ user }) => {
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <span className="stock-count" style={{ color: Number(sale.due_amount) === 0 ? '#10b981' : '#ef4444' }}>
+                                            <span className="stock-count" style={{ color: Number(sale.due_amount) <= 0 ? '#10b981' : '#ef4444', fontSize: '14px' }}>
                                                 ₹{Number(sale.due_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
-                                            <span className="price-cell text-lg" style={{ color: '#10b981', fontWeight: 800 }}>
+                                            <span className="price-cell" style={{ color: '#0f172a', fontWeight: 800, fontSize: '16px' }}>
                                                 ₹{(Number(sale.total_amount) + Number(sale.gst_amount || 0) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                             </span>
                                         </td>

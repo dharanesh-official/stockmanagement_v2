@@ -5,7 +5,7 @@ import {
     TouchableOpacity, TextInput, Modal, ScrollView, Switch
 } from 'react-native';
 import api from '../services/api';
-import { User, Mail, Phone, ShieldCheck, Briefcase, Plus, Trash2, Edit, X } from 'lucide-react-native';
+import { User, Mail, Phone, ShieldCheck, Briefcase, Plus, Trash2, Edit, X, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
 const MODULES = ['stock', 'sales', 'customers', 'employees', 'finance', 'settings'];
@@ -179,11 +179,11 @@ const EmployeesScreen = () => {
                     </View>
                 </View>
                 <View style={styles.actions}>
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => openEdit(item)}>
-                        <Edit size={18} color="#4b5563" />
+                    <TouchableOpacity style={styles.iconBtnAction} onPress={() => openEdit(item)}>
+                        <Edit size={16} color="#4b5563" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionBtn} onPress={() => handleDelete(item.id)}>
-                        <Trash2 size={18} color="#ef4444" />
+                    <TouchableOpacity style={[styles.iconBtnAction, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+                        <Trash2 size={16} color="#ef4444" />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -237,10 +237,17 @@ const EmployeesScreen = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{formData.id ? 'Edit Employee' : 'New Employee'}</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <X size={24} color="#6b7280" />
-                            </TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <TouchableOpacity style={styles.backBtnModal} onPress={() => setModalVisible(false)}>
+                                    <ArrowLeft size={20} color="#475569" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.modalTitle}>{formData.id ? 'Refine Employee Data' : 'Establish New Account'}</Text>
+                                    <Text style={styles.modalSubtitle}>
+                                        {formData.id ? 'Update credentials and fine-tune access permissions.' : 'Create a new staff login and define role-based access.'}
+                                    </Text>
+                                </View>
+                            </View>
                         </View>
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <Text style={styles.label}>Full Name</Text>
@@ -373,6 +380,24 @@ const styles = StyleSheet.create({
     textSales: { color: '#1d4ed8' },
     actions: { flexDirection: 'row', gap: 8 },
     actionBtn: { padding: 4 },
+    iconBtnAction: { 
+        padding: 8, 
+        backgroundColor: '#f8fafc', 
+        borderRadius: 8, 
+        borderWidth: 1, 
+        borderColor: '#e2e8f0',
+        minWidth: 36,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    deleteBtn: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+    backBtnModal: { 
+        padding: 8, 
+        backgroundColor: '#f1f5f9', 
+        borderRadius: 50,
+        marginRight: 4
+    },
+    modalSubtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
     infoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
     infoText: { color: '#6b7280', fontSize: 14 },
     accessDenied: { fontSize: 20, fontWeight: 'bold', color: '#dc2626', marginTop: 16 },

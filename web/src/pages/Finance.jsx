@@ -158,21 +158,21 @@ const Finance = ({ user }) => {
 
             <div className="finance-summary-grid">
                 <div className="stat-card-new danger">
-                    <div className="card-label"><Wallet size={14} /> Total Outstanding</div>
-                    <div className="card-value">₹{stats.totalOutstanding.toLocaleString()}</div>
-                    <div className="card-footer"><AlertCircle size={14} color="#ef4444" /> {dues.length} Pending Invoices</div>
+                    <div className="card-label"><Wallet size={14} /> {user.role === 'admin' ? 'Company Exposure' : 'My Portfolio Dues'}</div>
+                    <div className="card-value">₹{stats.totalOutstanding.toLocaleString('en-IN')}</div>
+                    <div className="card-footer"><AlertCircle size={14} color="#ef4444" /> {dues.length} Receivable Invoices</div>
                 </div>
 
                 <div className="stat-card-new success">
-                    <div className="card-label"><TrendingUp size={14} /> Collected (MTD)</div>
-                    <div className="card-value">₹{stats.thisMonthCollection.toLocaleString()}</div>
-                    <div className="card-footer"><CheckCircle size={14} color="#10b981" /> This month's performance</div>
+                    <div className="card-label"><TrendingUp size={14} /> My Collections (MTD)</div>
+                    <div className="card-value">₹{stats.thisMonthCollection.toLocaleString('en-IN')}</div>
+                    <div className="card-footer"><CheckCircle size={14} color="#10b981" /> Target contribution</div>
                 </div>
 
                 <div className="stat-card-new warning">
-                    <div className="card-label"><Bell size={14} /> Critical Dues</div>
+                    <div className="card-label"><Bell size={14} /> Critical Follow-ups</div>
                     <div className="card-value">{stats.overdueCount} Alerts</div>
-                    <div className="card-footer"><History size={14} color="#f59e0b" /> Follow-up required</div>
+                    <div className="card-footer"><History size={14} color="#f59e0b" /> Overdue aging records</div>
                 </div>
             </div>
 

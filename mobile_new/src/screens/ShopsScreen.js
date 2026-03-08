@@ -304,21 +304,21 @@ const ShopsScreen = ({ navigation }) => {
 
                 <View style={styles.cardActions}>
                     {item.location ? (
-                        <TouchableOpacity style={styles.actionIconButton} onPress={() => handleGetDirections(item.location)}>
-                            <Navigation size={18} color="#3b82f6" />
+                        <TouchableOpacity style={styles.iconBtnAction} onPress={() => handleGetDirections(item.location)}>
+                            <Navigation size={16} color="#3b82f6" />
                         </TouchableOpacity>
                     ) : null}
-                    <TouchableOpacity style={styles.actionIconButton} onPress={() => navigation.navigate('Finance', { shopId: item.id })}>
-                        <CreditCard size={18} color="#059669" />
+                    <TouchableOpacity style={[styles.iconBtnAction, { backgroundColor: '#ecfdf5', borderColor: '#bbf7d0' }]} onPress={() => navigation.navigate('Finance', { shopId: item.id })}>
+                        <CreditCard size={16} color="#059669" />
                     </TouchableOpacity>
                     {hasPermission('shops', 'edit') && (
-                        <TouchableOpacity style={styles.actionIconButton} onPress={() => openEdit(item)}>
-                            <Edit size={18} color="#4b5563" />
+                        <TouchableOpacity style={styles.iconBtnAction} onPress={() => openEdit(item)}>
+                            <Edit size={16} color="#4b5563" />
                         </TouchableOpacity>
                     )}
                     {hasPermission('shops', 'delete') && (
-                        <TouchableOpacity style={styles.actionIconButton} onPress={() => handleDelete(item.id)}>
-                            <Trash2 size={18} color="#ef4444" />
+                        <TouchableOpacity style={[styles.iconBtnAction, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+                            <Trash2 size={16} color="#ef4444" />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -455,10 +455,17 @@ const ShopsScreen = ({ navigation }) => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{formData.id ? 'Edit Shop' : 'New Shop'}</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <X size={24} color="#6b7280" />
-                            </TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <TouchableOpacity style={styles.backBtnModal} onPress={() => setModalVisible(false)}>
+                                    <ArrowLeft size={20} color="#475569" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.modalTitle}>{formData.id ? 'Refine Shop Details' : 'Onboard New Shop'}</Text>
+                                    <Text style={styles.modalSubtitle}>
+                                        {formData.id ? 'Update location, credit limits and business info.' : 'Establish a new business profile in the distribution network.'}
+                                    </Text>
+                                </View>
+                            </View>
                         </View>
                         <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
                             <Text style={styles.label}>Shop Name</Text>
@@ -757,8 +764,26 @@ const styles = StyleSheet.create({
     infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     infoGroup: { flexDirection: 'row', alignItems: 'center', gap: 4 },
     footerText: { fontSize: 11, color: '#6b7280' },
-    cardActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 16, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f3f4f6' },
+    cardActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 12, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f3f4f6' },
     actionIconButton: { padding: 4 },
+    iconBtnAction: { 
+        padding: 8, 
+        backgroundColor: '#f8fafc', 
+        borderRadius: 8, 
+        borderWidth: 1, 
+        borderColor: '#e2e8f0',
+        minWidth: 36,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    deleteBtn: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+    backBtnModal: { 
+        padding: 8, 
+        backgroundColor: '#f1f5f9', 
+        borderRadius: 50,
+        marginRight: 4
+    },
+    modalSubtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
     areaCard: { backgroundColor: 'white', borderRadius: 16, padding: 20, marginBottom: 16, elevation: 2 },
     areaTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
     areaIconBox: { backgroundColor: '#ecfdf5', padding: 12, borderRadius: 12 },
@@ -770,8 +795,8 @@ const styles = StyleSheet.create({
     metricValue: { fontSize: 13, fontWeight: 'bold' },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalContent: { backgroundColor: 'white', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' },
-    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },
-    modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#111827' },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 },
+    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#111827' },
     row: { flexDirection: 'row', marginBottom: 8 },
     label: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 },
     input: { backgroundColor: '#f9fafb', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 12, fontSize: 16, marginBottom: 16, color: '#111827' },

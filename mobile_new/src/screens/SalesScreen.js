@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, FlatList, StyleSheet, ActivityIndicator, Alert,
-    TouchableOpacity, TextInput, ScrollView, RefreshControl
+    TouchableOpacity, TextInput, ScrollView, RefreshControl, Linking
 } from 'react-native';
 import api from '../services/api';
 import { 
     Search, Plus, Calendar, User, DollarSign, FileText, 
     Filter, ChevronRight, ShoppingBag, CreditCard, 
-    CheckCircle2, Clock, XCircle, MoreVertical
+    CheckCircle2, Clock, XCircle, MoreVertical, MapPin, Navigation, RotateCcw
 } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
@@ -107,7 +107,11 @@ const SalesScreen = ({ navigation }) => {
                         <FileText size={18} color="#4b5563" />
                         <View>
                             <Text style={styles.orderId}>{item.invoice_number || `TXN-${item.id.slice(0,8)}`}</Text>
-                            <Text style={styles.txnType}>{item.type?.toUpperCase()}</Text>
+                            <View style={styles.originRow}>
+                                <Text style={styles.txnType}>{item.type?.toUpperCase()}</Text>
+                                <View style={styles.originDot} />
+                                <Text style={styles.originText}>{item.order_type || 'Direct Sale'}</Text>
+                            </View>
                         </View>
                     </View>
                     <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status, item.type) + '15' }]}>
@@ -119,14 +123,31 @@ const SalesScreen = ({ navigation }) => {
                 </View>
 
                 <View style={styles.cardBody}>
-                    <TouchableOpacity 
-                        style={styles.shopRow} 
-                        onPress={() => item.shop_id ? navigation.navigate('Shops', { shopId: item.shop_id }) : null}
-                    >
-                        <ShoppingBag size={14} color="#6366f1" />
-                        <Text style={styles.shopName}>{item.shop_name || item.customer_name || 'Walking Customer'}</Text>
-                        {item.shop_id && <ChevronRight size={12} color="#cbd5e1" />}
-                    </TouchableOpacity>
+                    <View style={styles.shopRow}>
+                        <TouchableOpacity 
+                            style={styles.shopLink} 
+                            onPress={() => item.shop_id ? navigation.navigate('Shops', { shopId: item.shop_id }) : null}
+                        >
+                            <ShoppingBag size={14} color="#6366f1" />
+                            <Text style={styles.shopName} numberOfLines={1}>{item.shop_name || item.customer_name || 'Walking Customer'}</Text>
+                            {item.shop_id && <ChevronRight size={12} color="#cbd5e1" />}
+                        </TouchableOpacity>
+                        
+                        {item.shop_location && (
+                            <TouchableOpacity 
+                                style={styles.mapBtn}
+                                onPress={() => {
+                                    const url = item.shop_location.startsWith('http') 
+                                        ? item.shop_location 
+                                        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.shop_location)}`;
+                                    Linking.openURL(url);
+                                }}
+                            >
+                                <MapPin size={14} color="#059669" />
+                                <Text style={styles.mapBtnText}>Map</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
 
                     <View style={styles.metaRow}>
                         <View style={styles.metaItem}>
@@ -252,11 +273,17 @@ const styles = StyleSheet.create({
     headerTitle: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     orderId: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
     txnType: { fontSize: 10, color: '#94a3b8', fontWeight: 'bold', letterSpacing: 1 },
+    originRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 },
+    originDot: { width: 3, height: 3, borderRadius: 1.5, backgroundColor: '#cbd5e1', marginHorizontal: 6 },
+    originText: { fontSize: 10, color: '#6366f1', fontWeight: '700' },
     statusBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
     statusText: { fontSize: 11, fontWeight: '700' },
     cardBody: { gap: 12 },
-    shopRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fcfaff', padding: 10, borderRadius: 10 },
+    shopRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fcfaff', borderRadius: 10, paddingRight: 8 },
+    shopLink: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, flex: 1 },
     shopName: { fontSize: 14, fontWeight: '600', color: '#4338ca', flex: 1 },
+    mapBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#ecfdf5', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1, borderColor: '#bbf7d0' },
+    mapBtnText: { fontSize: 12, fontWeight: 'bold', color: '#059669' },
     metaRow: { flexDirection: 'row', gap: 16 },
     metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     metaText: { fontSize: 12, color: '#94a3b8' },

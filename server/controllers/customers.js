@@ -37,15 +37,26 @@ const getCustomers = async (req, res) => {
 const getCustomerById = async (req, res) => {
     try {
         const { id } = req.params;
+        const { role, id: userId } = req.user;
+
+        // Existing access control for customer profiles
+        // This ensures salespeople can only access their own assigned customer profiles.
         const customerResult = await pool.query('SELECT * FROM customers WHERE id = $1', [id]);
         if (customerResult.rows.length === 0) return res.status(404).send('Customer not found');
         
         const customer = customerResult.rows[0];
+
+        // Access Control
+        if (role !== 'admin' && customer.salesman_id !== userId) {
+            return res.status(403).send('Access denied: This customer is not assigned to you.');
+        }
         
         // Get Transaction History
         const transactions = await pool.query(
-            'SELECT * FROM transactions WHERE customer_id = $1 ORDER BY transaction_date DESC',
-            [id]
+            `SELECT * FROM transactions WHERE customer_id = $1 
+             ${role !== 'admin' ? 'AND (user_id = $2 OR EXISTS (SELECT 1 FROM shops s WHERE s.id = transactions.shop_id AND s.salesman_id = $2))' : ''}
+             ORDER BY transaction_date DESC`,
+            role === 'admin' ? [id] : [id, userId]
         );
         
         // Basic analytics

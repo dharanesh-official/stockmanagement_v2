@@ -68,7 +68,7 @@ const getDashboardStats = async (req, res) => {
             lowStockPreviewResult
         ] = await Promise.all([
             pool.query(salesQuery, params),
-            pool.query("SELECT COUNT(*) FROM customers"),
+            pool.query(`SELECT COUNT(*) FROM customers ${role === 'salesman' ? 'WHERE salesman_id = $1' : ''}`, role === 'salesman' ? [id] : []),
             pool.query("SELECT SUM(quantity) as total_qty, SUM(quantity * price) as total_value FROM stock"),
             pool.query("SELECT COUNT(*) FROM stock WHERE quantity < 10"),
             pool.query(recentTransactionsQuery, params),

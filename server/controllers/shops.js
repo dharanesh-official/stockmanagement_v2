@@ -19,7 +19,10 @@ const getShops = async (req, res) => {
         const params = [];
 
         if (req.user.role !== 'admin') {
-            query += ' WHERE s.salesman_id = $1';
+            query += ` 
+                WHERE s.salesman_id = $1 
+                AND s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1)
+            `;
             params.push(req.user.id);
         }
 

@@ -5,7 +5,7 @@ import {
     TouchableOpacity, TextInput, Modal, ScrollView
 } from 'react-native';
 import api from '../services/api';
-import { RefreshCcw, Search, Plus, Edit, Trash2, X, PlusCircle, MinusCircle } from 'lucide-react-native';
+import { RefreshCcw, Search, Plus, Edit, Trash2, X, PlusCircle, MinusCircle, ArrowLeft } from 'lucide-react-native';
 import { useAuth } from '../context/AuthContext';
 
 const StockListScreen = () => {
@@ -178,27 +178,27 @@ const StockListScreen = () => {
                 </View>
             </View>
             <View style={styles.actionsRow}>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
                     {hasPermission('stock', 'edit') && (
                         <>
-                            <TouchableOpacity style={styles.iconBtn} onPress={() => openAdjust(item, 'increase')}>
-                                <PlusCircle size={20} color="#2563eb" />
+                            <TouchableOpacity style={[styles.iconBtnAction, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]} onPress={() => openAdjust(item, 'increase')}>
+                                <PlusCircle size={16} color="#2563eb" />
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.iconBtn} onPress={() => openAdjust(item, 'reduce')}>
-                                <MinusCircle size={20} color="#ea580c" />
+                            <TouchableOpacity style={[styles.iconBtnAction, { backgroundColor: '#fff7ed', borderColor: '#fed7aa' }]} onPress={() => openAdjust(item, 'reduce')}>
+                                <MinusCircle size={16} color="#ea580c" />
                             </TouchableOpacity>
                         </>
                     )}
                 </View>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
                     {hasPermission('stock', 'edit') && (
-                        <TouchableOpacity style={styles.iconBtn} onPress={() => openEdit(item)}>
-                            <Edit size={18} color="#4b5563" />
+                        <TouchableOpacity style={styles.iconBtnAction} onPress={() => openEdit(item)}>
+                            <Edit size={16} color="#4b5563" />
                         </TouchableOpacity>
                     )}
                     {hasPermission('stock', 'delete') && (
-                        <TouchableOpacity style={styles.iconBtn} onPress={() => handleDelete(item.id)}>
-                            <Trash2 size={18} color="#ef4444" />
+                        <TouchableOpacity style={[styles.iconBtnAction, styles.deleteBtn]} onPress={() => handleDelete(item.id)}>
+                            <Trash2 size={16} color="#ef4444" />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -249,10 +249,17 @@ const StockListScreen = () => {
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>{formData.id ? 'Edit Product' : 'New Product'}</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <X size={24} color="#6b7280" />
-                            </TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <TouchableOpacity style={styles.backBtnModal} onPress={() => setModalVisible(false)}>
+                                    <ArrowLeft size={20} color="#475569" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.modalTitle}>{formData.id ? 'Refine Product' : 'Register Product'}</Text>
+                                    <Text style={styles.modalSubtitle}>
+                                        {formData.id ? 'Update pricing, category and SKU details.' : 'Add a new unit to your central inventory registry.'}
+                                    </Text>
+                                </View>
+                            </View>
                         </View>
                         <ScrollView>
                             <Text style={styles.label}>Product Name</Text>
@@ -328,12 +335,19 @@ const StockListScreen = () => {
                 <View style={styles.modalOverlay}>
                     <View style={[styles.modalContent, { maxHeight: 'auto' }]}>
                         <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>
-                                {adjustData.type === 'increase' ? 'Increase Stock' : 'Reduce Stock'}
-                            </Text>
-                            <TouchableOpacity onPress={() => setAdjustModalVisible(false)}>
-                                <X size={24} color="#6b7280" />
-                            </TouchableOpacity>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                                <TouchableOpacity style={styles.backBtnModal} onPress={() => setAdjustModalVisible(false)}>
+                                    <ArrowLeft size={20} color="#475569" />
+                                </TouchableOpacity>
+                                <View>
+                                    <Text style={styles.modalTitle}>
+                                        {adjustData.type === 'increase' ? 'Inbound Stock' : 'Outbound Stock'}
+                                    </Text>
+                                    <Text style={styles.modalSubtitle}>
+                                        {adjustData.type === 'increase' ? 'Manually add stock to the current inventory.' : 'Manually deduct stock from the current levels.'}
+                                    </Text>
+                                </View>
+                            </View>
                         </View>
                         <Text style={styles.itemName}>{adjustData.name}</Text>
 
@@ -384,6 +398,24 @@ const styles = StyleSheet.create({
     qty: { fontSize: 14, fontWeight: '500' },
     actionsRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#f3f4f6' },
     iconBtn: { padding: 4 },
+    iconBtnAction: { 
+        padding: 8, 
+        backgroundColor: '#f8fafc', 
+        borderRadius: 8, 
+        borderWidth: 1, 
+        borderColor: '#e2e8f0',
+        minWidth: 36,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    deleteBtn: { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+    backBtnModal: { 
+        padding: 8, 
+        backgroundColor: '#f1f5f9', 
+        borderRadius: 50,
+        marginRight: 4
+    },
+    modalSubtitle: { fontSize: 12, color: '#64748b', marginTop: 2 },
     searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', margin: 16, marginBottom: 0, paddingHorizontal: 12, borderRadius: 8, height: 48, elevation: 1 },
     searchInput: { flex: 1, marginLeft: 8 },
     fab: { position: 'absolute', bottom: 24, right: 24, backgroundColor: '#059669', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', elevation: 5 },
