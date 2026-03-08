@@ -11,10 +11,25 @@ const LoadingSpinner = ({ size = 'medium', fullScreen = false, message = 'Loadin
 
     if (fullScreen) {
         return (
-            <div className="loading-overlay">
-                <div className="loading-content">
-                    <Loader2 size={sizeMap[size]} className="spinner" />
-                    <p className="loading-message">{message}</p>
+            <div className="premium-loading-overlay full-screen fade-in">
+                <div className="loading-nexus">
+                    <div className="loading-orbit">
+                        <div className="orbit-dot"></div>
+                    </div>
+                    {message && <p className="loading-subtitle">{message}</p>}
+                </div>
+            </div>
+        );
+    }
+
+    if (size === 'large') {
+        return (
+            <div className="premium-loading-overlay contained fade-in">
+                <div className="loading-nexus">
+                    <div className="loading-orbit">
+                        <div className="orbit-dot"></div>
+                    </div>
+                    {message && <p className="loading-subtitle">{message}</p>}
                 </div>
             </div>
         );

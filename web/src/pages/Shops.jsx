@@ -437,13 +437,13 @@ const Shops = () => {
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan="7" className="loading-cell">
-                    Loading shops...
-                  </td>
-                </tr>
-              ) : (
+                {loading ? (
+                  <tr>
+                    <td colSpan="7">
+                      <LoadingSpinner message="Synchronizing regional shop data..." />
+                    </td>
+                  </tr>
+                ) : (
                 filteredShops.map((shop, index) => (
                   <tr
                     key={shop.id}

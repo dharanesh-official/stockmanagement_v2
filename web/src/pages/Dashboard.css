@@ -27,4 +27,5 @@
     flex: 1;
     overflow-y: auto;
     padding: 0;
+    position: relative; /* For contained loading spinners */
 }

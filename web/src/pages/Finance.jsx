@@ -7,6 +7,7 @@ import {
     ChevronRight, Wallet, Activity, Bell, Filter
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './Finance.css';
 
 const Finance = ({ user }) => {
@@ -202,7 +203,7 @@ const Finance = ({ user }) => {
                 </div>
 
                 {loading ? (
-                    <div className="loading-state">Syncing Financial Records...</div>
+                    <LoadingSpinner message="Syncing Financial Records..." />
                 ) : activeTab === 'shops' ? (
                     <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                         {filteredShops.map(shop => (

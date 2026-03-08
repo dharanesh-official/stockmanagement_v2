@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { Plus, Trash2, Edit, ShieldCheck, Mail, User, Briefcase, ChevronDown, ChevronRight, Check, Settings2, Store, Phone, TrendingUp, Map, MapPin, ArrowLeft } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import './StockList.css'; // Inheriting shared table styles
 import './Employees.css'; // Shared styles
 
@@ -336,11 +337,8 @@ const Employees = ({ user }) => {
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="7" className="loading-cell">
-                                    <div className="loading-container">
-                                        <div className="spinner"></div>
-                                        <span>Synchronizing workforce data...</span>
-                                    </div>
+                                <td colSpan="7">
+                                    <LoadingSpinner message="Synchronizing workforce data..." />
                                 </td>
                             </tr>
                         ) : filteredEmployees.length === 0 ? (
