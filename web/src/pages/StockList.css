@@ -80,18 +80,25 @@
 
 .search-box input {
     background: transparent;
-    border: none;
-    outline: none;
+    border: none !important;
+    outline: none !important;
     width: 100%;
     font-size: 0.95rem;
     color: #0f172a;
-    font-weight: 500;
+    font-weight: 600;
+    box-shadow: none !important;
+    padding: 0;
+}
+
+.search-box input:focus {
+    box-shadow: none !important;
 }
 
 .search-box input::placeholder {
     color: #94a3b8;
-    font-weight: 400;
+    font-weight: 500;
 }
+
 
 .filters-group {
     display: flex;

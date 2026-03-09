@@ -80,14 +80,21 @@
 }
 
 .search-box input {
-    border: none;
-    background: none;
-    outline: none;
+    border: none !important;
+    background: transparent;
+    outline: none !important;
     width: 100%;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     color: #1e293b;
+    box-shadow: none !important;
+    padding: 0;
 }
+
+.search-box input:focus {
+    box-shadow: none !important;
+}
+
 
 .filters-group {
     display: flex;

@@ -302,7 +302,7 @@ const CustomerList = () => {
                                         <div className="flex justify-end gap-2">
                                             <button className="icon-btn-sm" onClick={() => navigate(`/dashboard/customers/${c.id}`)} title="View Profile"><Eye size={16}/></button>
                                             <button className="icon-btn-sm" onClick={() => openEdit(c)} title="Edit"><Edit size={16}/></button>
-                                            <button className="icon-btn-sm" style={{ color: '#10b981' }} onClick={() => navigate('/dashboard/finance', { state: { customerId: c.id } })} title="Record Payment">
+                                             <button className="icon-btn-sm" style={{ color: '#10b981' }} onClick={() => navigate('/dashboard/finance', { state: { customerId: c.id, customerName: c.full_name } })} title="Record Payment">
                                                 <CreditCard size={16}/>
                                             </button>
                                             <button className="icon-btn-sm delete-btn" onClick={() => handleDelete(c.id)} title="Delete"><Trash2 size={16}/></button>

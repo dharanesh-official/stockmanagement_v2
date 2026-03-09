@@ -94,6 +94,13 @@
     box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
 
+.search-input-wrapper input {
+    background: white;
+    box-shadow: none;
+    border: 1px solid #e5e7eb;
+}
+
+
 .search-results-dropdown {
     position: absolute;
     top: 100%;
@@ -234,14 +241,23 @@
     color: var(--text-main);
 }
 
-.notif-header button {
+.notif-header .notif-clear-all {
     background: none;
     border: none;
     color: var(--primary);
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: all 0.2s;
 }
+
+.notif-header .notif-clear-all:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
 
 .notif-list {
     max-height: 400px;

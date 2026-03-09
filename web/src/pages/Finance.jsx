@@ -42,6 +42,14 @@ const Finance = ({ user }) => {
         fetchAllData();
     }, []);
 
+    useEffect(() => {
+        if (location.state?.shopName) {
+            setSearch(location.state.shopName);
+        } else if (location.state?.customerName) {
+            setSearch(location.state.customerName);
+        }
+    }, [location.state]);
+
     const fetchAllData = async () => {
         setLoading(true);
         try {

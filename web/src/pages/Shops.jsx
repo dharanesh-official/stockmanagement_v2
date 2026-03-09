@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import {
   Plus,
@@ -29,7 +29,20 @@ import "./Shops.css";
 
 const Shops = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [shops, setShops] = useState([]);
+  
+  useEffect(() => {
+    if (location.state?.shopId && shops.length > 0) {
+      const targetShop = shops.find(s => s.id === location.state.shopId);
+      if (targetShop) {
+        // Find area to set it
+        const area = areas.find(a => a.id === targetShop.area_id);
+        if (area) setSelectedArea(area);
+        setSearch(targetShop.name);
+      }
+    }
+  }, [location.state, shops, areas]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -526,7 +539,7 @@ const Shops = () => {
                           title="View Finance"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate('/dashboard/finance', { state: { shopId: shop.id } });
+                            navigate('/dashboard/finance', { state: { shopId: shop.id, shopName: shop.name } });
                           }}
                         >
                           <CreditCard size={16} className="text-emerald-600" />

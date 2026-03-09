@@ -225,7 +225,7 @@ const DashboardHome = () => {
                                 <div className="notif-dropdown">
                                     <div className="notif-header">
                                         <h3>Notifications</h3>
-                                        <button onClick={async (e) => {
+                                        <button className="notif-clear-all" onClick={async (e) => {
                                             e.stopPropagation();
                                             await api.put('/notifications/read-all');
                                             setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
