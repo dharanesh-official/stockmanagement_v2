@@ -32,6 +32,15 @@ const Shops = () => {
   const location = useLocation();
   const [shops, setShops] = useState([]);
   
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [user, setUser] = useState(null);
+  const [employees, setEmployees] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("All");
+
   useEffect(() => {
     if (location.state?.shopId && shops.length > 0) {
       const targetShop = shops.find(s => s.id === location.state.shopId);
@@ -43,14 +52,7 @@ const Shops = () => {
       }
     }
   }, [location.state, shops, areas]);
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [user, setUser] = useState(null);
-  const [employees, setEmployees] = useState([]);
-  const [areas, setAreas] = useState([]);
-  const [selectedArea, setSelectedArea] = useState(null);
-  const [statusFilter, setStatusFilter] = useState("All");
+
 
   const [showAreaModal, setShowAreaModal] = useState(false);
   const [newAreaName, setNewAreaName] = useState("");
