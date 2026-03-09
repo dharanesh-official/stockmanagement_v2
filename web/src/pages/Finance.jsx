@@ -143,16 +143,27 @@ const Finance = ({ user }) => {
         }
     };
 
-    const filteredDues = dues.filter(d => 
-        (d.invoice_number && d.invoice_number.toLowerCase().includes(search.toLowerCase())) ||
-        (d.shop_name && d.shop_name.toLowerCase().includes(search.toLowerCase())) ||
-        (d.customer_name && d.customer_name.toLowerCase().includes(search.toLowerCase()))
-    );
+    const filteredDues = dues.filter(d => {
+        // If we have a strict filter from navigation state
+        if (location.state?.shopId && d.shop_id !== location.state.shopId) return false;
+        if (location.state?.customerId && d.customer_id !== location.state.customerId) return false;
 
-    const filteredShops = shopsWithStats.filter(s => 
-        s.name.toLowerCase().includes(search.toLowerCase()) ||
-        (s.area_name && s.area_name.toLowerCase().includes(search.toLowerCase()))
-    );
+        if (!search) return true;
+        const s = search.toLowerCase();
+        return (d.invoice_number && d.invoice_number.toLowerCase().includes(s)) ||
+               (d.shop_name && d.shop_name.toLowerCase().includes(s)) ||
+               (d.customer_name && d.customer_name.toLowerCase().includes(s));
+    });
+
+    const filteredShops = shopsWithStats.filter(s => {
+        if (location.state?.shopId && s.id !== location.state.shopId) return false;
+        
+        if (!search) return true;
+        const query = search.toLowerCase();
+        return s.name.toLowerCase().includes(query) ||
+               (s.area_name && s.area_name.toLowerCase().includes(query));
+    });
+
 
     const formatDate = (dateStr) => {
         if (!dateStr) return 'N/A';
@@ -166,11 +177,26 @@ const Finance = ({ user }) => {
                 <div className="finance-title-section">
                     <h1>Finance & Collections</h1>
                     <p>Track your receivables, manage credit notes and view payment history.</p>
+                    {(location.state?.shopName || location.state?.customerName) && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8.75rem', marginTop: '1rem', background: '#ecfdf5', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid #10b981', width: 'fit-content' }}>
+                            <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#059669' }}>
+                                <Store size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
+                                Filtering: {location.state.shopName || location.state.customerName}
+                            </span>
+                            <button 
+                                onClick={() => navigate(location.pathname, { replace: true, state: {} })}
+                                style={{ background: 'none', border: 'none', color: '#059669', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    )}
                 </div>
                 <button className="premium-btn-pay" onClick={() => fetchAllData()}>
                     <Activity size={18} /> Refresh Data
                 </button>
             </div>
+
 
             <div className="finance-summary-grid">
                 <div className="stat-card-new danger">
@@ -207,8 +233,19 @@ const Finance = ({ user }) => {
                     <div className="search-field-pill">
                         <Search size={18} className="search-icon-pill" />
                         <input placeholder="Search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+                        {(location.state?.shopId || location.state?.customerId) && (
+                            <button 
+                                className="icon-btn-sm" 
+                                style={{ marginLeft: '8px', border: 'none', background: '#fee2e2', color: '#dc2626' }}
+                                onClick={() => navigate(location.pathname, { replace: true, state: {} })}
+                                title="Clear Specific Filter"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
                     </div>
                 </div>
+
 
                 {loading ? (
                     <LoadingSpinner message="Syncing Financial Records..." />
