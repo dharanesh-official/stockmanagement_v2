@@ -26,6 +26,8 @@ const CreateOrder = ({ user }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showSuccess, setShowSuccess] = useState(false);
     const [isEdit, setIsEdit] = useState(!!location.state?.editOrder);
+    const [isSaving, setIsSaving] = useState(false);
+
 
     useEffect(() => {
         const init = async () => {
@@ -118,6 +120,7 @@ const CreateOrder = ({ user }) => {
 
     const submitOrder = async () => {
         try {
+            setIsSaving(true);
             if (isEdit) {
                 await api.put(`/sales/${orderData.id}`, {
                     ...orderData,
@@ -136,8 +139,11 @@ const CreateOrder = ({ user }) => {
         } catch (err) {
             console.error(err);
             alert(`Error: ${err.response?.data?.error || 'Failed to process transaction'}`);
+        } finally {
+            setIsSaving(false);
         }
     };
+
 
     const filteredShops = shops.filter(shop => 
         shop.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -479,8 +485,18 @@ const CreateOrder = ({ user }) => {
                     </div>
                 )}
             </div>
+            {isSaving && (
+                <div className="saving-overlay">
+                    <div className="saving-card">
+                        <div className="spinner-lg"></div>
+                        <h3>Finalizing Order...</h3>
+                        <p>Committing transaction to secure ledger. Please wait.</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
+
 
 export default CreateOrder;

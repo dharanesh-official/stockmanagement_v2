@@ -467,18 +467,63 @@
 }
 
 @media print {
-    .no-print {
+    @page { 
+        size: landscape; 
+        margin: 10mm; 
+    }
+    
+    .no-print, 
+    .sidebar, 
+    .sidebar-container, 
+    .header,
+    .breadcrumb {
         display: none !important;
     }
+
     body {
-        background: white;
-    }
-    .invoice-page-container {
+        background: white !important;
+        margin: 0;
         padding: 0;
     }
-    .invoice-paper {
-        margin: 0;
-        box-shadow: none;
-        width: 100%;
+
+    .invoice-page-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        background: white !important;
+        min-height: auto;
     }
-}
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    .invoice-paper {
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        min-height: auto !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    /* Ensure table colors print correctly */
+    .invoice-table th {
+        background-color: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .logo-box {
+        background-color: #10b981 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .total-value {
+        color: #10b981 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+}
