@@ -252,6 +252,13 @@ const Settings = ({ user }) => {
                                     <option value="KWD">Kuwaiti Dinar (KWD)</option>
                                     <option value="CHF">Swiss Franc (CHF)</option>
                                     <option value="CNY">Chinese Yuan (CNY)</option>
+                                    <option value="RUB">Russian Ruble (₽)</option>
+                                    <option value="TRY">Turkish Lira (₺)</option>
+                                    <option value="BRL">Brazilian Real (R$)</option>
+                                    <option value="ZAR">South African Rand (R)</option>
+                                    <option value="NGN">Nigerian Naira (₦)</option>
+                                    <option value="PKR">Pakistani Rupee (₨)</option>
+                                    <option value="BDT">Bangladeshi Taka (৳)</option>
                                 </select>
                             </div>
                             <div className="form-group">
