@@ -243,6 +243,15 @@ const Settings = ({ user }) => {
                                     <option value="$">US Dollar ($)</option>
                                     <option value="€">Euro (€)</option>
                                     <option value="£">British Pound (£)</option>
+                                    <option value="¥">Japanese Yen (¥)</option>
+                                    <option value="C$">Canadian Dollar (C$)</option>
+                                    <option value="A$">Australian Dollar (A$)</option>
+                                    <option value="AED">UAE Dirham (AED)</option>
+                                    <option value="SAR">Saudi Riyal (SAR)</option>
+                                    <option value="S$">Singapore Dollar (S$)</option>
+                                    <option value="KWD">Kuwaiti Dinar (KWD)</option>
+                                    <option value="CHF">Swiss Franc (CHF)</option>
+                                    <option value="CNY">Chinese Yuan (CNY)</option>
                                 </select>
                             </div>
                             <div className="form-group">
