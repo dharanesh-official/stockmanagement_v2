@@ -240,7 +240,7 @@ const Finance = ({ user }) => {
                         </div>
                     )}
                 </div>
-                <div className="flex gap-2">
+                <div className="finance-header-actions">
                     <button className="premium-btn-pay" onClick={handleExportExcel} style={{ background: '#059669' }}>
                         <Download size={18} /> Export Excel
                     </button>
@@ -248,6 +248,7 @@ const Finance = ({ user }) => {
                         <Activity size={18} /> Refresh Data
                     </button>
                 </div>
+
 
             </div>
 
