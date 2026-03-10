@@ -267,9 +267,6 @@ const DashboardHome = () => {
                             <option value="30d">Month to Date</option>
                             <option value="90d">Quarterly View</option>
                         </select>
-                        <button className="btn-refresh" onClick={fetchStats}>
-                            <TrendingUp size={16} style={{marginRight: '8px'}} /> Refresh
-                        </button>
                     </div>
                 </div>
             </header>
