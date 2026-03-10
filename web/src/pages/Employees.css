@@ -1,47 +1,10 @@
 /* Modern Employee Profile Styles */
 
-/* Modal Container Tweaks */
-/* Modal Container Tweaks */
-.permissions-modal-content {
-    max-width: 650px !important;
-    width: 95%;
-    border-radius: 24px;
-    padding: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-    /* Critical for scrolling */
-    animation: modalScaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
+/* Base modal system handled by index.css */
 
-@keyframes modalScaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
 
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
+/* Modal header handled globally */
 
-.modal-header {
-    background: #ffffff;
-    padding: 24px 32px;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: #0f172a;
-}
 
 .profile-view-content {
     padding: 32px;
@@ -50,12 +13,8 @@
     flex: 1;
 }
 
-.managed-form {
-    padding: 0;
-    /* padding handled inside sections or moved here if generic */
-    overflow-y: auto;
-    flex: 1;
-}
+/* Form system handled globally */
+
 
 .personnel-form {
     display: flex;
@@ -307,27 +266,8 @@
     border: 1px solid #e2e8f0;
 }
 
-/* Modal Overlay & Transitions */
-/* Modal Overlay & Transitions */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-}
+/* Modal overlay and content handled globally */
 
-.modal-content {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    background: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
 
 /* Shop Selection Custom Checkbox */
 .shop-option-item.selected {

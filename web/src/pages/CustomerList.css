@@ -257,20 +257,18 @@
 
 .money-btn:hover { color: #10b981; }
 
+/* Modal system handled globally in index.css */
 .wide-modal {
     max-width: 850px !important;
     width: 95% !important;
 }
 
+
+/* Form styles handled globally */
 .customer-rich-form {
-    padding: 1.5rem;
+    padding: 0;
 }
 
-.form-sections {
-    max-height: 60vh;
-    overflow-y: auto;
-    padding-right: 1rem;
-}
 
 .section {
     margin-bottom: 2rem;
@@ -292,14 +290,8 @@
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem; }
 
-.modal-actions-fixed {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #e2e8f0;
-    margin-top: 1rem;
-}
+/* Action buttons handled globally */
+
 
 .empty-state-large {
     padding: 4rem;
