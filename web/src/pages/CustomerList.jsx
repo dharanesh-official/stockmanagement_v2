@@ -342,8 +342,8 @@ const CustomerList = () => {
                                 </div>
                             </div>
                         </div>
-                        <form onSubmit={handleCreateOrUpdate} className="customer-rich-form">
-                            <div className="form-sections">
+                        <form onSubmit={handleCreateOrUpdate} className="modal-body-form">
+                            <div className="managed-form">
                                 {/* Section 1: Core Identity */}
                                 <div className="section">
                                     <h3 className="section-title">Identity & Contact</h3>
@@ -432,11 +432,12 @@ const CustomerList = () => {
                                 </div>
                             </div>
 
-                            <div className="modal-actions-fixed">
+                            <div className="modal-actions-alt">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Discard</button>
                                 <button type="submit" className="btn btn-primary">Synchronize Records</button>
                             </div>
                         </form>
+
                     </div>
                 </div>
             )}
