@@ -345,11 +345,20 @@ input:focus, select:focus, textarea:focus {
     margin-top: 4px;
 }
 
+.modal-body-form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0; /* Important for flex child scrolling */
+    overflow: hidden;
+}
+
 .managed-form {
     padding: 32px;
     overflow-y: auto;
     flex: 1;
 }
+
 
 .modal-actions, .modal-actions-alt {
     padding: 20px 32px;
