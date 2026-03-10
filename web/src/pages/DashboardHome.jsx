@@ -83,17 +83,18 @@ const DashboardHome = () => {
             if (searchQuery.length > 1) {
                 setIsSearching(true);
                 try {
-                    const res = await api.get(`/dashboard/search?query=${searchQuery}`);
+                    const res = await api.get(`/dashboard/search?query=${searchQuery.trim()}`);
                     setSearchResults(res.data);
                 } catch (err) {
                     console.error("Search error:", err);
+                    setSearchResults(null);
                 } finally {
                     setIsSearching(false);
                 }
             } else {
                 setSearchResults(null);
             }
-        }, 300);
+        }, 150); // Faster debounce for better feel
         return () => clearTimeout(delaySearch);
     }, [searchQuery]);
 
@@ -227,10 +228,15 @@ const DashboardHome = () => {
                                         <h3>Notifications</h3>
                                         <button className="notif-clear-all" onClick={async (e) => {
                                             e.stopPropagation();
-                                            await api.put('/notifications/read-all');
-                                            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+                                            try {
+                                                await api.put('/notifications/read-all');
+                                                setNotifications([]); // Empty the list for local feel
+                                            } catch (err) {
+                                                console.error("Clear all error:", err);
+                                            }
                                         }}>Clear All</button>
                                     </div>
+
                                     <div className="notif-list">
                                         {notifications.length === 0 ? (
                                             <div className="notif-empty">No updates available</div>

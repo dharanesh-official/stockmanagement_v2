@@ -137,11 +137,16 @@
 .search-field-pill {
     margin-left: auto;
     position: relative;
-    width: 280px;
+    width: 320px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
+
 .search-field-pill input {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     padding: 0.75rem 1rem 0.75rem 2.75rem;
     border-radius: 14px;
     border: 1px solid var(--border-slate-200);
@@ -150,7 +155,9 @@
     font-weight: 500;
     outline: none;
     transition: all 0.2s;
+    height: 42px;
 }
+
 
 .search-field-pill input:focus {
     border-color: #10b981;

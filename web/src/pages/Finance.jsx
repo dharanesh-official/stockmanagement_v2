@@ -178,7 +178,7 @@ const Finance = ({ user }) => {
                     <h1>Finance & Collections</h1>
                     <p>Track your receivables, manage credit notes and view payment history.</p>
                     {(location.state?.shopName || location.state?.customerName) && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8.75rem', marginTop: '1rem', background: '#ecfdf5', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid #10b981', width: 'fit-content' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '1rem', background: '#ecfdf5', padding: '0.5rem 1rem', borderRadius: '10px', border: '1px solid #10b981', width: 'fit-content' }}>
                             <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#059669' }}>
                                 <Store size={14} style={{ verticalAlign: 'middle', marginRight: '4px' }} />
                                 Filtering: {location.state.shopName || location.state.customerName}
@@ -236,13 +236,14 @@ const Finance = ({ user }) => {
                         {(location.state?.shopId || location.state?.customerId) && (
                             <button 
                                 className="icon-btn-sm" 
-                                style={{ marginLeft: '8px', border: 'none', background: '#fee2e2', color: '#dc2626' }}
+                                style={{ border: 'none', background: '#fee2e2', color: '#dc2626', flexShrink: 0 }}
                                 onClick={() => navigate(location.pathname, { replace: true, state: {} })}
                                 title="Clear Specific Filter"
                             >
                                 <X size={14} />
                             </button>
                         )}
+
                     </div>
                 </div>
 
