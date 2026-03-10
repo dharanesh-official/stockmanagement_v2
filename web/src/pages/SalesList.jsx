@@ -8,7 +8,10 @@ import {
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SalesAnalytics from './SalesAnalytics';
+import { exportToExcel } from '../utils/exportExcel';
+import { Download } from 'lucide-react';
 import './StockList.css';
+
 
 const SalesList = ({ user }) => {
     const navigate = useNavigate();
@@ -47,6 +50,33 @@ const SalesList = ({ user }) => {
         } catch (err) {
             alert('Failed to delete order');
         }
+    };
+
+    const handleExportExcel = () => {
+        const dataToExport = filteredSales.map(sale => {
+            const payStatus = getPaymentStatus(sale);
+            const total = Number(sale.total_amount) + Number(sale.shipping_charge || 0) - Number(sale.discount_amount || 0);
+            
+            return {
+                'Invoice #': sale.invoice_number,
+                'Date': new Date(sale.transaction_date).toLocaleDateString(),
+                'Customer': sale.customer_name,
+                'Shop': sale.shop_name || 'Individual Customer',
+                'Type': sale.order_type || 'Direct Sale',
+                'Status': sale.status,
+                'Payment Status': payStatus.label,
+                'Payment Method': sale.payment_method || 'N/A',
+                'Subtotal (₹)': Number(sale.total_amount).toLocaleString('en-IN'),
+                'Shipping (₹)': Number(sale.shipping_charge || 0).toLocaleString('en-IN'),
+                'Discount (₹)': Number(sale.discount_amount || 0).toLocaleString('en-IN'),
+                'Grand Total (₹)': total.toLocaleString('en-IN'),
+                'Paid (₹)': Number(sale.paid_amount || 0).toLocaleString('en-IN'),
+                'Balance Due (₹)': Number(sale.due_amount).toLocaleString('en-IN'),
+                'Due Date': sale.due_date ? new Date(sale.due_date).toLocaleDateString() : 'N/A'
+            };
+        });
+
+        exportToExcel(dataToExport, 'Sales_Report', 'OrderLedger');
     };
 
     const handleStatusUpdate = async (id, nextStatus, currentStatus) => {
@@ -111,6 +141,9 @@ const SalesList = ({ user }) => {
                         <p className="subtitle">Track sales performance and logistics lifecycle across all shops.</p>
                     </div>
                     <div className="header-actions">
+                        <button className="btn btn-secondary" onClick={handleExportExcel}>
+                            <Download size={18} /> Export Excel
+                        </button>
                         <button className={`btn ${showAnalytics ? 'btn-outline' : 'btn-secondary'}`} onClick={() => setShowAnalytics(!showAnalytics)}>
                             {showAnalytics ? <TrendingUp size={18} /> : <BarChart3 size={18} />}
                             {showAnalytics ? 'Hide Market Insights' : 'Show Market Insights'}
@@ -119,6 +152,7 @@ const SalesList = ({ user }) => {
                             <Plus size={18} /> New Transaction
                         </button>
                     </div>
+
                 </div>
 
                 {showAnalytics && <SalesAnalytics />}

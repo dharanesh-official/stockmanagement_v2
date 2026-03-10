@@ -8,7 +8,9 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { exportToExcel } from '../utils/exportExcel';
 import './Finance.css';
+
 
 const Finance = ({ user }) => {
     const navigate = useNavigate();
@@ -171,6 +173,52 @@ const Finance = ({ user }) => {
         return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString('en-IN');
     };
 
+    const handleExportExcel = () => {
+        let dataToExport = [];
+        let filename = 'Finance_Report';
+        let sheetName = 'Finance';
+
+        if (activeTab === 'dues') {
+            filename = 'Outstanding_Dues';
+            sheetName = 'Dues';
+            dataToExport = filteredDues.map(item => ({
+                'Invoice #': item.invoice_number,
+                'Date': formatDate(item.created_at || item.order_date),
+                'Shop': item.shop_name || 'Generic Shop',
+                'Customer': item.customer_name || 'Default Customer',
+                'Total Bill (₹)': Number(item.total_amount || item.amount).toLocaleString('en-IN'),
+                'Paid (₹)': Number(item.paid_amount || 0).toLocaleString('en-IN'),
+                'Amount Due (₹)': (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0)).toLocaleString('en-IN'),
+                'Status': Number(item.balance || (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0))) > 5000 ? 'Overdue' : 'Normal'
+            }));
+        } else if (activeTab === 'shops') {
+            filename = 'Shop_Outstanding_Summary';
+            sheetName = 'Shops';
+            dataToExport = filteredShops.map(shop => ({
+                'Shop Name': shop.name,
+                'Area': shop.area_name || 'Generic Area',
+                'Total Outstanding (₹)': (shop.totalOutstanding || 0).toLocaleString('en-IN'),
+                'Pending Invoices': shop.pendingInvoices,
+                'Credit Limit (₹)': Number(shop.credit_limit || 0).toLocaleString('en-IN')
+            }));
+        } else if (activeTab === 'history') {
+            filename = 'Payment_History';
+            sheetName = 'Payments';
+            dataToExport = history.map(record => ({
+                'Receipt #': record.id.slice(0, 8).toUpperCase(),
+                'Date': formatDate(record.created_at || record.transaction_date),
+                'Shop': record.shop_name || 'Generic Shop',
+                'Customer': record.customer_name || 'Default Customer',
+                'Amount Received (₹)': Number(record.paid_amount || 0).toLocaleString('en-IN'),
+                'Payment Method': record.payment_method || 'N/A',
+                'Notes': record.notes || 'N/A'
+            }));
+        }
+
+        exportToExcel(dataToExport, filename, sheetName);
+    };
+
+
     return (
         <div className="finance-page">
             <div className="finance-header-hub">
@@ -192,9 +240,15 @@ const Finance = ({ user }) => {
                         </div>
                     )}
                 </div>
-                <button className="premium-btn-pay" onClick={() => fetchAllData()}>
-                    <Activity size={18} /> Refresh Data
-                </button>
+                <div className="flex gap-2">
+                    <button className="premium-btn-pay" onClick={handleExportExcel} style={{ background: '#059669' }}>
+                        <Download size={18} /> Export Excel
+                    </button>
+                    <button className="premium-btn-pay" onClick={() => fetchAllData()}>
+                        <Activity size={18} /> Refresh Data
+                    </button>
+                </div>
+
             </div>
 
 

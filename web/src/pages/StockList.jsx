@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw, History, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw, History, ArrowLeft, Download } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { exportToExcel } from '../utils/exportExcel';
+
 import './StockList.css';
 import './Employees.css';
 
@@ -215,6 +217,22 @@ const StockList = () => {
         }
     };
 
+    const handleExportExcel = () => {
+        const dataToExport = filteredStocks.map(stock => ({
+            'Product Name': stock.item_name,
+            'SKU': stock.sku || 'N/A',
+            'Category': stock.category_name || 'General',
+            'Supplier': stock.supplier || 'N/A',
+            'Price (₹)': Number(stock.price).toLocaleString('en-IN'),
+            'Current Stock': stock.quantity,
+            'Min Stock Level': stock.min_stock_level,
+            'Status': getStockStatus(stock.quantity, stock.min_stock_level).label,
+            'Last Updated': new Date(stock.updated_at).toLocaleDateString() + ' ' + new Date(stock.updated_at).toLocaleTimeString()
+        }));
+
+        exportToExcel(dataToExport, 'Inventory_Report', 'StockDetails');
+    };
+
     return (
         <>
             {loading && <LoadingSpinner fullScreen message="Loading inventory..." />}
@@ -225,9 +243,13 @@ const StockList = () => {
                         <p className="subtitle">Enterprise inventory management with real-time tracking.</p>
                     </div>
                     <div className="header-actions">
+                        <button className="btn btn-secondary" onClick={handleExportExcel}>
+                            <Download size={18} /> Export Excel
+                        </button>
                         <button className="btn btn-secondary" onClick={() => setShowCategoryModal(true)}>
                             <LayoutGrid size={18} /> Categories
                         </button>
+
                         {hasPermission('stock', 'create') && (
                             <button className="btn btn-primary" onClick={() => { resetStockForm(); setShowModal(true); }}>
                                 <Plus size={18} /> New Product
