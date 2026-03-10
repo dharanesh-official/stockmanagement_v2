@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Eye, EyeOff, ArrowRight, LayoutDashboard } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, LayoutDashboard, Package, ShieldCheck, BarChart3, Users } from 'lucide-react';
 import './Login.css';
 
 const Login = () => {
@@ -56,21 +56,41 @@ const Login = () => {
     return (
         <div className="login-container">
             <div className="login-left">
+                <div className="grid-overlay"></div>
                 <div className="brand">
                     <div className="logo-box">
                         {logo ? (
                             <img src={logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         ) : (
-                            <LayoutDashboard size={24} color="white" />
+                            <LayoutDashboard size={22} color="white" />
                         )}
                     </div>
                     <span className="brand-text-small">{companyName}</span>
                 </div>
-                {logo ? (
-                    <img src={logo} alt="Company Logo" style={{ width: '80px', marginBottom: '1.5rem', borderRadius: '16px' }} />
-                ) : null}
-                <h1>{companyName}</h1>
-                <p>Enterprise-grade inventory tracking, warehouse <br />management, and financial reporting in one unified dashboard.</p>
+
+                <div className="login-content">
+                    <h1>{companyName}</h1>
+                    <p>Enterprise-grade inventory tracking, warehouse management, and financial reporting in one unified dashboard.</p>
+
+                    <div className="features-list">
+                        <div className="feature-item">
+                            <div className="feature-icon"><Package size={20} /></div>
+                            <span className="feature-text">Real-time Inventory</span>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon"><BarChart3 size={20} /></div>
+                            <span className="feature-text">Advanced Analytics</span>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon"><ShieldCheck size={20} /></div>
+                            <span className="feature-text">Secure Access</span>
+                        </div>
+                        <div className="feature-item">
+                            <div className="feature-icon"><Users size={20} /></div>
+                            <span className="feature-text">Team Collaboration</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div className="login-right">
                 <div className="login-form-container">
