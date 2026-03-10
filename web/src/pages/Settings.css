@@ -204,10 +204,85 @@
     color: #94a3b8;
 }
 
+/* Logo Upload Section */
+.logo-upload-box {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    margin-top: 0.5rem;
+}
+
+.logo-preview-circle {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    background: white;
+    border-radius: 12px;
+    border: 2px dashed #cbd5e1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.logo-img-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.logo-upload-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.btn-upload-logo {
+    background: #10b981;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: fit-content;
+}
+
+.btn-upload-logo:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.btn-remove-logo {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+}
+
+.upload-tip {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
 @media (max-width: 768px) {
     .settings-layout { flex-direction: column; }
     .settings-sidebar { width: 100%; display: flex; overflow-x: auto; padding: 0; }
     .settings-nav-item { border-left: none; border-bottom: 3px solid transparent; padding: 12px 16px; white-space: nowrap; }
     .settings-nav-item.active { border-bottom-color: #059669; }
     .settings-form-grid { grid-template-columns: 1fr; }
-}
+}

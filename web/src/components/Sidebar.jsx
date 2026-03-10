@@ -60,17 +60,18 @@ const Sidebar = ({ user, isOpen, closeSidebar }) => {
             {isOpen && <div className="sidebar-overlay" onClick={closeSidebar}></div>}
             <div className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <div className="sidebar-brand">
-                    <div className="flex items-center gap-2">
+                    <div className="sidebar-brand-container">
                         {logo ? (
-                            <div className="sidebar-logo-container">
-                                <img src={logo} alt="Logo" />
+                            <div className="sidebar-logo-wrapper">
+                                <img src={logo} alt="Logo" className="sidebar-logo-img" />
                             </div>
                         ) : (
-                            <LayoutDashboard size={28} color="#10b981" />
+                            <LayoutDashboard size={28} className="sidebar-default-icon" />
                         )}
                         <span className="brand-name">{companyName}</span>
                     </div>
                     <button className="sidebar-close-btn" onClick={closeSidebar}>
+
                         <X size={24} />
                     </button>
                 </div>

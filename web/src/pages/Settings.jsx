@@ -135,9 +135,10 @@ const Settings = ({ user }) => {
         let success = false;
         if (activeTab === 'user_profile' || activeTab === 'security') {
             success = await saveUserSettings();
-        } else if (user.role === 'admin') {
+        } else if (user.role === 'admin' || user.role === 'super_admin') {
             success = await saveCompanySettings();
         }
+
 
         if (success) {
             setMsg({ type: 'success', text: 'Settings updated successfully!' });
@@ -173,34 +174,28 @@ const Settings = ({ user }) => {
                             </div>
                              <div className="form-group">
                                 <label>Company Logo</label>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
-                                    <div style={{ 
-                                        width: '60px', 
-                                        height: '60px', 
-                                        borderRadius: '12px', 
-                                        border: '2px dashed #e2e8f0',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        overflow: 'hidden',
-                                        background: '#f8fafc'
-                                    }}>
-                                        {companyForm.company_logo ? (
-                                            <img src={companyForm.company_logo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                        ) : (
-                                            <Building size={24} color="#94a3b8" />
-                                        )}
+                                    <div className="logo-upload-box">
+                                        <div className="logo-preview-circle">
+                                            {companyForm.company_logo ? (
+                                                <img src={companyForm.company_logo} alt="Logo" className="logo-img-preview" />
+                                            ) : (
+                                                <Building size={24} color="#94a3b8" />
+                                            )}
+                                        </div>
+                                        <div className="logo-upload-controls">
+                                            <label className="btn-upload-logo">
+                                                <Activity size={14} /> Upload New Logo
+                                                <input type="file" hidden accept="image/*" onChange={handleLogoUpload} />
+                                            </label>
+                                            {companyForm.company_logo && (
+                                                <button type="button" className="btn-remove-logo" onClick={() => setCompanyForm(p => ({ ...p, company_logo: '' }))}>
+                                                    Remove Image
+                                                </button>
+                                            )}
+                                            <p className="upload-tip">PNG, JPG or SVG. Max 2MB.</p>
+                                        </div>
                                     </div>
-                                    <label className="btn-save-settings" style={{ cursor: 'pointer', padding: '0.5rem 1rem', fontSize: '0.8rem', color: '#ffffff' }}>
-                                        Upload Logo
-                                        <input type="file" hidden accept="image/*" onChange={handleLogoUpload} />
-                                    </label>
-                                    {companyForm.company_logo && (
-                                        <button type="button" onClick={() => setCompanyForm(p => ({ ...p, company_logo: '' }))} style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold', background: 'none', border: 'none', cursor: 'pointer' }}>
-                                            Remove
-                                        </button>
-                                    )}
-                                </div>
+
                             </div>
                             <div className="form-group">
                                 <label>Phone Number</label>
