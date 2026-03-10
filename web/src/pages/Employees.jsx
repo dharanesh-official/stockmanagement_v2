@@ -404,7 +404,7 @@ const Employees = ({ user }) => {
                                 <h2>{editMode ? `Edit Access: ${formData.full_name}` : 'Create New Personnel'}</h2>
                             </div>
                         </div>
-                        <form onSubmit={handleCreateOrUpdate} className="personnel-form">
+                        <form onSubmit={handleCreateOrUpdate} className="modal-body-form">
                             <div className="managed-form">
                                 <div className="form-sections-grid">
                                     <div className="info-section">
@@ -585,7 +585,7 @@ const Employees = ({ user }) => {
                                 </div>
                             </div>
 
-                            <div className="modal-actions">
+                            <div className="modal-actions-alt">
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
                                 <button type="submit" className="btn btn-primary">{editMode ? 'Update Employee' : 'Create Employee'}</button>
                             </div>

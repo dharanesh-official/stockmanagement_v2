@@ -667,7 +667,7 @@ const Shops = () => {
                 <h2>{formData.id ? "Edit Shop" : "Add New Shop"}</h2>
               </div>
             </div>
-            <form onSubmit={handleCreateOrUpdateShop} className="shop-form">
+            <form onSubmit={handleCreateOrUpdateShop} className="modal-body-form">
                 <div className="managed-form">
                   <div className="form-grid-2">
                   <div className="form-group full-width">
