@@ -17,15 +17,16 @@ const markAsRead = async (req, res) => {
     try {
         const { id } = req.params;
         await pool.query(
-            'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND user_id = $2',
+            'DELETE FROM notifications WHERE id = $1 AND user_id = $2',
             [id, req.user.id]
         );
-        res.json({ message: 'Notification marked as read' });
+        res.json({ message: 'Notification cleared successfully' });
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Server Error');
     }
 };
+
 
 const markAllAsRead = async (req, res) => {
     try {

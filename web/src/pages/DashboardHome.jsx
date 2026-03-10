@@ -105,11 +105,12 @@ const DashboardHome = () => {
     const markRead = async (id) => {
         try {
             await api.put(`/notifications/${id}/read`);
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+            setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (err) {
             console.error("Mark read error:", err);
         }
     };
+
 
     const statCards = [
         {
