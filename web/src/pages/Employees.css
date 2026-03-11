@@ -89,18 +89,23 @@
     margin: 0;
 }
 
-.profile-main-info p {
+.profile-main-info p.profile-contact-line {
     color: #64748b;
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.6;
 }
 
 .profile-work-info {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     align-items: flex-end;
     text-align: right;
+    justify-content: center;
 }
 
 .info-stat {
@@ -109,18 +114,24 @@
 }
 
 .info-label {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.075em;
     color: #94a3b8;
-    font-weight: 600;
-    margin-bottom: 2px;
+    font-weight: 700;
+    margin-bottom: 4px;
 }
 
 .info-val {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: #334155;
+}
+
+.profile-reset-btn {
+    margin-top: 8px;
+    width: auto;
+    min-width: 160px;
 }
 
 /* Section Titles */

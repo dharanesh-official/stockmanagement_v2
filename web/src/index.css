@@ -309,10 +309,16 @@ input:focus, select:focus, textarea:focus {
 .font-medium { font-weight: 500; }
 .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
+.text-2xs { font-size: 0.625rem; }
 .text-xs { font-size: 0.75rem; }
 .text-sm { font-size: 0.875rem; }
 .text-base { font-size: 1rem; }
 .text-lg { font-size: 1.125rem; }
+
+.italic { font-style: italic; }
+.uppercase { text-transform: uppercase; }
+.tracking-wider { letter-spacing: 0.05em; }
+.tracking-widest { letter-spacing: 0.1em; }
 
 .text-gray-400 { color: #94a3b8; }
 .text-gray-500 { color: #64748b; }

@@ -646,20 +646,21 @@ const Employees = ({ user }) => {
                             ) : (
                                 <>
                                     <div className="profile-header-grid">
-                                        <div className="profile-identity">
-                                            <div className="profile-avatar">
-                                                <User size={40} />
+                                        <div className="profile-avatar">
+                                            <User size={40} />
+                                        </div>
+                                        <div className="profile-main-info">
+                                            <div className="flex items-center gap-3">
+                                                <h3>{selectedEmployee.full_name}</h3>
+                                                <span className="text-2xs font-bold tracking-wider font-mono bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded border border-blue-100">
+                                                    {selectedEmployee.employee_id}
+                                                </span>
+
                                             </div>
-                                            <div className="profile-main-info">
-                                                <div className="flex items-center gap-2">
-                                                    <h3>{selectedEmployee.full_name}</h3>
-                                                    <span className="text-xs font-mono bg-blue-50 text-blue-600 px-2 py-0.5 rounded">
-                                                        {selectedEmployee.employee_id}
-                                                    </span>
-                                                </div>
-                                                <p className="text-gray-500 flex items-center gap-2"><Mail size={14} /> {selectedEmployee.email}</p>
-                                                {selectedEmployee.phone && <p className="text-gray-500 flex items-center gap-2"><Phone size={14} /> {selectedEmployee.phone}</p>}
-                                                <span className={`badge mt-2 ${ROLES.find(r => r.id === selectedEmployee.role)?.color || 'badge-gray'}`}>
+                                            <p className="profile-contact-line"><Mail size={14} /> {selectedEmployee.email}</p>
+                                            {selectedEmployee.phone && <p className="profile-contact-line"><Phone size={14} /> {selectedEmployee.phone}</p>}
+                                            <div className="mt-2">
+                                                <span className={`badge ${ROLES.find(r => r.id === selectedEmployee.role)?.color || 'badge-gray'}`}>
                                                     {selectedEmployee.role.replace('_', ' ').toUpperCase()}
                                                 </span>
                                             </div>
@@ -673,7 +674,7 @@ const Employees = ({ user }) => {
                                                 <span className="info-label">Last Activity</span>
                                                 <span className="info-val">{selectedEmployee.last_login ? new Date(selectedEmployee.last_login).toLocaleString() : 'Never'}</span>
                                             </div>
-                                            <button className="btn btn-secondary btn-sm mt-4 w-full" onClick={() => {
+                                            <button className="btn btn-secondary btn-sm profile-reset-btn" onClick={() => {
                                                 setShowProfile(false);
                                                 openEditModal(selectedEmployee);
                                                 setFormData(prev => ({ ...prev, password: 'CHANGEME' })); // Visual indicator
@@ -682,6 +683,7 @@ const Employees = ({ user }) => {
                                             </button>
                                         </div>
                                     </div>
+
 
                                     <div className="profile-sections-row">
                                         <div className="profile-section-main">
