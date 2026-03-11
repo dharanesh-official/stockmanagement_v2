@@ -294,9 +294,6 @@ const StockList = () => {
                     <table className="stock-table">
                         <thead>
                             <tr>
-                                <th style={{ width: '40px' }}>
-                                    <input type="checkbox" checked={selectedItems.length === filteredStocks.length && filteredStocks.length > 0} onChange={toggleSelectAll} />
-                                </th>
                                 <th>PRODUCT / SKU</th>
                                 <th>CATEGORY</th>
                                 <th>SUPPLIER</th>
@@ -310,7 +307,7 @@ const StockList = () => {
                         <tbody>
                             {filteredStocks.length === 0 ? (
                                 <tr>
-                                    <td colSpan="9">
+                                    <td colSpan="8">
                                         <div className="empty-inventory">
                                             <RefreshCw size={48} className="empty-icon" />
                                             <h3>No Products Found</h3>
@@ -322,10 +319,7 @@ const StockList = () => {
                             ) : filteredStocks.map((stock) => {
                                 const status = getStockStatus(stock.quantity, stock.min_stock_level);
                                 return (
-                                    <tr key={stock.id} className={selectedItems.includes(stock.id) ? 'row-selected' : ''}>
-                                        <td>
-                                            <input type="checkbox" checked={selectedItems.includes(stock.id)} onChange={() => toggleSelectItem(stock.id)} />
-                                        </td>
+                                    <tr key={stock.id}>
                                         <td className="product-cell">
                                             <div className="product-info-cell">
                                                 <span className="product-name" onClick={() => fetchHistory(stock.id)}>{stock.item_name}</span>
