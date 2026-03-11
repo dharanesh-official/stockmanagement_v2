@@ -93,8 +93,8 @@ const Employees = ({ user }) => {
     const [roleFilter, setRoleFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [areaFilter, setAreaFilter] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
     const [areas, setAreas] = useState([]);
+    const [areaSearch, setAreaSearch] = useState('');
 
     useEffect(() => {
         if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) return;
@@ -485,12 +485,28 @@ const Employees = ({ user }) => {
                                     <div className="permissions-section">
                                         <h3 className="section-title">Regional Assignment & Access</h3>
                                         <div className="form-group">
-                                            <label>Assigned Areas (Multiple)</label>
-                                            <div className="areas-selection-grid">
-                                                {areas.map(area => (
+                                            <div className="flex justify-between items-center mb-1">
+                                                <label className="m-0">Assigned Areas</label>
+                                                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                                                    {formData.assigned_areas.length} Selected
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="area-search-wrapper">
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Search areas (e.g. Chennai...)" 
+                                                    value={areaSearch}
+                                                    onChange={(e) => setAreaSearch(e.target.value)}
+                                                    className="area-search-input"
+                                                />
+                                            </div>
+
+                                            <div className="areas-selection-list">
+                                                {areas.filter(a => a.name.toLowerCase().includes(areaSearch.toLowerCase())).map(area => (
                                                     <div 
                                                         key={area.id} 
-                                                        className={`area-checkbox ${formData.assigned_areas.includes(area.id) ? 'checked' : ''}`}
+                                                        className={`area-list-item ${formData.assigned_areas.includes(area.id) ? 'selected' : ''}`}
                                                         onClick={() => {
                                                             const newAreas = formData.assigned_areas.includes(area.id)
                                                                 ? formData.assigned_areas.filter(id => id !== area.id)
@@ -498,12 +514,17 @@ const Employees = ({ user }) => {
                                                             setFormData({ ...formData, assigned_areas: newAreas });
                                                         }}
                                                     >
-                                                        <div className="check-box">
-                                                            {formData.assigned_areas.includes(area.id) && <Check size={12} />}
+                                                        <div className="check-box-sm">
+                                                            {formData.assigned_areas.includes(area.id) && <Check size={10} />}
                                                         </div>
-                                                        <span>{area.name}</span>
+                                                        <span className="truncate">{area.name}</span>
                                                     </div>
                                                 ))}
+                                                {areas.filter(a => a.name.toLowerCase().includes(areaSearch.toLowerCase())).length === 0 && (
+                                                    <div className="text-center py-4 text-gray-400 text-xs italic">
+                                                        No areas found matching "{areaSearch}"
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         {formData.role !== 'custom' ? (
