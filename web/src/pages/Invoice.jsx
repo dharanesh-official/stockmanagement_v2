@@ -71,67 +71,58 @@ const Invoice = () => {
             </div>
 
             <div className="invoice-paper" id="invoice-content">
-                <header className="invoice-header">
-                    <div className="company-info">
-                        <div className="company-logo">
-                            <div className="logo-box">
-                                <Building2 size={32} />
-                            </div>
-                            <div className="info">
-                                <h2>{company.company_name || 'Secuvra Enterprise'}</h2>
-                            </div>
+                <div className="formal-invoice-header">
+                    <div className="fi-top-row">
+                        <div className="fi-company-details">
+                            <h2 className="fi-company-name">{company.company_name || 'Secuvra Enterprise'}</h2>
+                            <p className="fi-address">{company.company_address || '123 Business Avenue, Tech Park, Industrial Estate'}</p>
+                            <p className="fi-contact">Mobile: +91 98765 43210 | Email: info@secuvra.io</p>
+                            {company.gst_number && <p className="fi-gst">GSTIN: <strong>{company.gst_number}</strong></p>}
                         </div>
-                        <p className="company-address">{company.company_address || '123 Business Avenue, Tech Park, Industrial Estate'}</p>
-                        <p className="company-contact">Support: +91 98765 43210 • info@secuvra.io</p>
-                    </div>
-                    <div className="invoice-meta">
-                        <h1>INVOICE</h1>
-                        <div className="meta-grid">
-                            <div className="meta-item">
-                                <span className="label">Invoice No</span>
-                                <span className="value">{sale.invoice_number || `ORD-${sale.id.slice(0, 8).toUpperCase()}`}</span>
-                            </div>
-                            <div className="meta-item">
-                                <span className="label">Issue Date</span>
-                                <span className="value">{new Date(sale.transaction_date).toLocaleDateString('en-GB')}</span>
-                            </div>
-                            <div className="meta-item">
-                                <span className="label">Order Type</span>
-                                <span className="value">{sale.order_type || 'Direct Sale'}</span>
+                        <div className="fi-invoice-title">
+                            <h1>TAX INVOICE</h1>
+                            <div className="fi-meta-box">
+                                <div className="fi-meta-row">
+                                    <span>Invoice No:</span>
+                                    <strong>{sale.invoice_number}</strong>
+                                </div>
+                                <div className="fi-meta-row">
+                                    <span>Invoice Date:</span>
+                                    <strong>{new Date(sale.transaction_date).toLocaleDateString('en-GB')}</strong>
+                                </div>
+                                <div className="fi-meta-row">
+                                    <span>Payment Method:</span>
+                                    <strong>{sale.payment_method || 'N/A'}</strong>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </header>
 
-                <div className="invoice-contacts">
-                    <div className="contact-box billing">
-                        <div className="section-hdr">BILLING ADDRESS</div>
-                        <h3>{sale.customer_name}</h3>
-                        <p>{sale.shop_name || 'Individual Client'}</p>
-                        <p>{sale.shop_address || 'Registered address unavailable'}</p>
-                        <div className="contact-sub">
-                            <span>Phone: <strong>{sale.shop_phone || 'N/A'}</strong></span>
+                    <div className="fi-billing-row">
+                        <div className="fi-bill-to">
+                            <div className="fi-label">Bill To:</div>
+                            <div className="fi-client-name">{sale.customer_name}</div>
+                            <div className="fi-client-company">{sale.shop_name}</div>
+                            <div className="fi-client-address">{sale.shop_address || 'N/A'}</div>
+                            <div className="fi-client-phone">Phone: {sale.shop_phone || 'N/A'}</div>
                         </div>
-                    </div>
-                    <div className="contact-box shipping">
-                        <div className="section-hdr">SHIPPING / SITE ADDRESS</div>
-                        <p><strong>{sale.shop_name || 'Direct Delivery'}</strong></p>
-                        <p>{sale.shop_location || sale.shop_address || 'As per billing address'}</p>
-                        <div className="delivery-method">
-                            <Truck size={14} /> <span>Delivery</span>
+                        <div className="fi-ship-to">
+                            <div className="fi-label">Ship To / Place of Supply:</div>
+                            <div className="fi-client-company">{sale.shop_name}</div>
+                            <div className="fi-client-address">{sale.shop_location || sale.shop_address || 'As per billing'}</div>
                         </div>
                     </div>
                 </div>
 
-                <div className="invoice-table-outer">
-                    <table className="invoice-table">
+                <div className="fi-table-container">
+                    <table className="fi-table">
                         <thead>
                             <tr>
-                                <th width="60">S.NO</th>
-                                <th>DESCRIPTION OF GOODS / SERVICES</th>
-                                <th width="100" className="text-center">QTY</th>
-                                <th width="120" className="text-right">UNIT RATE</th>
-                                <th width="140" className="text-right">TOTAL</th>
+                                <th width="5%">S.N.</th>
+                                <th width="50%">Description of Goods</th>
+                                <th width="10%">Qty</th>
+                                <th width="15%">Unit Rate</th>
+                                <th width="20%">Amount</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -139,66 +130,77 @@ const Invoice = () => {
                                 <tr key={index}>
                                     <td className="text-center">{index + 1}</td>
                                     <td>
-                                        <div className="item-main">
-                                            <span className="item-name">{item.name}</span>
-                                            {item.sku && <span className="item-sku">SKU: {item.sku}</span>}
-                                        </div>
+                                        <div className="fi-item-name">{item.name}</div>
+                                        {item.sku && <div className="fi-item-sku">SKU: {item.sku}</div>}
                                     </td>
                                     <td className="text-center">{item.quantity}</td>
                                     <td className="text-right">₹{parseFloat(item.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                                    <td className="text-right font-black">₹{(item.quantity * item.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                    <td className="text-right">₹{(item.quantity * item.price).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                </tr>
+                            ))}
+                            {/* Empty rows to maintain professional length if needed */}
+                            {[...Array(Math.max(0, 5 - items.length))].map((_, i) => (
+                                <tr key={`empty-${i}`} className="empty-row">
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    <td>&nbsp;</td>
                                 </tr>
                             ))}
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan="2" className="text-right no-border">Total Quantity: {items.reduce((s, i) => s + i.quantity, 0)}</td>
+                                <td colSpan="2" className="fi-total-label">Subtotal</td>
+                                <td className="text-right">₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            </tr>
+                            {Number(sale.shipping_charge) > 0 && (
+                                <tr>
+                                    <td colSpan="4" className="fi-total-label">Logistics/Shipping</td>
+                                    <td className="text-right">+ ₹{Number(sale.shipping_charge).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                </tr>
+                            )}
+                            {Number(sale.discount_amount) > 0 && (
+                                <tr>
+                                    <td colSpan="4" className="fi-total-label">Discount</td>
+                                    <td className="text-right">- ₹{Number(sale.discount_amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                </tr>
+                            )}
+                            <tr className="grand-total-row">
+                                <td colSpan="4" className="fi-grand-label">Grand Total (Inclusive of all taxes)</td>
+                                <td className="fi-grand-value">₹{finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
 
-                <div className="invoice-lower">
-                    <div className="lower-left">
-                        <div className="terms-section" style={{ marginTop: '2rem' }}>
-                            <h4>TERMS & CONDITIONS</h4>
-                            <ul>
-                                <li>Goods once sold will not be taken back.</li>
-                                <li>Subject to local jurisdiction.</li>
-                                <li>Please quote order reference in all communication.</li>
-                            </ul>
+                <div className="fi-bottom-section">
+                    <div className="fi-notes-area">
+                        <div className="fi-section-title">Terms & Conditions:</div>
+                        <ul className="fi-terms">
+                            <li>Goods once sold will not be taken back or exchanged.</li>
+                            <li>Payment should be made within 7 days of invoice date.</li>
+                            <li>All disputes are subject to local jurisdiction.</li>
+                        </ul>
+                        
+                        <div className="fi-bank-details" style={{ marginTop: '20px' }}>
+                            <div className="fi-section-title">Bank Details:</div>
+                            <p>Bank Name: <strong>Your Bank Name</strong></p>
+                            <p>Account No: <strong>1234567890</strong></p>
+                            <p>IFSC Code: <strong>BANK000123</strong></p>
                         </div>
                     </div>
-
-                    <div className="lower-right">
-                        <div className="calculation-panel">
-                            <div className="calc-row">
-                                <span>SUBTOTAL</span>
-                                <strong>₹{subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                            </div>
-
-                            <div className="calc-row">
-                                <span>LOGISTICS CHARGE</span>
-                                <strong>+ ₹{Number(sale.shipping_charge || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                            </div>
-                            <div className="calc-row discount">
-                                <span>DISCRETIONARY DISCOUNT</span>
-                                <strong className="text-red-500">- ₹{Number(sale.discount_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                            </div>
-                            <div className="calc-divider"></div>
-                            <div className="calc-row total-row">
-                                <div className="total-label">
-                                    <span>GRAND TOTAL</span>
-                                </div>
-                                <span className="total-value">₹{finalTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                            </div>
-                            <div className="payment-summary-box">
-                                <div className="p-row">
-                                    <span>Captured Amount</span>
-                                    <strong>₹{parseFloat(sale.paid_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
-                                </div>
-                                <div className="p-row balance">
-                                    <span>Current Balance Due</span>
-                                    <strong className={finalTotal - parseFloat(sale.paid_amount || 0) > 0 ? 'text-red-600' : 'text-emerald-600'}>
-                                        ₹{Math.max(0, finalTotal - parseFloat(sale.paid_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                    </strong>
-                                </div>
-                            </div>
+                    
+                    <div className="fi-sign-area">
+                        <div className="fi-captured-info">
+                            <p>Paid Amount: <strong>₹{parseFloat(sale.paid_amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></p>
+                            <p>Balance Due: <strong>₹{Math.max(0, finalTotal - parseFloat(sale.paid_amount || 0)).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong></p>
+                        </div>
+                        <div className="fi-signatory-box">
+                            <p className="fi-company-sign">For {company.company_name || 'Secuvra Enterprise'}</p>
+                            <div className="fi-sign-space"></div>
+                            <p className="fi-auth-label">Authorized Signatory</p>
                         </div>
                     </div>
                 </div>
