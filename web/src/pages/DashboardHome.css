@@ -35,8 +35,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 2rem;
-    flex-wrap: wrap;
+    gap: 3rem;
+    flex-wrap: nowrap;
 }
 
 .header-title h1 {
@@ -54,15 +54,9 @@
 }
 
 .header-search {
-    flex: 1;
-    max-width: 500px;
+    flex: 0 1 500px;
     position: relative;
-}
-
-.header-search {
-    flex: 1;
-    max-width: 500px;
-    position: relative;
+    margin-left: auto;
 }
 
 .search-input-wrapper {
@@ -94,12 +88,6 @@
     box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
 }
 
-
-.search-input-wrapper input {
-    background: white;
-    box-shadow: none;
-    border: 1px solid #e5e7eb;
-}
 
 
 .search-results-dropdown {
