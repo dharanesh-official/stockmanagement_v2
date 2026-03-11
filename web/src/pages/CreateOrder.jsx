@@ -450,18 +450,37 @@ const CreateOrder = ({ user }) => {
                                             <hr className="divider" />
 
                                             <div className="form-group-v2">
-                                                <label className="premium-label">Advance Payment (₹)</label>
-                                                <input type="number" className="premium-input highlight" placeholder="0.00" value={orderData.paid_amount || ''} onChange={e => setOrderData({ ...orderData, paid_amount: e.target.value })} />
-                                            </div>
-
-                                            <div className="form-group-v2">
-                                                <label className="premium-label">Payment Method</label>
-                                                <select value={orderData.payment_method} onChange={e => setOrderData({...orderData, payment_method: e.target.value})} className="premium-input">
+                                                <label className="premium-label flex justify-between">
+                                                    Payment Method
+                                                    <div className="flex items-center gap-1 cursor-pointer" onClick={() => setOrderData({ ...orderData, paid_amount: totalAmount })}>
+                                                        <CheckCircle size={12} className="text-green-600" />
+                                                        <span className="text-[10px] text-green-600">Paid in Full</span>
+                                                    </div>
+                                                </label>
+                                                <select value={orderData.payment_method} onChange={e => {
+                                                    const method = e.target.value;
+                                                    const isFullPay = ['Cash', 'UPI', 'Bank'].includes(method);
+                                                    setOrderData({
+                                                        ...orderData, 
+                                                        payment_method: method,
+                                                        paid_amount: isFullPay ? totalAmount : orderData.paid_amount
+                                                    });
+                                                }} className="premium-input">
                                                     <option value="Cash">Physical Cash</option>
                                                     <option value="UPI">Digital UPI</option>
                                                     <option value="Bank">Bank Transfer</option>
                                                     <option value="Credit">Store Credit</option>
                                                 </select>
+                                            </div>
+
+                                            <div className="form-group-v2">
+                                                <label className="premium-label">Advance Payment (₹)</label>
+                                                <div className="relative">
+                                                    <input type="number" className="premium-input highlight" placeholder="0.00" value={orderData.paid_amount || ''} onChange={e => setOrderData({ ...orderData, paid_amount: e.target.value })} />
+                                                    {Number(orderData.paid_amount) === totalAmount && (
+                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">FULL</span>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             <div className="form-group-v2">

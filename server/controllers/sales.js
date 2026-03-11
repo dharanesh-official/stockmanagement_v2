@@ -120,9 +120,10 @@ const createSale = async (req, res) => {
                     
                     // Only enforce limit if:
                     // 1. A limit is set (> 0)
-                    // 2. This transaction is taking credit (paid < payable)
-                    // 3. The resulting balance would exceed the limit
-                    if (limit > 0 && paid_amount < total_payable && projectedBalance > limit) {
+                    // 2. The user specifically selected 'Credit' as payment method
+                    // 3. This transaction is taking credit (paid < payable)
+                    // 4. The resulting balance would exceed the limit
+                    if (limit > 0 && payment_method === 'Credit' && paid_amount < total_payable && projectedBalance > limit) {
                         throw new Error(`Shop Credit limit exceeded. Projected Balance: ₹${projectedBalance.toFixed(2)}, Limit: ₹${limit}`);
                     }
                 }
