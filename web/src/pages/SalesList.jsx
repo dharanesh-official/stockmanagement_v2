@@ -209,10 +209,10 @@ const SalesList = ({ user }) => {
                             <tr>
                                 <th>ORDER / INVOICE</th>
                                 <th>CLIENT & SHOP</th>
-                                <th>LOCATION</th>
-                                <th>ORIGIN</th>
-                                <th>PAYMENT</th>
-                                <th>STATUS</th>
+                                <th style={{ textAlign: 'center' }}>LOCATION</th>
+                                <th style={{ textAlign: 'center' }}>ORIGIN</th>
+                                <th style={{ textAlign: 'center' }}>PAYMENT</th>
+                                <th style={{ textAlign: 'center' }}>STATUS</th>
                                 <th style={{ textAlign: 'right' }}>DUE AMOUNT</th>
                                 <th style={{ textAlign: 'right' }}>TOTAL</th>
                                 <th style={{ textAlign: 'right' }}>ACTIONS</th>
@@ -260,7 +260,7 @@ const SalesList = ({ user }) => {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td style={{ textAlign: 'center' }}>
                                             {sale.shop_location ? (
                                                 <button 
                                                     onClick={(e) => { e.stopPropagation(); handleGetDirections(sale.shop_location); }}
@@ -287,16 +287,16 @@ const SalesList = ({ user }) => {
                                                 {sale.order_type || 'Direct Sale'}
                                             </span>
                                         </td>
-                                        <td>
-                                            <div className="flex flex-col items-start gap-1">
-                                                <span className={`status-pill ${payStatus.class.replace('badge-', '')}`} style={{ whiteSpace: 'nowrap' }}>{payStatus.label}</span>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span className={`status-pill ${payStatus.class.replace('badge-', '')}`} style={{ whiteSpace: 'nowrap', justifyContent: 'center', minWidth: '90px' }}>{payStatus.label}</span>
                                                 <small className="text-gray-400 font-bold uppercase" style={{ fontSize: '9px', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                                                     {sale.payment_method || 'UNSPECIFIED'}
                                                 </small>
                                             </div>
                                         </td>
-                                        <td>
-                                            <div style={{ position: 'relative', display: 'inline-block', minWidth: '130px' }}>
+                                        <td style={{ textAlign: 'center' }}>
+                                            <div style={{ position: 'relative', display: 'inline-block', minWidth: '130px', margin: '0 auto' }}>
                                                 <div className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} style={{ padding: '0.45rem 0.8rem', cursor: updatingId === sale.id ? 'wait' : 'pointer', background: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#f1f5f9' : undefined, color: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#475569' : undefined, width: '100%', whiteSpace: 'nowrap' }}>
                                                     <span>{sale.status}</span>
                                                     {updatingId === sale.id ? (
