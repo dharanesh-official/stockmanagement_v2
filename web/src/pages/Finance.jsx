@@ -170,7 +170,11 @@ const Finance = ({ user }) => {
     const formatDate = (dateStr) => {
         if (!dateStr) return 'N/A';
         const date = new Date(dateStr);
-        return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString('en-IN');
+        return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
     };
 
     const handleExportExcel = () => {
@@ -351,9 +355,9 @@ const Finance = ({ user }) => {
                                     filteredDues.map((item) => (
                                         <tr key={item.id}>
                                             <td>
-                                                <div className="invoice-badge">{item.invoice_number}</div>
+                                                <div className="invoice-badge">{item.invoice_number || 'Draft #'}</div>
                                                 <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#94a3b8', fontWeight: 'bold' }}>
-                                                    {formatDate(item.created_at || item.order_date)}
+                                                    {formatDate(item.transaction_date || item.created_at || item.order_date)}
                                                 </div>
                                             </td>
                                             <td>
