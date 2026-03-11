@@ -95,6 +95,7 @@ const Employees = ({ user }) => {
     const [areaFilter, setAreaFilter] = useState('all');
     const [areas, setAreas] = useState([]);
     const [areaSearch, setAreaSearch] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) return;
