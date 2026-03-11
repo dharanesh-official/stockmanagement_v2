@@ -116,7 +116,7 @@ const Finance = ({ user }) => {
             startOfMonth.setHours(0,0,0,0);
             
             const collectedThisMonth = allSales
-                .filter(s => s.type === 'payment' && new Date(s.created_at) >= startOfMonth)
+                .filter(s => s.type === 'payment' && new Date(s.transaction_date || s.created_at) >= startOfMonth)
                 .reduce((sum, s) => sum + Number(s.paid_amount || 0), 0);
 
             setStats({

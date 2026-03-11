@@ -22,6 +22,7 @@ const getSales = async (req, res) => {
             query += ` 
                 WHERE (s.salesman_id = $1 
                 OR c.salesman_id = $1 
+                OR t.user_id = $1
                 OR s.area_id IN (SELECT unnest(assigned_areas) FROM users WHERE id = $1))
             `;
             params.push(id);
