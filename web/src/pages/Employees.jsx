@@ -24,7 +24,6 @@ const ROLES = [
     { id: 'admin', name: 'Admin', color: 'badge-green' },
     { id: 'manager', name: 'Manager', color: 'badge-blue' },
     { id: 'salesman', name: 'Salesman', color: 'badge-indigo' },
-    { id: 'warehouse_staff', name: 'Warehouse Staff', color: 'badge-gray' },
     { id: 'custom', name: 'Custom Role', color: 'badge-gray' }
 ];
 
@@ -514,13 +513,23 @@ const Employees = ({ user }) => {
                                                         ? 'Administrators have full access to all modules and settings.'
                                                         : 'Salesmen have standard access to stock, customers, and sales creation.'}
                                                 </p>
-                                                <div className="preview-badges">
-                                                    {MODULES.filter(m => formData.permissions[m.id]?.view).map(m => (
-                                                        <div key={m.id} className="preview-badge">
-                                                            <Check size={10} color="#10b981" />
-                                                            {m.name}
-                                                        </div>
-                                                    ))}
+                                                <div className="preview-detailed-list">
+                                                    {MODULES.filter(m => formData.permissions[m.id]?.view).map(m => {
+                                                        const p = formData.permissions[m.id];
+                                                        const actions = Object.keys(p).filter(k => p[k] === true);
+                                                        return (
+                                                            <div key={m.id} className="preview-module-detail">
+                                                                <span className="module-title-alt">{m.name}</span>
+                                                                <div className="module-actions-badges">
+                                                                    {actions.map(action => (
+                                                                        <span key={action} className="action-tag-sm">
+                                                                            {action.charAt(0).toUpperCase() + action.slice(1)}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         ) : (

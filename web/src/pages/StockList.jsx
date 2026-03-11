@@ -246,9 +246,11 @@ const StockList = () => {
                         <button className="btn btn-secondary" onClick={handleExportExcel}>
                             <Download size={18} /> Export Excel
                         </button>
-                        <button className="btn btn-secondary" onClick={() => setShowCategoryModal(true)}>
-                            <LayoutGrid size={18} /> Categories
-                        </button>
+                        {user?.role !== 'salesman' && (
+                            <button className="btn btn-secondary" onClick={() => setShowCategoryModal(true)}>
+                                <LayoutGrid size={18} /> Categories
+                            </button>
+                        )}
 
                         {hasPermission('stock', 'create') && (
                             <button className="btn btn-primary" onClick={() => { resetStockForm(); setShowModal(true); }}>

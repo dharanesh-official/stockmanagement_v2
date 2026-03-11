@@ -14,8 +14,16 @@ const verifyToken = (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-    if (req.user.role !== 'admin') return res.status(403).send('Access Denied: Admins Only');
+    if (req.user.role !== 'admin' && req.user.role !== 'super_admin') return res.status(403).send('Access Denied: Admins Only');
     next();
 };
 
-module.exports = { verifyToken, isAdmin };
+const isStaff = (req, res, next) => {
+    const staffRoles = ['admin', 'super_admin', 'manager', 'employee'];
+    if (!staffRoles.includes(req.user.role)) {
+        return res.status(403).send('Access Denied: Staff Only');
+    }
+    next();
+};
+
+module.exports = { verifyToken, isAdmin, isStaff };

@@ -13,6 +13,15 @@
     flex: 1;
 }
 
+.permissions-modal-content {
+    max-width: 900px !important;
+    width: 95%;
+}
+
+.permissions-modal-content .managed-form {
+    padding: 0;
+}
+
 /* Form system handled globally */
 
 
@@ -360,9 +369,34 @@
 
 .form-sections-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    padding: 24px 32px;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 0;
+    padding: 0;
+}
+
+.info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 32px;
+}
+
+.permissions-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-left: 1px solid #f1f5f9;
+    padding: 32px;
+    background: #fcfcfd;
+}
+
+@media (max-width: 1000px) {
+    .permissions-section {
+        border-left: none;
+        padding-left: 0;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 24px;
+    }
 }
 
 /* Area Selection Grid */
@@ -630,10 +664,13 @@
     color: white;
 }
 
-.action-toggle.disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-    background: #f1f5f9;
+.modal-actions-alt {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 24px 32px;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
 }
 
 .role-preview-card {
@@ -643,21 +680,46 @@
     padding: 16px;
 }
 
-.preview-badges {
+.preview-detailed-list {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
 }
 
-.preview-badge {
+.preview-module-detail {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.module-title-alt {
     font-size: 0.75rem;
+    font-weight: 800;
+    color: #334155;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.module-actions-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.action-tag-sm {
+    font-size: 0.7rem;
     font-weight: 600;
-    color: #475569;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    padding: 2px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.action-tag-sm:hover {
+    border-color: #10b981;
+    color: #10b981;
+    background: #ecfdf5;
 }

@@ -117,7 +117,7 @@ const DashboardHome = () => {
             title: 'Total Sales',
             value: `₹${(stats.totalSales || 0).toLocaleString()}`,
             icon: <IndianRupee size={22} />,
-            trend: '+12.5%',
+            trend: stats.totalSales > 0 ? '+12.5%' : null,
             isPositive: true,
             color: 'blue'
         },
@@ -125,7 +125,7 @@ const DashboardHome = () => {
             title: 'Active Customers',
             value: stats.totalCustomers || 0,
             icon: <Users size={22} />,
-            trend: '+3.2%',
+            trend: stats.totalCustomers > 0 ? '+3.2%' : null,
             isPositive: true,
             color: 'purple'
         },
@@ -133,7 +133,7 @@ const DashboardHome = () => {
             title: 'Inventory Items',
             value: stats.totalStockItems || 0,
             icon: <Package size={22} />,
-            trend: '-2.4%',
+            trend: stats.totalStockItems > 0 ? '-2.4%' : null,
             isPositive: false,
             color: 'orange'
         },
@@ -141,7 +141,7 @@ const DashboardHome = () => {
             title: 'Critical Low Stock',
             value: stats.lowStockCount || 0,
             icon: <AlertTriangle size={22} />,
-            trend: 'Action-Needed',
+            trend: stats.lowStockCount > 0 ? 'Action-Needed' : null,
             isPositive: false,
             color: 'red'
         }
@@ -297,10 +297,12 @@ const DashboardHome = () => {
                             <div className={`stat-icon ${card.color}`}>
                                 {card.icon}
                             </div>
-                            <span className={`trend ${card.isPositive ? 'positive' : 'negative'}`}>
-                                {card.isPositive ? <ArrowUpRight size={14} /> : <AlertTriangle size={14} />}
-                                {card.trend}
-                            </span>
+                            {card.trend && (
+                                <span className={`trend ${card.isPositive ? 'positive' : 'negative'}`}>
+                                    {card.isPositive ? <ArrowUpRight size={14} /> : <AlertTriangle size={14} />}
+                                    {card.trend}
+                                </span>
+                            )}
                         </div>
                         <div className="stat-card-body">
                             <h3>{card.title}</h3>
