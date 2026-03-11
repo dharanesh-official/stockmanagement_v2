@@ -94,8 +94,8 @@ const addCustomer = async (req, res) => {
         city, state, pincode, notes, tags 
     } = req.body;
 
-    if (!full_name || !email || !phone || !address || !city || !state || !pincode || !company_name) {
-        return res.status(400).send('All fields are mandatory (Name, Email, Phone, Address, City, State, Pincode, Company Name)');
+    if (!full_name || !email || !phone || !address || !city || !state || !pincode) {
+        return res.status(400).send('All fields are mandatory (Name, Email, Phone, Address, City, State, Pincode)');
     }
     const salesman_id = req.user.id;
     try {
@@ -129,7 +129,7 @@ const updateCustomer = async (req, res) => {
         city, state, pincode, notes, status, tags 
     } = req.body;
 
-    if (!full_name || !email || !phone || !address || !city || !state || !pincode || !company_name) {
+    if (!full_name || !email || !phone || !address || !city || !state || !pincode) {
         return res.status(400).send('All fields are mandatory');
     }
     const { role, id: userId } = req.user;

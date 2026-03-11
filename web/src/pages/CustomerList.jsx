@@ -41,6 +41,7 @@ const CustomerList = () => {
         phone: '',
         address: '',
         customer_type: 'Retail',
+        company_name: '',
         city: '',
         state: 'Tamil Nadu',
         pincode: '',
@@ -63,6 +64,8 @@ const CustomerList = () => {
 
     const resetForm = React.useCallback(() => {
         setFormData({
+            full_name: '', email: '', phone: '', address: '',
+            customer_type: 'Retail', company_name: '',
             city: '', state: 'Tamil Nadu', pincode: '',
             notes: '', status: 'Active', tags: []
         });
@@ -112,10 +115,11 @@ const CustomerList = () => {
     const handleCreateOrUpdate = async (e) => {
         e.preventDefault();
         // UI Validation
-        if (!formData.full_name || !formData.email || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode || !formData.company_name) {
-            alert("All fields are mandatory (Name, Email, Phone, Address, City, State, Pincode, Company Name)");
+        if (!formData.full_name || !formData.email || !formData.phone || !formData.address || !formData.city || !formData.state || !formData.pincode) {
+            alert("All fields are mandatory (Name, Email, Phone, Address, City, State, Pincode)");
             return;
         }
+
         try {
             if (formData.id) {
                 await api.put(`/customers/${formData.id}`, formData);
