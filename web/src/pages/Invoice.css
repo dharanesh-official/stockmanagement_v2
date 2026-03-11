@@ -468,15 +468,16 @@
 
 @media print {
     @page { 
-        size: landscape; 
-        margin: 10mm; 
+        size: A4 portrait; 
+        margin: 15mm 10mm; 
     }
     
     .no-print, 
     .sidebar, 
     .sidebar-container, 
     .header,
-    .breadcrumb {
+    .breadcrumb,
+    .invoice-actions {
         display: none !important;
     }
 
@@ -484,6 +485,8 @@
         background: white !important;
         margin: 0;
         padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .invoice-page-container {
@@ -499,31 +502,53 @@
     }
 
     .invoice-paper {
-        margin: 0 auto !important;
+        margin: 0 !important;
         box-shadow: none !important;
         width: 100% !important;
         min-height: auto !important;
         border: none !important;
         padding: 0 !important;
+        display: block !important;
     }
 
-    /* Ensure table colors print correctly */
+    .invoice-header {
+        break-inside: avoid;
+        margin-bottom: 30px;
+    }
+
+    .invoice-contacts {
+        break-inside: avoid;
+        margin-bottom: 30px;
+    }
+
+    .invoice-table-outer {
+        margin-bottom: 20px;
+    }
+
+    .invoice-table {
+        page-break-inside: auto;
+    }
+
+    .invoice-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
     .invoice-table th {
         background-color: #f8fafc !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        color: #64748b !important;
+    }
+
+    .invoice-lower {
+        break-inside: avoid;
+        margin-top: 20px;
     }
 
     .logo-box {
         background-color: #10b981 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
     }
 
     .total-value {
         color: #10b981 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
     }
-
 }
