@@ -41,8 +41,8 @@ const createReturn = async (req, res) => {
         const date = new Date();
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
-        const countRes = await client.query("SELECT COUNT(*) FROM returns WHERE return_number LIKE $1", [`RET-${year}${month}-%`]);
-        const count = parseInt(countRes.rows[0].count) + 1;
+        const countRes = await client.query("SELECT nextval('return_num_seq')");
+        const count = countRes.rows[0].nextval;
         const return_number = `RET-${year}${month}-${count.toString().padStart(4, '0')}`;
 
         let total_refund_amount = 0;
