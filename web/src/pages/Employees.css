@@ -7,10 +7,16 @@
 
 
 .profile-view-content {
-    padding: 32px;
+    padding: 32px 40px;
     background: #ffffff;
     overflow-y: auto;
+    overflow-x: hidden;
     flex: 1;
+}
+
+/* Ensure padding is enforced even when within permissions modal */
+.permissions-modal-content .profile-view-content {
+    padding: 32px 40px !important;
 }
 
 .permissions-modal-content {
@@ -18,7 +24,8 @@
     width: 95%;
 }
 
-.permissions-modal-content .managed-form {
+/* Zero padding only for the multi-section creation form grid */
+.permissions-modal-content .managed-form:not(.profile-view-content) {
     padding: 0;
 }
 
