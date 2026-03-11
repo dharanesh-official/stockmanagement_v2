@@ -14,14 +14,14 @@ const PORT = process.env.PORT || 5000;
 // 1. Security Headers
 app.use(helmet());
 
-// 2. Trust Proxy (Crucial for VPS/Load Balancers to get correct IP)
+// 2. Trust Proxy (Crucial for Vercel/VPS to get correct IP)
 app.set('trust proxy', 1);
 
 // 3. Rate Limiting (Global)
 const globalLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 1000, // limit each IP to 1000 requests per windowMs
-    message: 'Too many requests from this IP, please try again after 15 minutes',
+    windowMs: 15 * 60 * 1000,
+    max: 2000, // Increased limit for Vercel/Shared IP safety
+    message: 'Too many requests, please try again later',
     standardHeaders: true,
     legacyHeaders: false,
 });
@@ -29,9 +29,9 @@ app.use('/api/', globalLimiter);
 
 // 4. Stricter Rate Limiting for Auth
 const authLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 20, // limit each IP to 20 login/register attempts per hour
-    message: 'Too many login attempts, please try again in an hour',
+    windowMs: 15 * 60 * 1000, // Reduced window
+    max: 50, // Increased count for shared IP safety
+    message: 'Too many attempts, please try again later',
     standardHeaders: true,
     legacyHeaders: false,
 });
@@ -41,13 +41,14 @@ app.use('/api/auth/register', authLimiter);
 // 5. CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS 
     ? process.env.ALLOWED_ORIGINS.split(',') 
-    : ['http://localhost:3000', 'http://localhost:5173']; // Default dev ports
+    : [];
 
 app.use(cors({
     origin: (origin, callback) => {
-        // Allow requests with no origin (like mobile apps or curl)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+        // If no origins defined in ENV, allow all for now (backwards compatibility)
+        if (allowedOrigins.length === 0) return callback(null, true);
+        
+        if (!origin || allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
@@ -55,7 +56,7 @@ app.use(cors({
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
-    maxAge: 86400 // Cache preflight requests for 24 hours
+    maxAge: 86400
 }));
 
 // 6. Data Sanitization (XSS & Parameter Pollution)
