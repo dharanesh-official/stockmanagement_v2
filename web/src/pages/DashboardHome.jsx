@@ -257,16 +257,7 @@ const DashboardHome = () => {
                                 </div>
                             )}
                         </div>
-                        <select 
-                            className="period-filter" 
-                            value={period} 
-                            onChange={(e) => setPeriod(e.target.value)}
-                        >
-                            <option value="today">Today's Performance</option>
-                            <option value="7d">Last 7 Days</option>
-                            <option value="30d">Month to Date</option>
-                            <option value="90d">Quarterly View</option>
-                        </select>
+
                     </div>
                 </div>
             </header>
