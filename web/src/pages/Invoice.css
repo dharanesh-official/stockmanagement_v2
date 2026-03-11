@@ -268,10 +268,12 @@
     .fi-table th {
         background-color: #f2f2f2 !important;
         -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .fi-grand-label, .fi-grand-value {
         background-color: #f9f9f9 !important;
         -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 }

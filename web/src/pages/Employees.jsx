@@ -36,6 +36,16 @@ const SALESMAN_PERMISSIONS = {
     sales: { view: true, create: true, edit: true, delete: true },
     finance: { view: true, dues: true, credit: true, history: true },
     employees: { view: false, create: false, edit: false, delete: false },
+    settings: { view: false }
+};
+
+const MANAGER_PERMISSIONS = {
+    stock: { view: true, create: true, edit: true, delete: false },
+    customers: { view: true, create: true, edit: true, delete: true },
+    shops: { view: true, create: true, edit: true, delete: true },
+    sales: { view: true, create: true, edit: true, delete: true },
+    finance: { view: true, dues: true, credit: true, history: true },
+    employees: { view: true, create: false, edit: false, delete: false },
     settings: { view: true }
 };
 
@@ -228,7 +238,7 @@ const Employees = ({ user }) => {
             phone: emp.phone || '',
             password: '',
             role: emp.role,
-            permissions: emp.permissions || (emp.role === 'admin' ? ADMIN_PERMISSIONS : SALESMAN_PERMISSIONS),
+            permissions: emp.permissions || (emp.role === 'admin' || emp.role === 'super_admin' ? ADMIN_PERMISSIONS : emp.role === 'manager' ? MANAGER_PERMISSIONS : SALESMAN_PERMISSIONS),
             employee_id: emp.employee_id || '',
             status: emp.status || 'Active',
             assigned_areas: emp.assigned_areas || []
@@ -244,7 +254,8 @@ const Employees = ({ user }) => {
 
     const handleRoleChange = (role) => {
         let newPermissions = formData.permissions;
-        if (role === 'admin') newPermissions = ADMIN_PERMISSIONS;
+        if (role === 'admin' || role === 'super_admin') newPermissions = ADMIN_PERMISSIONS;
+        else if (role === 'manager') newPermissions = MANAGER_PERMISSIONS;
         else if (role === 'salesman') newPermissions = SALESMAN_PERMISSIONS;
         else if (role === 'custom' && !editMode) newPermissions = EMPTY_PERMISSIONS;
 
@@ -531,9 +542,11 @@ const Employees = ({ user }) => {
                                         {formData.role !== 'custom' ? (
                                             <div className="role-preview-card">
                                                 <p className="text-sm text-gray-500 mb-2">
-                                                    {formData.role === 'admin'
-                                                        ? 'Administrators have full access to all modules and settings.'
-                                                        : 'Salesmen have standard access to stock, customers, and sales creation.'}
+                                                    {formData.role === 'admin' || formData.role === 'super_admin'
+                                                        ? 'Administrators have full system access including users and settings.'
+                                                        : formData.role === 'manager'
+                                                        ? 'Managers can manage stock, customers, and view personnel data.'
+                                                        : 'Salesmen have standard access to products, customers, and sales.'}
                                                 </p>
                                                 <div className="preview-detailed-list">
                                                     {MODULES.filter(m => formData.permissions[m.id]?.view).map(m => {
