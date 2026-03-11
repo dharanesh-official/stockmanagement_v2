@@ -117,7 +117,12 @@ const createSale = async (req, res) => {
                     const shop = shopRes.rows[0];
                     const limit = Number(shop.credit_limit);
                     const projectedBalance = Number(shop.current_balance || 0) + (total_payable - paid_amount);
-                    if (limit > 0 && projectedBalance > limit) {
+                    
+                    // Only enforce limit if:
+                    // 1. A limit is set (> 0)
+                    // 2. This transaction is taking credit (paid < payable)
+                    // 3. The resulting balance would exceed the limit
+                    if (limit > 0 && paid_amount < total_payable && projectedBalance > limit) {
                         throw new Error(`Shop Credit limit exceeded. Projected Balance: ₹${projectedBalance.toFixed(2)}, Limit: ₹${limit}`);
                     }
                 }

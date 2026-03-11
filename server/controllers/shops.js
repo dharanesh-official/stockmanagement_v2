@@ -90,14 +90,14 @@ const updateShop = async (req, res) => {
         `;
         const params = [
             name, address, phone, email, customer_id, location, area_id || null,
-            shop_code, shop_type, city, state, pincode, credit_limit, notes, status
+            shop_code, shop_type, city, state, pincode, credit_limit || 0, notes, status
         ];
 
         let paramCount = params.length;
 
         if (req.user.role === 'admin' || req.user.role === 'super_admin') {
             query += ` , salesman_id = $${paramCount + 1} WHERE id = $${paramCount + 2} RETURNING *`;
-            params.push(assignedSalesmanId, id);
+            params.push(salesman_id || req.user.id, id);
         } else {
             query += ` WHERE id = $${paramCount + 1} AND salesman_id = $${paramCount + 2} RETURNING *`;
             params.push(id, req.user.id);

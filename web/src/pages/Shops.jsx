@@ -769,10 +769,10 @@ const Shops = () => {
                   </div>
 
                   <div className="form-group">
-                    <label>Credit Limit (₹)</label>
+                    <label>Credit Limit (₹) (Optional - 0 for unlimited)</label>
                     <input
                       type="number"
-                      placeholder="0.00"
+                      placeholder="0.00 (Optional - Leave 0 for unlimited)"
                       value={formData.credit_limit}
                       onChange={(e) => setFormData({ ...formData, credit_limit: e.target.value })}
                     />
