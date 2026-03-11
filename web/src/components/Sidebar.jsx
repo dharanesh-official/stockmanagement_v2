@@ -17,6 +17,7 @@ import './Sidebar.css';
 import api from '../services/api';
 
 import { X } from 'lucide-react'; // Import X icon
+import { hasPermission } from '../utils/permissions';
 
 const Sidebar = ({ user, isOpen, closeSidebar }) => {
     const role = user?.role;
@@ -49,11 +50,6 @@ const Sidebar = ({ user, isOpen, closeSidebar }) => {
         return () => window.removeEventListener('company-settings-updated', handleUpdate);
     }, []);
 
-    // Helper to check module view permission
-    const canView = (module) => {
-        if (role === 'admin' && (!permissions[module] || permissions[module].view !== false)) return true;
-        return permissions[module]?.view === true;
-    };
 
     return (
         <>
@@ -81,42 +77,42 @@ const Sidebar = ({ user, isOpen, closeSidebar }) => {
                         <span>Dashboard</span>
                     </NavLink>
 
-                    {canView('stock') && (
+                    {hasPermission(user, 'stock', 'view') && (
                         <NavLink to="/dashboard/stock" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
                             <BarChart size={20} />
                             <span>Stock Management</span>
                         </NavLink>
                     )}
 
-                    {canView('customers') && (
+                    {hasPermission(user, 'customers', 'view') && (
                         <NavLink to="/dashboard/customers" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
                             <Users size={20} />
                             <span>Customers</span>
                         </NavLink>
                     )}
 
-                    {canView('shops') && (
+                    {hasPermission(user, 'shops', 'view') && (
                         <NavLink to="/dashboard/shops" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
                             <Store size={20} />
                             <span>Shops</span>
                         </NavLink>
                     )}
 
-                    {canView('sales') && (
+                    {hasPermission(user, 'sales', 'view') && (
                         <NavLink to="/dashboard/sales" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
                             <ShoppingCart size={20} />
                             <span>Sales & Orders</span>
                         </NavLink>
                     )}
 
-                    {canView('finance') && (
+                    {hasPermission(user, 'finance', 'view') && (
                         <NavLink to="/dashboard/finance" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
                             <CreditCard size={20} />
                             <span>Finance</span>
                         </NavLink>
                     )}
 
-                    {canView('employees') && (
+                    {hasPermission(user, 'employees', 'view') && (
                         <NavLink to="/dashboard/employees" className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
                             <UserCheck size={20} />
                             <span>Employees</span>
@@ -125,7 +121,7 @@ const Sidebar = ({ user, isOpen, closeSidebar }) => {
 
                     <div className="border-t border-gray-100 my-4 mx-4"></div>
 
-                    {canView('settings') && (
+                    {hasPermission(user, 'settings', 'view') && (
                         <NavLink to="/dashboard/settings" onClick={closeSidebar} className={({ isActive }) => (isActive ? 'nav-item active' : 'nav-item')}>
                             <Settings size={20} />
                             <span>Settings</span>

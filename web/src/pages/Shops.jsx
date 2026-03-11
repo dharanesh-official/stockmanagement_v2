@@ -24,6 +24,7 @@ import {
   ShoppingCart
 } from "lucide-react";
 import LoadingSpinner from "../components/LoadingSpinner";
+import { hasPermission } from "../utils/permissions";
 import "./StockList.css"; // Reusing common table/page styles
 import "./Shops.css";
 
@@ -137,12 +138,6 @@ const Shops = () => {
     }
   };
 
-  const hasPermission = (module, action) => {
-    if (!user) return false;
-    if (user.role === "admin") return true;
-    const permissions = user.permissions || {};
-    return permissions[module]?.[action] === true;
-  };
 
   const openHistory = async (shop) => {
     try {
@@ -351,11 +346,12 @@ const Shops = () => {
           </div>
         </div>
         <div className="header-actions">
-          {!selectedArea && (user?.role === 'admin' || user?.role === 'super_admin') && (
+          {!selectedArea && hasPermission(user, 'areas', 'view') && (
             <button className="btn btn-secondary" onClick={() => setShowAreaModal(true)}>
               <Map size={18} /> Manage Areas
             </button>
-          )}   {hasPermission("shops", "create") && (
+          )}
+          {hasPermission(user, "shops", "create") && (
             <button
               className="btn btn-primary"
               onClick={() => {
@@ -526,27 +522,31 @@ const Shops = () => {
                             <Navigation size={16} className="text-blue-500" />
                           </button>
                         )}
-                        <button
-                          className="icon-btn-sm"
-                          title="New Order"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate('/dashboard/create-order', { state: { shopId: shop.id } });
-                          }}
-                        >
-                          <ShoppingCart size={16} className="text-blue-600" />
-                        </button>
-                        <button
-                          className="icon-btn-sm"
-                          title="View Finance"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate('/dashboard/finance', { state: { shopId: shop.id, shopName: shop.name } });
-                          }}
-                        >
-                          <CreditCard size={16} className="text-emerald-600" />
-                        </button>
-                        {hasPermission("shops", "edit") && (
+                        {hasPermission(user, 'sales', 'create') && (
+                          <button
+                            className="icon-btn-sm"
+                            title="New Order"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('/dashboard/create-order', { state: { shopId: shop.id } });
+                            }}
+                          >
+                            <ShoppingCart size={16} className="text-blue-600" />
+                          </button>
+                        )}
+                        {hasPermission(user, 'finance', 'view') && (
+                          <button
+                            className="icon-btn-sm"
+                            title="View Finance"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate('/dashboard/finance', { state: { shopId: shop.id, shopName: shop.name } });
+                            }}
+                          >
+                            <CreditCard size={16} className="text-emerald-600" />
+                          </button>
+                        )}
+                        {hasPermission(user, "shops", "edit") && (
                           <button
                             className="icon-btn-sm"
                             onClick={(e) => {
@@ -557,7 +557,7 @@ const Shops = () => {
                             <Edit size={16} />
                           </button>
                         )}
-                        {hasPermission("shops", "delete") && (
+                        {hasPermission(user, "shops", "delete") && (
                           <button
                             className="icon-btn-sm delete-btn"
                             onClick={(e) => {

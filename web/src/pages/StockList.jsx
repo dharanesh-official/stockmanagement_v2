@@ -3,6 +3,7 @@ import api from '../services/api';
 import { Plus, Search, Filter, Trash2, Edit, X, LayoutGrid, PlusCircle, MinusCircle, RefreshCw, History, ArrowLeft, Download } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { exportToExcel } from '../utils/exportExcel';
+import { hasPermission } from '../utils/permissions';
 
 import './StockList.css';
 import './Employees.css';
@@ -70,11 +71,6 @@ const StockList = () => {
         }
     };
 
-    const hasPermission = (module, action) => {
-        if (!user) return false;
-        if ((user.role === 'admin' || user.role === 'super_admin') && (!user.permissions?.[module] || user.permissions[module][action] !== false)) return true;
-        return user.permissions?.[module]?.[action] === true;
-    };
 
     // Category CRUD
     const handleCategorySubmit = async (e) => {
@@ -252,7 +248,7 @@ const StockList = () => {
                             </button>
                         )}
 
-                        {hasPermission('stock', 'create') && (
+                        {hasPermission(user, 'stock', 'create') && (
                             <button className="btn btn-primary" onClick={() => { resetStockForm(); setShowModal(true); }}>
                                 <Plus size={18} /> New Product
                             </button>
@@ -355,10 +351,10 @@ const StockList = () => {
                                                     <History size={16} />
                                                 </button>
                                                 <div className="separator"></div>
-                                                {hasPermission('stock', 'edit') && (
+                                                {hasPermission(user, 'stock', 'edit') && (
                                                     <button className="icon-btn-sm" title="Edit Product" onClick={() => openEditStock(stock)}><Edit size={16} /></button>
                                                 )}
-                                                {hasPermission('stock', 'delete') && (
+                                                {hasPermission(user, 'stock', 'delete') && (
                                                     <button className="icon-btn-sm delete-btn" title="Delete Product" onClick={() => handleDeleteStock(stock.id)}>
                                                         <Trash2 size={16} />
                                                     </button>

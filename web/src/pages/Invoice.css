@@ -5,16 +5,64 @@
 }
 
 .invoice-page-container {
-    padding: 2rem;
-    background: #f1f5f9;
+    padding: 2.5rem;
+    background: #f8fafc;
     min-height: 100vh;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .invoice-actions {
     max-width: 210mm;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto 2rem;
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.85rem 1.75rem;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.btn-action:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: #10b981 !important;
+    border-color: #059669 !important;
+    color: #ffffff !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary:hover {
+    background: #059669 !important;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
 }
 
 .invoice-paper {

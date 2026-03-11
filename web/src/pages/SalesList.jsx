@@ -11,9 +11,11 @@ import SalesAnalytics from './SalesAnalytics';
 import { exportToExcel } from '../utils/exportExcel';
 import { Download } from 'lucide-react';
 import './StockList.css';
+import { hasPermission } from '../utils/permissions';
 
 
-const SalesList = ({ user }) => {
+const SalesList = () => {
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
     const [sales, setSales] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -28,6 +30,8 @@ const SalesList = ({ user }) => {
     const [updatingId, setUpdatingId] = useState(null);
 
     useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) setUser(storedUser);
         fetchSales();
     }, []);
 
@@ -148,9 +152,11 @@ const SalesList = ({ user }) => {
                             {showAnalytics ? <TrendingUp size={18} /> : <BarChart3 size={18} />}
                             {showAnalytics ? 'Hide Market Insights' : 'Show Market Insights'}
                         </button>
-                        <button className="btn btn-primary" onClick={() => navigate('/dashboard/create-order')}>
-                            <Plus size={18} /> New Transaction
-                        </button>
+                        {hasPermission(user, 'sales', 'create') && (
+                            <button className="btn btn-primary" onClick={() => navigate('/dashboard/create-order')}>
+                                <Plus size={18} /> New Transaction
+                            </button>
+                        )}
                     </div>
 
                 </div>
@@ -297,27 +303,41 @@ const SalesList = ({ user }) => {
                                         </td>
                                         <td style={{ textAlign: 'center' }}>
                                             <div style={{ position: 'relative', display: 'inline-block', minWidth: '130px', margin: '0 auto' }}>
-                                                <div className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} style={{ padding: '0.45rem 0.8rem', cursor: updatingId === sale.id ? 'wait' : 'pointer', background: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#f1f5f9' : undefined, color: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#475569' : undefined, width: '100%', whiteSpace: 'nowrap' }}>
+                                                <div 
+                                                    className={`status-pill w-full flex justify-between items-center ${sale.status === 'Delivered' ? 'good' : sale.status === 'Dispatched' ? 'low' : sale.status === 'Cancelled' ? 'critical' : ''}`} 
+                                                    style={{ 
+                                                        padding: '0.45rem 0.8rem', 
+                                                        cursor: (updatingId === sale.id || !hasPermission(user, 'sales', 'edit')) ? 'wait' : 'pointer', 
+                                                        background: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#f1f5f9' : undefined, 
+                                                        color: (sale.status === 'Ordered' || sale.status === 'Confirmed') ? '#475569' : undefined, 
+                                                        width: '100%', 
+                                                        whiteSpace: 'nowrap' 
+                                                    }}
+                                                >
                                                     <span>{sale.status}</span>
-                                                    {updatingId === sale.id ? (
-                                                        <Loader2 size={13} className="animate-spin" />
-                                                    ) : (
-                                                        <ChevronDown size={13} className="opacity-70" />
+                                                    {(hasPermission(user, 'sales', 'edit')) && (
+                                                        updatingId === sale.id ? (
+                                                            <Loader2 size={13} className="animate-spin" />
+                                                        ) : (
+                                                            <ChevronDown size={13} className="opacity-70" />
+                                                        )
                                                     )}
                                                 </div>
-                                                <select
-                                                    value={sale.status}
-                                                    onChange={(e) => handleStatusUpdate(sale.id, e.target.value, sale.status)}
-                                                    disabled={updatingId === sale.id}
-                                                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', appearance: 'none' }}
-                                                >
-                                                    <option value="Ordered">Ordered</option>
-                                                    <option value="Confirmed">Confirmed</option>
-                                                    <option value="Dispatched">Dispatched</option>
-                                                    <option value="Delivered">Delivered</option>
-                                                    <option value="Cancelled">Cancelled</option>
-                                                    <option value="Returned">Returned</option>
-                                                </select>
+                                                {hasPermission(user, 'sales', 'edit') && (
+                                                    <select
+                                                        value={sale.status}
+                                                        onChange={(e) => handleStatusUpdate(sale.id, e.target.value, sale.status)}
+                                                        disabled={updatingId === sale.id}
+                                                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer', appearance: 'none' }}
+                                                    >
+                                                        <option value="Ordered">Ordered</option>
+                                                        <option value="Confirmed">Confirmed</option>
+                                                        <option value="Dispatched">Dispatched</option>
+                                                        <option value="Delivered">Delivered</option>
+                                                        <option value="Cancelled">Cancelled</option>
+                                                        <option value="Returned">Returned</option>
+                                                    </select>
+                                                )}
                                             </div>
                                         </td>
                                         <td style={{ textAlign: 'right' }}>
@@ -338,7 +358,7 @@ const SalesList = ({ user }) => {
                                                 <button className="icon-btn-sm" title="Order Details" onClick={() => navigate(`/dashboard/sales/${sale.id}`)}>
                                                     <Package size={16} />
                                                 </button>
-                                                {user.role === 'admin' && (
+                                                {hasPermission(user, 'sales', 'delete') && (
                                                     <>
                                                         <div className="separator"></div>
                                                         <button className="icon-btn-sm delete-btn" title="Void Order" onClick={() => handleDelete(sale.id)}>

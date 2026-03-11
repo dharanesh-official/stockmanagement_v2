@@ -8,6 +8,7 @@ import {
     TrendingUp, Users, AlertCircle, Calendar, ArrowLeft
 } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { hasPermission } from '../utils/permissions';
 import './StockList.css';
 import './CustomerList.css';
 
@@ -28,6 +29,7 @@ const CustomerList = () => {
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [copied, setCopied] = useState(null);
+    const [user, setUser] = useState(null);
     
     // Filters
     const [filterType, setFilterType] = useState('All');
@@ -85,6 +87,8 @@ const CustomerList = () => {
     }, []);
 
     useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedUser) setUser(storedUser);
         fetchCustomers();
     }, [fetchCustomers]);
 
@@ -172,9 +176,11 @@ const CustomerList = () => {
                     <p className="subtitle">Manage customers and their orders.</p>
                 </div>
                 <div className="header-actions">
-                    <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                        <Plus size={18} /> Add Customer
-                    </button>
+                    {hasPermission(user, 'customers', 'create') && (
+                        <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
+                            <Plus size={18} /> Add Customer
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -304,12 +310,20 @@ const CustomerList = () => {
                                     </td>
                                     <td className="actions-cell">
                                         <div className="flex justify-end gap-2">
-                                            <button className="icon-btn-sm" onClick={() => navigate(`/dashboard/customers/${c.id}`)} title="View Profile"><Eye size={16}/></button>
-                                            <button className="icon-btn-sm" onClick={() => openEdit(c)} title="Edit"><Edit size={16}/></button>
-                                             <button className="icon-btn-sm" style={{ color: '#10b981' }} onClick={() => navigate('/dashboard/finance', { state: { customerId: c.id, customerName: c.full_name } })} title="Record Payment">
-                                                <CreditCard size={16}/>
-                                            </button>
-                                            <button className="icon-btn-sm delete-btn" onClick={() => handleDelete(c.id)} title="Delete"><Trash2 size={16}/></button>
+                                            {hasPermission(user, 'customers', 'view') && (
+                                                <button className="icon-btn-sm" onClick={() => navigate(`/dashboard/customers/${c.id}`)} title="View Profile"><Eye size={16}/></button>
+                                            )}
+                                            {hasPermission(user, 'customers', 'edit') && (
+                                                <button className="icon-btn-sm" onClick={() => openEdit(c)} title="Edit"><Edit size={16}/></button>
+                                            )}
+                                            {hasPermission(user, 'finance', 'create') && ( // Assuming 'finance' module for recording payments
+                                                <button className="icon-btn-sm" style={{ color: '#10b981' }} onClick={() => navigate('/dashboard/finance', { state: { customerId: c.id, customerName: c.full_name } })} title="Record Payment">
+                                                    <CreditCard size={16}/>
+                                                </button>
+                                            )}
+                                            {hasPermission(user, 'customers', 'delete') && (
+                                                <button className="icon-btn-sm delete-btn" onClick={() => handleDelete(c.id)} title="Delete"><Trash2 size={16}/></button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
