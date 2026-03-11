@@ -168,7 +168,7 @@ const StockList = () => {
     const filteredStocks = stocks.filter(stock => {
         const matchesSearch = stock.item_name.toLowerCase().includes(search.toLowerCase()) || 
                              (stock.sku && stock.sku.toLowerCase().includes(search.toLowerCase()));
-        const matchesCategory = filterCategory === 'All' || stock.category_id === filterCategory;
+        const matchesCategory = filterCategory === 'All' || stock.category_id == filterCategory;
         
         const status = getStockStatus(stock.quantity, stock.min_stock_level);
         const matchesStatus = filterStatus === 'All' || status.label === filterStatus;
