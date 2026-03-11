@@ -149,7 +149,7 @@ const updateCustomer = async (req, res) => {
         ];
 
         if (role !== 'admin' && role !== 'super_admin') {
-            query += ' AND salesman_id = $16';
+            query += ' AND salesman_id = $14';
             params.push(userId);
         }
         query += ' RETURNING *';
