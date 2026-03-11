@@ -83,7 +83,7 @@ const createSale = async (req, res) => {
         const { 
             customer_id, shop_id, type, items, notes, due_date, 
             payment_method, applied_invoice_id, order_type, 
-            discount_amount = 0, shipping_charge = 0 
+            discount_amount = 0, shipping_charge = 0, parent_id
         } = req.body;
         const user_id = req.user.id;
 
@@ -129,16 +129,24 @@ const createSale = async (req, res) => {
             `INSERT INTO transactions (
                 user_id, customer_id, shop_id, type, total_amount, notes, status, 
                 paid_amount, due_date, payment_method, applied_invoice_id, 
-                invoice_number, order_type, discount_amount, shipping_charge
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
+                invoice_number, order_type, discount_amount, shipping_charge, parent_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) 
             RETURNING id`,
             [
                 user_id, customer_id, shop_id, type, subtotal, notes, status, 
                 paid_amount, due_date || null, payment_method, applied_invoice_id, 
-                invoice_number, order_type || 'Direct Sale', discount_amount, shipping_charge
+                invoice_number, order_type || 'Direct Sale', discount_amount, shipping_charge, parent_id
             ]
         );
         const transaction_id = transactionRes.rows[0].id;
+
+        // If this is a payment for a specific invoice, update the parent invoice's paid_amount
+        if (type === 'payment' && parent_id) {
+            await client.query(
+                'UPDATE transactions SET paid_amount = paid_amount + $1 WHERE id = $2',
+                [paid_amount, parent_id]
+            );
+        }
 
         // Transaction Items & Stock
         if (items && items.length > 0) {
@@ -157,8 +165,8 @@ const createSale = async (req, res) => {
             }
         }
 
-        // Parent-Child Payment Logic
-        if (paid_amount > 0) {
+        // Parent-Child Payment Logic (only for new orders/sales)
+        if (paid_amount > 0 && type !== 'payment') {
             await client.query(
                 `INSERT INTO transactions (
                     user_id, customer_id, shop_id, type, total_amount, notes, status, 
@@ -172,8 +180,14 @@ const createSale = async (req, res) => {
             );
         }
 
-        // Update Customer
-        const balanceAdjustment = (type === 'sale' || type === 'order') ? (total_payable - paid_amount) : 0;
+        // Update Customer balance
+        let balanceAdjustment = 0;
+        if (type === 'sale' || type === 'order') {
+            balanceAdjustment = total_payable - paid_amount;
+        } else if (type === 'payment') {
+            balanceAdjustment = -paid_amount;
+        }
+
         await client.query(
             'UPDATE customers SET balance = balance + $1, last_purchase_date = NOW() WHERE id = $2',
             [balanceAdjustment, customer_id]

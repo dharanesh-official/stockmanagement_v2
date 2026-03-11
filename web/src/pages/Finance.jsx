@@ -16,6 +16,22 @@ const Finance = ({ user }) => {
     const navigate = useNavigate();
     const location = useLocation();
     
+    // Helper for consistency
+    const getInvoiceBalance = (item) => {
+        const total = Number(item.total_amount || item.amount || 0);
+        const shipping = Number(item.shipping_charge || 0);
+        const discount = Number(item.discount_amount || 0);
+        const paid = Number(item.paid_amount || 0);
+        return (total + shipping - discount) - paid;
+    };
+
+    const getInvoiceTotal = (item) => {
+        const total = Number(item.total_amount || item.amount || 0);
+        const shipping = Number(item.shipping_charge || 0);
+        const discount = Number(item.discount_amount || 0);
+        return total + shipping - discount;
+    };
+    
     // Core Data State
     const [dues, setDues] = useState([]);
     const [shops, setShops] = useState([]);
@@ -68,7 +84,7 @@ const Finance = ({ user }) => {
             // Unpaid invoices
             const unpaid = allSales.filter(s => 
                 (s.type === 'order' || s.type === 'sale') && 
-                Number(s.total_amount || s.amount) > Number(s.paid_amount || 0)
+                getInvoiceBalance(s) > 0.1 // Using epsilon to avoid floating point issues
             );
 
             setDues(unpaid);
@@ -77,7 +93,7 @@ const Finance = ({ user }) => {
             // Calculate Shop-wise Stats
             const shopStats = allShops.map(shop => {
                 const shopInvoices = unpaid.filter(d => d.shop_id === shop.id);
-                const totalOutstanding = shopInvoices.reduce((sum, inv) => sum + (Number(inv.total_amount || inv.amount) - Number(inv.paid_amount || 0)), 0);
+                const totalOutstanding = shopInvoices.reduce((sum, inv) => sum + getInvoiceBalance(inv), 0);
                 return {
                     ...shop,
                     totalOutstanding,
@@ -93,7 +109,7 @@ const Finance = ({ user }) => {
             setHistory(paymentsHistory);
 
             // Calculate Global Stats
-            const totalOut = unpaid.reduce((sum, item) => sum + (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0)), 0);
+            const totalOut = unpaid.reduce((sum, item) => sum + getInvoiceBalance(item), 0);
             
             const startOfMonth = new Date();
             startOfMonth.setDate(1);
@@ -118,7 +134,7 @@ const Finance = ({ user }) => {
 
     const handlePayClick = (invoice) => {
         setSelectedInvoice(invoice);
-        setPaymentAmount(String(Number(invoice.total_amount || invoice.amount) - Number(invoice.paid_amount || 0)));
+        setPaymentAmount(String(getInvoiceBalance(invoice)));
         setShowPaymentModal(true);
     };
 
@@ -190,10 +206,10 @@ const Finance = ({ user }) => {
                 'Date': formatDate(item.created_at || item.order_date),
                 'Shop': item.shop_name || 'Generic Shop',
                 'Customer': item.customer_name || 'Default Customer',
-                'Total Bill (₹)': Number(item.total_amount || item.amount).toLocaleString('en-IN'),
+                'Total Bill (₹)': getInvoiceTotal(item).toLocaleString('en-IN'),
                 'Paid (₹)': Number(item.paid_amount || 0).toLocaleString('en-IN'),
-                'Amount Due (₹)': (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0)).toLocaleString('en-IN'),
-                'Status': Number(item.balance || (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0))) > 5000 ? 'Overdue' : 'Normal'
+                'Amount Due (₹)': getInvoiceBalance(item).toLocaleString('en-IN'),
+                'Status': getInvoiceBalance(item) > 5000 ? 'Overdue' : 'Normal'
             }));
         } else if (activeTab === 'shops') {
             filename = 'Shop_Outstanding_Summary';
@@ -367,12 +383,12 @@ const Finance = ({ user }) => {
                                                 </div>
                                             </td>
                                             <td>
-                                                <div className="currency-text">₹{(Number(item.total_amount || item.amount) - Number(item.paid_amount || 0)).toLocaleString()}</div>
-                                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Total bill: ₹{Number(item.total_amount || item.amount).toLocaleString()}</div>
+                                                <div className="currency-text">₹{getInvoiceBalance(item).toLocaleString()}</div>
+                                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Total bill: ₹{getInvoiceTotal(item).toLocaleString()}</div>
                                             </td>
                                             <td>
-                                                <div className={`status-ring ${Number(item.balance || (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0))) > 5000 ? 'warning' : 'normal'}`}>
-                                                    {Number(item.balance || (Number(item.total_amount || item.amount) - Number(item.paid_amount || 0))) > 5000 ? <><ShieldAlert size={14} /> Overdue</> : <><CheckCircle size={14} /> Normal</>}
+                                                <div className={`status-ring ${getInvoiceBalance(item) > 5000 ? 'warning' : 'normal'}`}>
+                                                    {getInvoiceBalance(item) > 5000 ? <><ShieldAlert size={14} /> Overdue</> : <><CheckCircle size={14} /> Normal</>}
                                                 </div>
                                             </td>
                                             <td>
