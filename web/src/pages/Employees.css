@@ -35,9 +35,9 @@
 /* Profile Header Section */
 .profile-header-grid {
     display: grid;
-    grid-template-columns: 80px 1fr 220px;
-    gap: 24px;
-    align-items: center;
+    grid-template-columns: 80px 1fr auto;
+    gap: 32px;
+    align-items: flex-start;
     margin-bottom: 32px;
     padding-bottom: 32px;
     border-bottom: 1px solid #f1f5f9;
@@ -301,6 +301,16 @@
 .badge-green {
     background: #f0fdf4;
     color: #166534;
+}
+
+.badge-indigo {
+    background: #eef2ff;
+    color: #4338ca;
+}
+
+.badge-purple {
+    background: #faf5ff;
+    color: #6b21a8;
 }
 
 .badge-gray {
