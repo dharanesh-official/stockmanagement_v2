@@ -6,14 +6,19 @@ const getDashboardStats = async (req, res) => {
         const { period } = req.query; // today, 7d, 30d, 90d
 
         let dateFilter = '';
+        let custDateFilter = '';
         if (period === 'today') {
             dateFilter = " AND transaction_date >= CURRENT_DATE";
+            custDateFilter = " AND created_at >= CURRENT_DATE";
         } else if (period === '7d') {
             dateFilter = " AND transaction_date >= CURRENT_DATE - INTERVAL '7 days'";
+            custDateFilter = " AND created_at >= CURRENT_DATE - INTERVAL '7 days'";
         } else if (period === '30d') {
             dateFilter = " AND transaction_date >= CURRENT_DATE - INTERVAL '30 days'";
+            custDateFilter = " AND created_at >= CURRENT_DATE - INTERVAL '30 days'";
         } else if (period === '90d') {
             dateFilter = " AND transaction_date >= CURRENT_DATE - INTERVAL '90 days'";
+            custDateFilter = " AND created_at >= CURRENT_DATE - INTERVAL '90 days'";
         }
 
         // Base queries
@@ -68,7 +73,7 @@ const getDashboardStats = async (req, res) => {
             lowStockPreviewResult
         ] = await Promise.all([
             pool.query(salesQuery, params),
-            pool.query(`SELECT COUNT(*) FROM customers ${role === 'salesman' ? 'WHERE salesman_id = $1' : ''}`, role === 'salesman' ? [id] : []),
+            pool.query(`SELECT COUNT(*) FROM customers WHERE 1=1 ${custDateFilter} ${role === 'salesman' ? 'AND salesman_id = $1' : ''}`, role === 'salesman' ? [id] : []),
             pool.query("SELECT SUM(quantity) as total_qty, SUM(quantity * price) as total_value FROM stock"),
             pool.query("SELECT COUNT(*) FROM stock WHERE quantity < 10"),
             pool.query(recentTransactionsQuery, params),

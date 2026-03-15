@@ -50,7 +50,7 @@ const DashboardHome = () => {
         lowStockPreview: []
     });
     const [loading, setLoading] = useState(true);
-    const [period, setPeriod] = useState('30d');
+    const [period, setPeriod] = useState('today');
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState(null);
     const [isSearching, setIsSearching] = useState(false);
