@@ -9,7 +9,7 @@ const getSales = async (req, res) => {
 
         let query = `
       SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name, s.name as shop_name, s.location as shop_location,
-             (t.total_amount + t.shipping_charge - t.discount_amount - t.paid_amount) as due_amount,
+             (COALESCE(t.total_amount, 0) + COALESCE(t.shipping_charge, 0) - COALESCE(t.discount_amount, 0) - COALESCE(t.paid_amount, 0)) as due_amount,
              EXTRACT(DAY FROM (NOW() - t.due_date)) as days_overdue
       FROM transactions t
       JOIN users u ON t.user_id = u.id
@@ -112,7 +112,7 @@ const createSale = async (req, res) => {
         // If shop-level credit limits are needed, they would be checked here using shop_id.
         if (type === 'order' || type === 'sale') {
             if (shop_id) {
-                const shopRes = await client.query('SELECT credit_limit, (SELECT SUM(total_amount + shipping_charge - discount_amount - paid_amount) FROM transactions WHERE shop_id = $1) as current_balance FROM shops WHERE id = $1', [shop_id]);
+                const shopRes = await client.query('SELECT credit_limit, (SELECT SUM(COALESCE(total_amount, 0) + COALESCE(shipping_charge, 0) - COALESCE(discount_amount, 0) - COALESCE(paid_amount, 0)) FROM transactions WHERE shop_id = $1) as current_balance FROM shops WHERE id = $1', [shop_id]);
                 if (shopRes.rows.length > 0) {
                     const shop = shopRes.rows[0];
                     const limit = Number(shop.credit_limit);
@@ -389,9 +389,9 @@ const getSalesAnalytics = async (req, res) => {
         const metricsQuery = `
             SELECT 
                 COUNT(*) as total_orders,
-                SUM(total_amount + shipping_charge - discount_amount) as total_revenue,
-                SUM(paid_amount) as total_collected,
-                SUM(total_amount + shipping_charge - discount_amount - paid_amount) as total_pending
+                SUM(COALESCE(total_amount, 0) + COALESCE(shipping_charge, 0) - COALESCE(discount_amount, 0)) as total_revenue,
+                SUM(COALESCE(paid_amount, 0)) as total_collected,
+                SUM(COALESCE(total_amount, 0) + COALESCE(shipping_charge, 0) - COALESCE(discount_amount, 0) - COALESCE(paid_amount, 0)) as total_pending
             ${baseQuery}
         `;
 

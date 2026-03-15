@@ -313,7 +313,15 @@ const DashboardHome = () => {
                     </div>
                     <div className="chart-wrapper">
                         <ResponsiveContainer width="100%" height={320}>
-                            <AreaChart data={(stats.recentTransactions || []).slice().reverse()}>
+                            <AreaChart data={(stats.recentTransactions || [])
+                                .filter(tx => ['sale', 'order'].includes(tx.type))
+                                .map(tx => ({
+                                    ...tx,
+                                    finalAmount: Number(tx.total_amount) + Number(tx.shipping_charge || 0) - Number(tx.discount_amount || 0)
+                                }))
+                                .slice()
+                                .reverse()
+                            }>
                                 <defs>
                                     <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.15} />
@@ -339,7 +347,7 @@ const DashboardHome = () => {
                                 />
                                 <Area
                                     type="monotone"
-                                    dataKey="total_amount"
+                                    dataKey="finalAmount"
                                     stroke="#4f46e5"
                                     strokeWidth={3}
                                     fillOpacity={1}
@@ -409,8 +417,8 @@ const DashboardHome = () => {
                                     <p className="tx-date">{new Date(tx.transaction_date).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                                 <div className="tx-amount">
-                                    <p className={tx.type === 'sale' ? 'amount-positive' : 'amount-neutral'}>
-                                        {tx.type === 'sale' ? '↑' : ''} ₹{(tx.total_amount || 0).toLocaleString()}
+                                    <p className={['sale', 'order'].includes(tx.type) ? 'amount-positive' : 'amount-neutral'}>
+                                        {['sale', 'order'].includes(tx.type) ? '↑' : ''} ₹{(Number(tx.total_amount) + Number(tx.shipping_charge || 0) - Number(tx.discount_amount || 0)).toLocaleString()}
                                     </p>
                                     <p className="tx-type">{tx.type}</p>
                                 </div>

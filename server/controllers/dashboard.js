@@ -17,7 +17,7 @@ const getDashboardStats = async (req, res) => {
         }
 
         // Base queries
-        let salesQuery = "SELECT SUM(total_amount) as total FROM transactions WHERE type = 'sale'";
+        let salesQuery = "SELECT SUM(COALESCE(total_amount, 0) + COALESCE(shipping_charge, 0) - COALESCE(discount_amount, 0)) as total FROM transactions WHERE type IN ('sale', 'order')";
         let recentTransactionsQuery = `
             SELECT t.*, u.full_name as salesman_name, c.full_name as customer_name 
             FROM transactions t
@@ -50,7 +50,7 @@ const getDashboardStats = async (req, res) => {
             FROM transaction_items ti 
             JOIN stock s ON ti.stock_id = s.id 
             JOIN transactions t ON ti.transaction_id = t.id 
-            WHERE t.type = 'sale' ${dateFilter} ${role === 'salesman' ? 'AND t.user_id = $1' : ''}
+            WHERE t.type IN ('sale', 'order') ${dateFilter} ${role === 'salesman' ? 'AND t.user_id = $1' : ''}
             GROUP BY s.item_name 
             ORDER BY sold DESC 
             LIMIT 5
@@ -73,9 +73,9 @@ const getDashboardStats = async (req, res) => {
             pool.query("SELECT COUNT(*) FROM stock WHERE quantity < 10"),
             pool.query(recentTransactionsQuery, params),
             pool.query(`
-                SELECT SUM(total_amount) as total 
+                SELECT SUM(COALESCE(total_amount, 0) + COALESCE(shipping_charge, 0) - COALESCE(discount_amount, 0)) as total 
                 FROM transactions 
-                WHERE type = 'sale' 
+                WHERE type IN ('sale', 'order') 
                 AND transaction_date >= date_trunc('month', CURRENT_DATE)
                 ${role === 'salesman' ? 'AND user_id = $1' : ''}
             `, params),
