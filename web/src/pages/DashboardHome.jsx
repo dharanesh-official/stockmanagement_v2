@@ -58,11 +58,13 @@ const DashboardHome = () => {
     const [showNotifs, setShowNotifs] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(new Date());
 
+    const hasFetched = React.useRef(false);
+
     const fetchStats = React.useCallback(async () => {
         try {
-            // Only set loading if we don't have data yet
-            if (!(stats.recentTransactions || []).length) {
+            if (!hasFetched.current) {
                 setLoading(true);
+                hasFetched.current = true;
             }
             const response = await api.get(`/dashboard/stats?period=${period}`);
             setStats(response.data);
@@ -76,7 +78,7 @@ const DashboardHome = () => {
         } finally {
             setLoading(false);
         }
-    }, [period, stats.recentTransactions]);
+    }, [period]);
 
     useEffect(() => {
         const delaySearch = setTimeout(async () => {
